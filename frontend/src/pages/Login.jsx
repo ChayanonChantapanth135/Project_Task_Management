@@ -98,12 +98,12 @@ const Register = () => {
                         เข้าสู่ระบบ
                     </button>
                 </form>
-                <div className="text-center mt-6 text-gray-600 text-sm">
+                {/* <div className="text-center mt-6 text-gray-600 text-sm">
                     ยังไม่มีบัญชีใช่ไหม?{' '}
                     <Link to="/register" className="text-blue-600 hover:text-blue-800 font-medium hover:underline">
                         สร้างบัญชีใหม่
                     </Link>
-                </div>
+                </div> */}
             </div>
         </div>
     )
