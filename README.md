@@ -55,3 +55,7 @@
 - [ ] **หน้าสถิติและรายงาน (Reports Page)**:
   - พัฒนาหน้า `/Reports` เพื่อแสดงกราฟหรืองานที่เลยกำหนด (Overdue Tasks) 
   - การกรองข้อมูลแยกตามโครงการหรือผู้ใช้งาน
+
+Frontend npm run dev
+Sever npm start
+server xampp apache,mysql
