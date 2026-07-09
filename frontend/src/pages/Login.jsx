@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { signIn } from '../lib/auth'
 import { useLanguage } from '../lib/LanguageContext'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 
 const Login = () => {
     const { language, setLanguage, t } = useLanguage()
@@ -97,32 +98,9 @@ const Login = () => {
             {/* Language Switcher */}
             <div style={{
                 position: 'absolute', top: '1.5rem', right: '1.5rem',
-                display: 'flex', gap: '0.5rem', zIndex: 10
+                zIndex: 10
             }}>
-                {['th', 'en'].map((lang) => (
-                    <button
-                        key={lang}
-                        type="button"
-                        onClick={() => setLanguage(lang)}
-                        style={{
-                            padding: '0.4rem 1rem',
-                            borderRadius: '999px',
-                            fontSize: '0.75rem',
-                            fontWeight: '700',
-                            letterSpacing: '0.05em',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            border: language === lang ? '2px solid #fbbf24' : '2px solid rgba(255,255,255,0.2)',
-                            background: language === lang
-                                ? 'linear-gradient(135deg, #f59e0b, #fbbf24)'
-                                : 'rgba(255,255,255,0.08)',
-                            color: language === lang ? '#000' : 'rgba(255,255,255,0.7)',
-                            backdropFilter: 'blur(8px)',
-                        }}
-                    >
-                        {lang.toUpperCase()}
-                    </button>
-                ))}
+                <LanguageSwitcher variant="dark" />
             </div>
 
             {/* Card */}

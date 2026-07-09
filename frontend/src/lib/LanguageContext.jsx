@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 const LanguageContext = createContext();
 
@@ -13,7 +13,7 @@ const translations = {
     reports: "Reports",
     profile: "Profile",
     myTask: "My Task",
-    signOut: "Sign out",
+    signOut: "Sign Out",
     login: "Login",
     loading: "Loading...",
 
@@ -21,11 +21,11 @@ const translations = {
     loginTitle: "Login",
     emailLabel: "Email",
     passwordLabel: "Password",
-    emailPlaceholder: "Enter your email",
-    passwordPlaceholder: "Enter your password",
-    fillAllFields: "Please fill in all fields",
-    loginSuccess: "Login successful! Redirecting...",
-    loginFailed: "Login failed. Please try again.",
+    emailPlaceholder: "Enter Your Email",
+    passwordPlaceholder: "Enter Your Password",
+    fillAllFields: "Please Fill In All Fields",
+    loginSuccess: "Login Successful! Redirecting...",
+    loginFailed: "Login Failed. Please Try Again.",
 
     // Home Page
     homeMessage: "Home For Unregistered Users",
@@ -48,8 +48,74 @@ const translations = {
     recentActivity: "Recent Activity",
     systemAdmin: "System Admin",
     loggedIn: "Logged In",
-    minuteAgo: "1 minute ago",
-    viewAll: "View All"
+    minuteAgo: "1 Minute Ago",
+    viewAll: "View All",
+
+    // Dashboard Cards
+    "-> Manage-Users": "→ Manage Users",
+    "-> Projects": "→ Projects",
+    "-> Reports": "→ Reports",
+
+    // ManageUsers Page
+    manageUsersTitle: "Manage Users",
+    addUserBtn: "Add User",
+    roleFilterAll: "All Roles",
+    statusFilterAll: "All Statuses",
+    activeLabel: "Active",
+    suspendedLabel: "Suspended",
+    searchPlaceholder: "Search by Name or Email...",
+    searchBtn: "Search",
+    showText: "Show",
+    entriesPerPageText: "Entries",
+    searchText: "Search:",
+    colUser: "User",
+    colEmail: "Email",
+    colRole: "Role",
+    colStatus: "Status",
+    colLastLogin: "Last Login",
+    colManage: "Manage",
+    noUsersText: "No Users Found",
+    showingText: "Showing",
+    toText: "to",
+    ofText: "of",
+    entriesText: "Entries",
+    prevText: "Previous",
+    nextText: "Next",
+
+    // ManageUsers Modal
+    addEditUserTitle: "Add / Edit User",
+    editUserTitle: "Edit User Info",
+    addUserTitle: "Add New User",
+    backBtn: "← Back",
+    modalEmailLabel: "Email",
+    modalPasswordLabel: "Password",
+    modalPasswordPlaceholder: "Set Password",
+    modalPasswordEditPlaceholder: "Leave Blank to Keep Current",
+    modalFirstNameLabel: "First Name",
+    modalLastNameLabel: "Last Name",
+    modalPhoneLabel: "Phone Number",
+    modalAvatarLabel: "Profile Picture",
+    modalChoosePhoto: "📷 Choose Photo",
+    modalRemovePhoto: "Remove Photo",
+    modalRoleLabel: "Role",
+    modalActiveLabel: "Active",
+    modalCancelBtn: "Cancel",
+    modalSaveBtn: "✓ Save Changes",
+    modalCreateBtn: "✓ Create User",
+    youBadge: "You",
+
+    // ManageUsers messages
+    fillRequiredFields: "Please Fill In All Required (*) Fields",
+    userUpdatedSuccess: "User Updated Successfully!",
+    userCreatedSuccess: "New User Account Created Successfully!",
+    userAddFailed: "Unable to Add User",
+    suspendConfirm: "Do You Want to Suspend User",
+    activateConfirm: "Do You Want to Reactivate User",
+    confirmSuffix: "?",
+    statusChangeFailed: "Unable to Change User Status",
+    deleteConfirm: "Are You Sure You Want to Permanently Delete User",
+    deleteSuffix: "from the System?",
+    deleteFailed: "Unable to Delete User",
   },
   th: {
     // Header & Navigation
@@ -97,21 +163,87 @@ const translations = {
     systemAdmin: "ผู้ดูแลระบบ",
     loggedIn: "เข้าสู่ระบบ",
     minuteAgo: "1 นาทีที่แล้ว",
-    viewAll: "ดูทั้งหมด"
-  }
+    viewAll: "ดูทั้งหมด",
+
+    // Dashboard Cards
+    "-> Manage-Users": "→ จัดการผู้ใช้งาน",
+    "-> Projects": "→ โปรเจกต์",
+    "-> Reports": "→ รายงาน",
+
+    // ManageUsers Page
+    manageUsersTitle: "จัดการผู้ใช้งาน",
+    addUserBtn: "เพิ่มผู้ใช้",
+    roleFilterAll: "ทุกบทบาท",
+    statusFilterAll: "ทุกสถานะ",
+    activeLabel: "ใช้งานอยู่",
+    suspendedLabel: "ถูกพักใช้งาน",
+    searchPlaceholder: "ค้นหาด้วยชื่อหรืออีเมล...",
+    searchBtn: "ค้นหา",
+    showText: "แสดง",
+    entriesPerPageText: "รายการ",
+    searchText: "ค้นหา:",
+    colUser: "ผู้ใช้",
+    colEmail: "อีเมล",
+    colRole: "บทบาท",
+    colStatus: "สถานะ",
+    colLastLogin: "เข้าใช้งานล่าสุด",
+    colManage: "จัดการ",
+    noUsersText: "ไม่พบผู้ใช้งาน",
+    showingText: "แสดง",
+    toText: "ถึง",
+    ofText: "จาก",
+    entriesText: "รายการ",
+    prevText: "ก่อนหน้า",
+    nextText: "ถัดไป",
+
+    // ManageUsers Modal
+    addEditUserTitle: "เพิ่ม / แก้ไขผู้ใช้",
+    editUserTitle: "แก้ไขข้อมูลผู้ใช้",
+    addUserTitle: "เพิ่มผู้ใช้ใหม่",
+    backBtn: "← กลับ",
+    modalEmailLabel: "อีเมล",
+    modalPasswordLabel: "รหัสผ่าน",
+    modalPasswordPlaceholder: "ตั้งรหัสผ่าน",
+    modalPasswordEditPlaceholder: "เว้นว่างไว้หากไม่ต้องการเปลี่ยน",
+    modalFirstNameLabel: "ชื่อ",
+    modalLastNameLabel: "นามสกุล",
+    modalPhoneLabel: "เบอร์โทรศัพท์",
+    modalAvatarLabel: "รูปโปรไฟล์",
+    modalChoosePhoto: "📷 เลือกรูป",
+    modalRemovePhoto: "ลบรูป",
+    modalRoleLabel: "บทบาท",
+    modalActiveLabel: "ใช้งานอยู่",
+    modalCancelBtn: "ยกเลิก",
+    modalSaveBtn: "✓ บันทึกการแก้ไข",
+    modalCreateBtn: "✓ สร้างผู้ใช้",
+    youBadge: "คุณ",
+
+    // ManageUsers messages
+    fillRequiredFields: "กรุณากรอกข้อมูลดาว (*) ให้ครบถ้วน",
+    userUpdatedSuccess: "อัปเดตข้อมูลผู้ใช้เรียบร้อยแล้ว!",
+    userCreatedSuccess: "สร้างบัญชีผู้ใช้ใหม่เรียบร้อยแล้ว!",
+    userAddFailed: "ไม่สามารถเพิ่มผู้ใช้งานได้",
+    suspendConfirm: "คุณต้องการพักใช้งานผู้ใช้",
+    activateConfirm: "คุณต้องการเปิดใช้งานผู้ใช้",
+    confirmSuffix: "ใช่หรือไม่?",
+    statusChangeFailed: "ไม่สามารถเปลี่ยนสถานะผู้ใช้ได้",
+    deleteConfirm: "คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้",
+    deleteSuffix: "ออกจากระบบอย่างถาวร?",
+    deleteFailed: "ไม่สามารถลบผู้ใช้ได้",
+  },
 };
 
 export const LanguageProvider = ({ children }) => {
   const [language, setLanguage] = useState(() => {
-    return localStorage.getItem('language') || 'th';
+    return localStorage.getItem("language") || "th";
   });
 
   useEffect(() => {
-    localStorage.setItem('language', language);
+    localStorage.setItem("language", language);
   }, [language]);
 
   const toggleLanguage = () => {
-    setLanguage(prev => prev === 'en' ? 'th' : 'en');
+    setLanguage((prev) => (prev === "en" ? "th" : "en"));
   };
 
   const t = (key) => {
@@ -119,7 +251,9 @@ export const LanguageProvider = ({ children }) => {
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, toggleLanguage, t }}>
+    <LanguageContext.Provider
+      value={{ language, setLanguage, toggleLanguage, t }}
+    >
       {children}
     </LanguageContext.Provider>
   );
@@ -128,7 +262,7 @@ export const LanguageProvider = ({ children }) => {
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
   if (!context) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
+    throw new Error("useLanguage must be used within a LanguageProvider");
   }
   return context;
 };

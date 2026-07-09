@@ -30,7 +30,7 @@ const ManageUsers = () => {
     firstName: "",
     lastName: "",
     phone: "",
-    role: "Admin",
+    role: "",
     isActive: true,
   });
   const [avatarFile, setAvatarFile] = useState(null);
@@ -125,7 +125,7 @@ const ManageUsers = () => {
       !formData.firstName ||
       !formData.lastName
     ) {
-      setModalError("กรุณากรอกข้อมูลดาว (*) ให้ครบถ้วน");
+      setModalError(t("fillRequiredFields"));
       return;
     }
 
@@ -147,7 +147,7 @@ const ManageUsers = () => {
           payload,
         );
         await uploadAvatarIfNeeded(selectedUserId);
-        setModalSuccess("อัปเดตข้อมูลผู้ใช้เรียบร้อยแล้ว!");
+        setModalSuccess(t("userUpdatedSuccess"));
       } else {
         const res = await axios.post(
           "http://127.0.0.1:3000/auth/users",
@@ -155,7 +155,7 @@ const ManageUsers = () => {
         );
         const newId = res.data?.id;
         if (newId) await uploadAvatarIfNeeded(newId);
-        setModalSuccess("สร้างบัญชีผู้ใช้ใหม่เรียบร้อยแล้ว!");
+        setModalSuccess(t("userCreatedSuccess"));
       }
 
       setFormData({
@@ -179,9 +179,7 @@ const ManageUsers = () => {
         setModalSuccess("");
       }, 1500);
     } catch (err) {
-      setModalError(
-        err.response?.data?.message || "ไม่สามารถเพิ่มผู้ใช้งานได้",
-      );
+      setModalError(err.response?.data?.message || t("userAddFailed"));
     }
   };
 
@@ -189,8 +187,8 @@ const ManageUsers = () => {
     const nextStatus = user.status === "active" ? "suspended" : "active";
     const confirmMsg =
       nextStatus === "suspended"
-        ? `คุณต้องการพักใช้งานผู้ใช้ ${user.name} ใช่หรือไม่?`
-        : `คุณต้องการเปิดใช้งานผู้ใช้ ${user.name} อีกครั้งใช่หรือไม่?`;
+        ? `${t("suspendConfirm")} ${user.name} ${t("confirmSuffix")}`
+        : `${t("activateConfirm")} ${user.name} ${t("confirmSuffix")}`;
 
     if (window.confirm(confirmMsg)) {
       try {
@@ -206,22 +204,20 @@ const ManageUsers = () => {
         });
         fetchUsers();
       } catch (err) {
-        alert("ไม่สามารถเปลี่ยนสถานะผู้ใช้ได้");
+        alert(t("statusChangeFailed"));
       }
     }
   };
 
   const handleDeleteUser = async (user) => {
     if (
-      window.confirm(
-        `คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้ ${user.name} ออกจากระบบอย่างถาวร?`,
-      )
+      window.confirm(`${t("deleteConfirm")} ${user.name} ${t("deleteSuffix")}`)
     ) {
       try {
         await axios.delete(`http://127.0.0.1:3000/auth/users/${user.id}`);
         fetchUsers();
       } catch (err) {
-        alert("ไม่สามารถลบผู้ใช้ได้");
+        alert(t("deleteFailed"));
       }
     }
   };
@@ -313,9 +309,11 @@ const ManageUsers = () => {
   const getRoleBadgeStyle = (role) => {
     switch (role) {
       case "Admin":
-        return { backgroundColor: "#6c757d", color: "#fff" };
+        return { backgroundColor: "#6391b9ff", color: "#fff" };
       case "Project Manager":
-        return { backgroundColor: "#495057", color: "#fff" };
+        return { backgroundColor: "#5fc2cfff", color: "#fff" };
+      case "Team Leader":
+        return { backgroundColor: "#33968dff", color: "#fff" };
       default:
         return { backgroundColor: "#adb5bd", color: "#212529" };
     }
@@ -332,14 +330,15 @@ const ManageUsers = () => {
             className="h4 d-flex align-items-center gap-2 mb-0"
             style={{ fontWeight: "700" }}
           >
-            <span style={{ fontSize: "1.5rem" }}>👥</span> จัดการผู้ใช้
+            <span style={{ fontSize: "1.5rem" }}>👥</span>{" "}
+            {t("manageUsersTitle")}
           </h2>
           <button
             className="btn btn-primary d-flex align-items-center gap-2 px-3 py-2 rounded-lg"
             style={{ fontSize: "0.9rem" }}
             onClick={handleAddNewClick}
           >
-            <span>👤+</span> เพิ่มผู้ใช้
+            <span>👤+</span> {t("addUserBtn")}
           </button>
         </div>
 
@@ -353,12 +352,12 @@ const ManageUsers = () => {
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}
                 >
-                  <option value="all">-- บทบาททั้งหมด --</option>
+                  <option value="all">{t("roleFilterAll")}</option>
                   <option value="Admin">Admin</option>
                   <option value="Project Manager">Project Manager</option>
+                  <option value="Team Leader">Team Leader</option>
                   <option value="Video Editor">Video Editor</option>
                   <option value="Translator">Translator</option>
-                  <option value="Team Leader">Team Leader</option>
                 </select>
               </div>
               <div className="col-md-3">
@@ -367,23 +366,23 @@ const ManageUsers = () => {
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
-                  <option value="all">-- สถานะทั้งหมด --</option>
-                  <option value="active">ใช้งาน</option>
-                  <option value="inactive">ไม่ใช้งาน</option>
+                  <option value="all">{t("statusFilterAll")}</option>
+                  <option value="active">{t("activeLabel")}</option>
+                  <option value="suspended">{t("suspendedLabel")}</option>
                 </select>
               </div>
               <div className="col-md-4">
                 <input
                   type="text"
                   className="form-control rounded-lg"
-                  placeholder="ค้นหาชื่อหรืออีเมล..."
+                  placeholder={t("searchPlaceholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
               <div className="col-md-2">
                 <button className="btn btn-outline-primary w-100 rounded-lg d-flex align-items-center justify-content-center gap-2">
-                  🔍 ค้นหา
+                  🔍 {t("searchBtn")}
                 </button>
               </div>
             </div>
@@ -396,7 +395,7 @@ const ManageUsers = () => {
             {/* Show entries and Search row */}
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-4">
               <div className="d-flex align-items-center gap-2">
-                <span>แสดง</span>
+                <span>{t("showText")}</span>
                 <select
                   className="form-select form-select-sm rounded-lg"
                   style={{ width: "70px" }}
@@ -410,10 +409,10 @@ const ManageUsers = () => {
                   <option value={25}>25</option>
                   <option value={50}>50</option>
                 </select>
-                <span>รายการต่อหน้า</span>
+                <span>{t("entriesPerPageText")}</span>
               </div>
               <div className="d-flex align-items-center gap-2">
-                <span className="text-muted">ค้นหา:</span>
+                <span className="text-muted">{t("searchText")}</span>
                 <input
                   type="search"
                   className="form-control form-control-sm rounded-lg"
@@ -436,22 +435,22 @@ const ManageUsers = () => {
                 >
                   <tr>
                     <th scope="col" className="border-0">
-                      ผู้ใช้
+                      {t("colUser")}
                     </th>
                     <th scope="col" className="border-0">
-                      อีเมล
+                      {t("colEmail")}
                     </th>
                     <th scope="col" className="border-0">
-                      บทบาท
+                      {t("colRole")}
                     </th>
                     <th scope="col" className="border-0">
-                      สถานะ
+                      {t("colStatus")}
                     </th>
                     <th scope="col" className="border-0">
-                      เข้าสู่ระบบล่าสุด
+                      {t("colLastLogin")}
                     </th>
                     <th scope="col" className="border-0 text-end">
-                      จัดการ
+                      {t("colManage")}
                     </th>
                   </tr>
                 </thead>
@@ -503,7 +502,7 @@ const ManageUsers = () => {
                                   className="badge bg-info text-white rounded-pill px-2 py-1"
                                   style={{ fontSize: "0.7rem" }}
                                 >
-                                  คุณ
+                                  {t("youBadge")}
                                 </span>
                               )}
                             </div>
@@ -527,11 +526,11 @@ const ManageUsers = () => {
                         <td>
                           {user.status === "active" ? (
                             <span className="badge bg-success px-2 py-1">
-                              ใช้งาน
+                              {t("activeLabel")}
                             </span>
                           ) : (
                             <span className="badge bg-danger px-2 py-1">
-                              ไม่ใช้งาน
+                              {t("suspendedLabel")}
                             </span>
                           )}
                         </td>
@@ -568,7 +567,7 @@ const ManageUsers = () => {
                   {currentEntries.length === 0 && (
                     <tr>
                       <td colSpan={6} className="text-center text-muted py-4">
-                        ไม่พบข้อมูลผู้ใช้
+                        {t("noUsersText")}
                       </td>
                     </tr>
                   )}
@@ -579,9 +578,10 @@ const ManageUsers = () => {
             {/* Pagination & Show entries footer */}
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mt-4 pt-3 border-top">
               <span className="text-muted" style={{ fontSize: "0.85rem" }}>
-                แสดงรายการที่ {totalEntries === 0 ? 0 : indexOfFirstEntry + 1}{" "}
-                ถึง {Math.min(indexOfLastEntry, totalEntries)} จากทั้งหมด{" "}
-                {totalEntries} รายการ
+                {t("showingText")}{" "}
+                {totalEntries === 0 ? 0 : indexOfFirstEntry + 1} {t("toText")}{" "}
+                {Math.min(indexOfLastEntry, totalEntries)} {t("ofText")}{" "}
+                {totalEntries} {t("entriesText")}
               </span>
 
               {totalPages > 1 && (
@@ -596,7 +596,7 @@ const ManageUsers = () => {
                           setCurrentPage((prev) => Math.max(prev - 1, 1))
                         }
                       >
-                        ก่อนหน้า
+                        {t("prevText")}
                       </button>
                     </li>
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(
@@ -625,7 +625,7 @@ const ManageUsers = () => {
                           )
                         }
                       >
-                        ถัดไป
+                        {t("nextText")}
                       </button>
                     </li>
                   </ul>
@@ -651,13 +651,13 @@ const ManageUsers = () => {
               style={{ fontWeight: "700" }}
             >
               <span>👤+</span>{" "}
-              {isEditMode ? "แก้ไขข้อมูลผู้ใช้" : "เพิ่มผู้ใช้ใหม่"}
+              {isEditMode ? t("editUserTitle") : t("addUserTitle")}
             </h5>
             <button
               className="btn btn-sm btn-outline-secondary px-3 py-1.5 rounded-lg"
               onClick={() => setShowAddModal(false)}
             >
-              ← กลับ
+              {t("backBtn")}
             </button>
           </div>
 
@@ -688,7 +688,8 @@ const ManageUsers = () => {
                     className="form-label text-secondary mb-1"
                     style={{ fontSize: "0.85rem", fontWeight: "600" }}
                   >
-                    อีเมล <span className="text-danger">*</span>
+                    {t("modalEmailLabel")}{" "}
+                    <span className="text-danger">*</span>
                   </label>
                   <input
                     type="email"
@@ -707,7 +708,7 @@ const ManageUsers = () => {
                     className="form-label text-secondary mb-1"
                     style={{ fontSize: "0.85rem", fontWeight: "600" }}
                   >
-                    รหัสผ่าน{" "}
+                    {t("modalPasswordLabel")}{" "}
                     {!isEditMode && <span className="text-danger">*</span>}
                   </label>
                   <input
@@ -716,8 +717,8 @@ const ManageUsers = () => {
                     className="form-control rounded-lg"
                     placeholder={
                       isEditMode
-                        ? "เว้นว่างไว้หากไม่ต้องการเปลี่ยน"
-                        : "ตั้งรหัสผ่าน"
+                        ? t("modalPasswordEditPlaceholder")
+                        : t("modalPasswordPlaceholder")
                     }
                     value={formData.password}
                     onChange={handleInputChange}
@@ -732,7 +733,8 @@ const ManageUsers = () => {
                       className="form-label text-secondary mb-1"
                       style={{ fontSize: "0.85rem", fontWeight: "600" }}
                     >
-                      ชื่อ <span className="text-danger">*</span>
+                      {t("modalFirstNameLabel")}{" "}
+                      <span className="text-danger">*</span>
                     </label>
                     <input
                       type="text"
@@ -748,7 +750,8 @@ const ManageUsers = () => {
                       className="form-label text-secondary mb-1"
                       style={{ fontSize: "0.85rem", fontWeight: "600" }}
                     >
-                      นามสกุล <span className="text-danger">*</span>
+                      {t("modalLastNameLabel")}{" "}
+                      <span className="text-danger">*</span>
                     </label>
                     <input
                       type="text"
@@ -767,7 +770,7 @@ const ManageUsers = () => {
                     className="form-label text-secondary mb-1"
                     style={{ fontSize: "0.85rem", fontWeight: "600" }}
                   >
-                    เบอร์โทรศัพท์
+                    {t("modalPhoneLabel")}
                   </label>
                   <input
                     type="text"
@@ -787,7 +790,7 @@ const ManageUsers = () => {
                     className="form-label text-secondary mb-2 d-block"
                     style={{ fontSize: "0.85rem", fontWeight: "600" }}
                   >
-                    รูปโปรไฟล์
+                    {t("modalAvatarLabel")}
                   </label>
                   <div
                     className="mx-auto rounded-circle overflow-hidden d-flex align-items-center justify-content-center text-white mb-2"
@@ -836,7 +839,7 @@ const ManageUsers = () => {
                       document.getElementById("avatarFileInput").click()
                     }
                   >
-                    📷 เลือกรูป
+                    {t("modalChoosePhoto")}
                   </button>
                   {avatarPreview && (
                     <button
@@ -847,7 +850,7 @@ const ManageUsers = () => {
                         setAvatarPreview(null);
                       }}
                     >
-                      ลบรูป
+                      {t("modalRemovePhoto")}
                     </button>
                   )}
                 </div>
@@ -858,7 +861,7 @@ const ManageUsers = () => {
                     className="form-label text-secondary mb-1"
                     style={{ fontSize: "0.85rem", fontWeight: "600" }}
                   >
-                    บทบาท <span className="text-danger">*</span>
+                    {t("modalRoleLabel")} <span className="text-danger">*</span>
                   </label>
                   <select
                     name="role"
@@ -868,9 +871,9 @@ const ManageUsers = () => {
                   >
                     <option value="Admin">Admin</option>
                     <option value="Project Manager">Project Manager</option>
+                    <option value="Team Leader">Team Leader</option>
                     <option value="Video Editor">Video Editor</option>
                     <option value="Translator">Translator</option>
-                    <option value="Team Leader">Team Leader</option>
                   </select>
                 </div>
 
@@ -889,7 +892,7 @@ const ManageUsers = () => {
                     htmlFor="isActiveCheck"
                     style={{ fontSize: "0.9rem", fontWeight: "600" }}
                   >
-                    ใช้งานอยู่
+                    {t("modalActiveLabel")}
                   </label>
                 </div>
               </div>
@@ -902,13 +905,13 @@ const ManageUsers = () => {
                 className="btn btn-secondary px-4 rounded-lg"
                 onClick={() => setShowAddModal(false)}
               >
-                ยกเลิก
+                {t("modalCancelBtn")}
               </button>
               <button
                 type="submit"
                 className="btn btn-primary px-4 rounded-lg d-flex align-items-center gap-2"
               >
-                {isEditMode ? "✓ บันทึกการแก้ไข" : "✓ สร้างผู้ใช้"}
+                {isEditMode ? t("modalSaveBtn") : t("modalCreateBtn")}
               </button>
             </div>
           </form>

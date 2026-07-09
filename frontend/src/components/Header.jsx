@@ -5,6 +5,7 @@ import logoB from "../assets/LogoW.png";
 import { signOut, getCurrentUser } from "../lib/auth";
 import { useLanguage } from "../lib/LanguageContext";
 import axios from "axios";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -114,28 +115,7 @@ const Header = () => {
           {/* ✅ Language Switcher & Profile/Login - ชิดขวาเสมอ */}
           <div className="ms-auto d-flex align-items-center gap-3">
             {/* Language Toggle Buttons */}
-            <div
-              className="btn-group btn-group-sm"
-              role="group"
-              aria-label="Language Selector"
-            >
-              <button
-                type="button"
-                className={`btn btn-sm py-1 px-2 ${language === "th" ? "btn-warning text-dark font-weight-bold" : "btn-outline-light"}`}
-                style={{ fontSize: "0.75rem", fontWeight: "bold" }}
-                onClick={() => setLanguage("th")}
-              >
-                TH
-              </button>
-              <button
-                type="button"
-                className={`btn btn-sm py-1 px-2 ${language === "en" ? "btn-warning text-dark font-weight-bold" : "btn-outline-light"}`}
-                style={{ fontSize: "0.75rem", fontWeight: "bold" }}
-                onClick={() => setLanguage("en")}
-              >
-                EN
-              </button>
-            </div>
+            <LanguageSwitcher variant="dark" />
 
             <div>
               {loading ? (
