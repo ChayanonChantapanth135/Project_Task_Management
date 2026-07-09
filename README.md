@@ -1,4 +1,4 @@
-# RNM AUTH - สิ่งที่เหลือต้องทำ (TODO LIST)
+# Project Management - สิ่งที่เหลือต้องทำ (TODO LIST)
 
 อ้างอิงจากแผนภาพการทำงาน (Flowchart) ทั้ง 4 ส่วนในรูปภาพ มีรายการสิ่งที่ต้องพัฒนาและจัดการเพิ่มเติมดังนี้:
 
@@ -55,3 +55,7 @@
 - [ ] **หน้าสถิติและรายงาน (Reports Page)**:
   - พัฒนาหน้า `/Reports` เพื่อแสดงกราฟหรืองานที่เลยกำหนด (Overdue Tasks) 
   - การกรองข้อมูลแยกตามโครงการหรือผู้ใช้งาน
+
+Frontend npm run dev /
+Sever npm start /
+server xampp apache,mysql
