@@ -1,15 +1,19 @@
 import React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import Home_User from './Home_User'
+import { signIn } from '../lib/auth'
+import { useLanguage } from '../lib/LanguageContext'
 
-const Register = () => {
+const Login = () => {
+    const { language, setLanguage, t } = useLanguage()
     const [values, setValues] = React.useState({
         email: '',
         password: ''
     })
     const [message, setMessage] = React.useState('')
     const [error, setError] = React.useState('')
+    const [loading, setLoading] = React.useState(false)
+    const [showPassword, setShowPassword] = React.useState(false)
     const navigate = useNavigate()
 
     const handleChange = (e) => {
@@ -21,92 +25,327 @@ const Register = () => {
         setMessage('')
         setError('')
 
-        // Validation
         if (!values.email || !values.password) {
-            setError('กรุณากรอกข้อมูลให้ครบทุกช่อง')
+            setError(t('fillAllFields'))
             return
         }
 
+        setLoading(true)
         try {
             const response = await axios.post('http://127.0.0.1:3000/auth/login', values)
-            
-            setMessage(response.data.message || 'เข้าสู่ระบบสำเร็จ! กำลังนำทางไปยังหน้าแรก...')
+            const token = response.data.token
+
+            if (!token) {
+                setError('Login failed: token not found')
+                setLoading(false)
+                return
+            }
+
+            await signIn({
+                token,
+                expiresInSeconds: response.data.expiresInSeconds || 600,
+                user: response.data.user || {
+                    email: values.email,
+                    name: values.email.split('@')[0],
+                    role: response.data.role || 'user'
+                }
+            })
+
+            setMessage(response.data.message || t('loginSuccess'))
             setValues({ email: '', password: '' })
-            
+
             if (response.status === 201) {
-                // หน่วงเวลาเล็กน้อยเพื่อให้ผู้ใช้เห็นข้อความสำเร็จก่อนเปลี่ยนหน้า
-                setTimeout(() => {
-                    navigate('/Home_User')
-                }, 2000); 
+                navigate('/Dashboard')
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'การเข้าสู่ระบบล้มเหลว โปรดลองอีกครั้ง')
+            setError(err.response?.data?.message || t('loginFailed'))
+        } finally {
+            setLoading(false)
         }
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-linear-to-r from-white to-yellow-400 p-4">
-            <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-                <h2 className="text-3xl font-extrabold text-center text-gray-900 mb-6">
-                    Login
-                </h2>
+        <div style={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%)',
+            padding: '1rem',
+            position: 'relative',
+            fontFamily: "'Segoe UI', 'Inter', sans-serif",
+            overflow: 'hidden'
+        }}>
+            {/* Background blobs */}
+            <div style={{
+                position: 'absolute', top: '-10%', left: '-10%',
+                width: '500px', height: '500px',
+                background: 'radial-gradient(circle, rgba(255,193,7,0.15) 0%, transparent 70%)',
+                borderRadius: '50%',
+                filter: 'blur(40px)',
+                pointerEvents: 'none'
+            }} />
+            <div style={{
+                position: 'absolute', bottom: '-10%', right: '-10%',
+                width: '400px', height: '400px',
+                background: 'radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%)',
+                borderRadius: '50%',
+                filter: 'blur(40px)',
+                pointerEvents: 'none'
+            }} />
+
+            {/* Language Switcher */}
+            <div style={{
+                position: 'absolute', top: '1.5rem', right: '1.5rem',
+                display: 'flex', gap: '0.5rem', zIndex: 10
+            }}>
+                {['th', 'en'].map((lang) => (
+                    <button
+                        key={lang}
+                        type="button"
+                        onClick={() => setLanguage(lang)}
+                        style={{
+                            padding: '0.4rem 1rem',
+                            borderRadius: '999px',
+                            fontSize: '0.75rem',
+                            fontWeight: '700',
+                            letterSpacing: '0.05em',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            border: language === lang ? '2px solid #fbbf24' : '2px solid rgba(255,255,255,0.2)',
+                            background: language === lang
+                                ? 'linear-gradient(135deg, #f59e0b, #fbbf24)'
+                                : 'rgba(255,255,255,0.08)',
+                            color: language === lang ? '#000' : 'rgba(255,255,255,0.7)',
+                            backdropFilter: 'blur(8px)',
+                        }}
+                    >
+                        {lang.toUpperCase()}
+                    </button>
+                ))}
+            </div>
+
+            {/* Card */}
+            <div style={{
+                background: 'rgba(255,255,255,0.05)',
+                backdropFilter: 'blur(24px)',
+                WebkitBackdropFilter: 'blur(24px)',
+                borderRadius: '2rem',
+                border: '1px solid rgba(255,255,255,0.12)',
+                boxShadow: '0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05) inset',
+                padding: '2.5rem',
+                width: '100%',
+                maxWidth: '420px',
+                position: 'relative',
+                zIndex: 1
+            }}>
+                {/* Logo / Icon */}
+                <div style={{
+                    width: '64px', height: '64px',
+                    borderRadius: '1.25rem',
+                    background: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: '0 auto 1.5rem auto',
+                    boxShadow: '0 8px 24px rgba(251,191,36,0.4)',
+                    fontSize: '1.75rem'
+                }}>
+                    🔐
+                </div>
+
+                {/* Title */}
+                <h1 style={{
+                    textAlign: 'center',
+                    fontSize: '1.75rem',
+                    fontWeight: '800',
+                    color: '#ffffff',
+                    marginBottom: '0.25rem',
+                    letterSpacing: '-0.02em'
+                }}>
+                    {t('loginTitle')}
+                </h1>
+                <p style={{
+                    textAlign: 'center',
+                    color: 'rgba(255,255,255,0.45)',
+                    fontSize: '0.875rem',
+                    marginBottom: '2rem'
+                }}>
+                    {language === 'th' ? 'ยินดีต้อนรับกลับ' : 'Welcome back'}
+                </p>
+
+                {/* Messages */}
                 {message && (
-                    <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md border border-green-200">
-                        {message}
+                    <div style={{
+                        marginBottom: '1rem', padding: '0.75rem 1rem',
+                        background: 'rgba(16,185,129,0.15)',
+                        border: '1px solid rgba(16,185,129,0.4)',
+                        borderRadius: '0.875rem',
+                        color: '#6ee7b7', fontSize: '0.875rem'
+                    }}>
+                        ✅ {message}
                     </div>
                 )}
                 {error && (
-                    <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md border border-red-200">
-                        {error}
+                    <div style={{
+                        marginBottom: '1rem', padding: '0.75rem 1rem',
+                        background: 'rgba(239,68,68,0.15)',
+                        border: '1px solid rgba(239,68,68,0.4)',
+                        borderRadius: '0.875rem',
+                        color: '#fca5a5', fontSize: '0.875rem'
+                    }}>
+                        ⚠️ {error}
                     </div>
                 )}
-                <form onSubmit={handleSubmit} className="space-y-5">
+
+                {/* Form */}
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    {/* Email */}
                     <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                            อีเมล
+                        <label htmlFor="email" style={{
+                            display: 'block', marginBottom: '0.5rem',
+                            fontSize: '0.8rem', fontWeight: '600',
+                            color: 'rgba(255,255,255,0.65)',
+                            letterSpacing: '0.04em', textTransform: 'uppercase'
+                        }}>
+                            {t('emailLabel')}
                         </label>
-                        <input
-                            id="email"
-                            type="email"
-                            placeholder="ป้อนอีเมลของคุณ"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
-                            name="email"
-                            value={values.email}
-                            onChange={handleChange}
-                            required
-                        />
+                        <div style={{ position: 'relative' }}>
+                            <span style={{
+                                position: 'absolute', left: '1rem', top: '50%',
+                                transform: 'translateY(-50%)',
+                                color: 'rgba(255,255,255,0.35)', fontSize: '1rem', pointerEvents: 'none'
+                            }}>✉️</span>
+                            <input
+                                id="email"
+                                type="email"
+                                name="email"
+                                placeholder={t('emailPlaceholder')}
+                                value={values.email}
+                                onChange={handleChange}
+                                required
+                                style={{
+                                    width: '100%', boxSizing: 'border-box',
+                                    padding: '0.75rem 1rem 0.75rem 2.75rem',
+                                    borderRadius: '0.875rem',
+                                    border: '1px solid rgba(255,255,255,0.12)',
+                                    background: 'rgba(255,255,255,0.07)',
+                                    color: '#fff',
+                                    fontSize: '0.95rem',
+                                    outline: 'none',
+                                    transition: 'border-color 0.2s, box-shadow 0.2s',
+                                }}
+                                onFocus={e => {
+                                    e.target.style.borderColor = 'rgba(251,191,36,0.6)'
+                                    e.target.style.boxShadow = '0 0 0 3px rgba(251,191,36,0.15)'
+                                }}
+                                onBlur={e => {
+                                    e.target.style.borderColor = 'rgba(255,255,255,0.12)'
+                                    e.target.style.boxShadow = 'none'
+                                }}
+                            />
+                        </div>
                     </div>
+
+                    {/* Password */}
                     <div>
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                            รหัสผ่าน
+                        <label htmlFor="password" style={{
+                            display: 'block', marginBottom: '0.5rem',
+                            fontSize: '0.8rem', fontWeight: '600',
+                            color: 'rgba(255,255,255,0.65)',
+                            letterSpacing: '0.04em', textTransform: 'uppercase'
+                        }}>
+                            {t('passwordLabel')}
                         </label>
-                        <input
-                            id="password"
-                            type="password"
-                            placeholder="ป้อนรหัสผ่านของคุณ"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
-                            name="password"
-                            value={values.password}
-                            onChange={handleChange}
-                            required
-                        />
+                        <div style={{ position: 'relative' }}>
+                            <span style={{
+                                position: 'absolute', left: '1rem', top: '50%',
+                                transform: 'translateY(-50%)',
+                                color: 'rgba(255,255,255,0.35)', fontSize: '1rem', pointerEvents: 'none'
+                            }}>🔑</span>
+                            <input
+                                id="password"
+                                type={showPassword ? 'text' : 'password'}
+                                name="password"
+                                placeholder={t('passwordPlaceholder')}
+                                value={values.password}
+                                onChange={handleChange}
+                                required
+                                style={{
+                                    width: '100%', boxSizing: 'border-box',
+                                    padding: '0.75rem 3rem 0.75rem 2.75rem',
+                                    borderRadius: '0.875rem',
+                                    border: '1px solid rgba(255,255,255,0.12)',
+                                    background: 'rgba(255,255,255,0.07)',
+                                    color: '#fff',
+                                    fontSize: '0.95rem',
+                                    outline: 'none',
+                                    transition: 'border-color 0.2s, box-shadow 0.2s',
+                                }}
+                                onFocus={e => {
+                                    e.target.style.borderColor = 'rgba(251,191,36,0.6)'
+                                    e.target.style.boxShadow = '0 0 0 3px rgba(251,191,36,0.15)'
+                                }}
+                                onBlur={e => {
+                                    e.target.style.borderColor = 'rgba(255,255,255,0.12)'
+                                    e.target.style.boxShadow = 'none'
+                                }}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                style={{
+                                    position: 'absolute', right: '1rem', top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    background: 'none', border: 'none',
+                                    cursor: 'pointer', color: 'rgba(255,255,255,0.4)',
+                                    fontSize: '0.9rem', padding: '0', lineHeight: '1'
+                                }}
+                            >
+                                {showPassword ? '🙈' : '👁️'}
+                            </button>
+                        </div>
                     </div>
+
+                    {/* Submit Button */}
                     <button
                         type="submit"
-                        className="w-full bg-yellow-500 text-black py-2.5 rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition duration-150 ease-in-out text-lg font-semibold"
+                        disabled={loading}
+                        style={{
+                            width: '100%',
+                            padding: '0.85rem',
+                            borderRadius: '0.875rem',
+                            border: 'none',
+                            background: loading
+                                ? 'rgba(251,191,36,0.5)'
+                                : 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
+                            color: '#1a1a2e',
+                            fontSize: '1rem',
+                            fontWeight: '700',
+                            cursor: loading ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: loading ? 'none' : '0 8px 24px rgba(251,191,36,0.35)',
+                            letterSpacing: '0.02em',
+                            marginTop: '0.25rem'
+                        }}
+                        onMouseOver={e => {
+                            if (!loading) {
+                                e.target.style.transform = 'translateY(-1px)'
+                                e.target.style.boxShadow = '0 12px 32px rgba(251,191,36,0.5)'
+                            }
+                        }}
+                        onMouseOut={e => {
+                            e.target.style.transform = 'translateY(0)'
+                            e.target.style.boxShadow = '0 8px 24px rgba(251,191,36,0.35)'
+                        }}
                     >
-                        เข้าสู่ระบบ
+                        {loading
+                            ? (language === 'th' ? 'กำลังเข้าสู่ระบบ...' : 'Signing in...')
+                            : t('loginTitle')
+                        }
                     </button>
                 </form>
-                {/* <div className="text-center mt-6 text-gray-600 text-sm">
-                    ยังไม่มีบัญชีใช่ไหม?{' '}
-                    <Link to="/register" className="text-blue-600 hover:text-blue-800 font-medium hover:underline">
-                        สร้างบัญชีใหม่
-                    </Link>
-                </div> */}
             </div>
         </div>
     )
 }
 
-export default Register
+export default Login

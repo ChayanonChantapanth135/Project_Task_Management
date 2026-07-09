@@ -22,9 +22,22 @@ export const initializeDatabase = async () => {
         username VARCHAR(255) NOT NULL,
         email VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
+        role ENUM('admin','manager','video_editor','translator','team_leader','user') DEFAULT 'user',
+        avatar VARCHAR(512) DEFAULT NULL,
+        status ENUM('active','suspended') DEFAULT 'active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `)
+
+    // Safely add missing columns to existing tables
+    const alterQueries = [
+      "ALTER TABLE users ADD COLUMN IF NOT EXISTS role ENUM('admin','manager','video_editor','translator','team_leader','user') DEFAULT 'user'",
+      "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR(512) DEFAULT NULL",
+      "ALTER TABLE users ADD COLUMN IF NOT EXISTS status ENUM('active','suspended') DEFAULT 'active'",
+    ]
+    for (const q of alterQueries) {
+      try { await connection.query(q) } catch (e) { /* ignore if column already exists */ }
+    }
     
     console.log('Database initialized successfully')
     await connection.end()
