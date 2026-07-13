@@ -59,3 +59,4 @@
 Frontend npm run dev /
 Sever npm start /
 server xampp apache,mysql
+/ เอาdataไปใส่ไว้ในmysqlด้วย importได้เลย
