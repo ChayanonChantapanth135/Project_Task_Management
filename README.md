@@ -16,17 +16,17 @@
 
 ## 2. ระบบจัดการโครงการ (Project Management Flow)
 ตาม Flowchart ด้านล่างซ้าย:
-- [ ] **สร้างตารางโครงการ (Create `projects` Table)**:
+- [x] **สร้างตารางโครงการ (Create `projects` Table)**:
   - ฟิลด์ที่จำเป็น: `id`, `project_name`, `description`, `status` (เช่น Active, Completed, Cancelled), `created_at`
-- [ ] **ระบบเพิ่มโครงการใหม่ (Create Project)**:
+- [x] **ระบบเพิ่มโครงการใหม่ (Create Project)**:
   - หน้า UI ฟอร์มสำหรับกรอกชื่อโครงการ รายละเอียด และสถานะเริ่มต้น
   - API endpoint `POST /auth/projects` เพื่อบันทึกข้อมูล
-- [ ] **ระบบแสดงรายการโครงการ (List Projects)**:
+- [x] **ระบบแสดงรายการโครงการ (List Projects)**:
   - ดึงข้อมูลจากฐานข้อมูลมาแสดงในหน้า `/Projects`
   - เชื่อมโยงตัวเลขจำนวนโครงการรวมไปยังตัวการ์ดบน Dashboard
-- [ ] **ระบบแก้ไขโครงการ (Edit Project)**:
+- [x] **ระบบแก้ไขโครงการ (Edit Project)**:
   - แก้ไขรายละเอียดโครงการ และอัปเดตสถานะของโครงการ
-- [ ] **ระบบลบโครงการ (Delete Project)**:
+- [x] **ระบบลบโครงการ (Delete Project)**:
   - ลบโครงการออกจากฐานข้อมูลแบบถาวร
 
 ---
