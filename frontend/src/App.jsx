@@ -1,13 +1,13 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
-import Dashboard from "./pages/Dashboard";
+import Dashboard from "./pages/Dashboard/DashboardPage";
 import Login from "./pages/Login";
 // import Register from './pages/Register'
 import { LanguageProvider } from "./lib/LanguageContext";
 import Profile from "./pages/Profile";
 import MyTask from "./pages/MyTasks";
-import ManageUsers from "./pages/ManageUsers";
-import Projects from "./pages/Projects";
+import ManageUsers from "./pages/ManageUser/ManageUserPage";
+import Projects from "./pages/ManageProject/ManageProjectPage";
 import AllTasks from "./pages/AllTasks";
 import Reports from "./pages/Reports";
 import About from "./pages/About";
@@ -29,14 +29,70 @@ function App() {
           {/* <Route path='/register' element={<Register />} /> */}
 
           {/* Protected Routes */}
-          <Route path="/Dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/Profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/MyTasks" element={<ProtectedRoute><MyTask /></ProtectedRoute>} />
-          <Route path="/ManageUsers" element={<ProtectedRoute><ManageUsers /></ProtectedRoute>} />
-          <Route path="/Projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
-          <Route path="/AllTasks" element={<ProtectedRoute><AllTasks /></ProtectedRoute>} />
-          <Route path="/Reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-          <Route path="/Activity" element={<ProtectedRoute><Activity /></ProtectedRoute>} />
+          <Route
+            path="/Dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/Profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/MyTasks"
+            element={
+              <ProtectedRoute>
+                <MyTask />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ManageUsers"
+            element={
+              <ProtectedRoute>
+                <ManageUsers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/Projects"
+            element={
+              <ProtectedRoute>
+                <Projects />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/AllTasks"
+            element={
+              <ProtectedRoute>
+                <AllTasks />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/Reports"
+            element={
+              <ProtectedRoute>
+                <Reports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/Activity"
+            element={
+              <ProtectedRoute>
+                <Activity />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </LanguageProvider>

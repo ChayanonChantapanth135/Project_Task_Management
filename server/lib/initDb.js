@@ -64,7 +64,7 @@ export const initializeDatabase = async () => {
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         description TEXT NULL,
-        status ENUM('Pending', 'In Progress', 'Completed') DEFAULT 'Pending',
+        status ENUM('pending', 'in_progress', 'review', 'completed') DEFAULT 'pending',
         priority ENUM('Low', 'Medium', 'High') DEFAULT 'Medium',
         end_date DATE NULL,
         created_by INT NULL,
@@ -196,8 +196,8 @@ export const initializeDatabase = async () => {
     }
 
     const alterProjectsQueries = [
+      "ALTER TABLE projects MODIFY COLUMN status ENUM('pending', 'in_progress', 'review', 'completed') DEFAULT 'pending'",
       "ALTER TABLE projects ADD COLUMN priority ENUM('Low', 'Medium', 'High') DEFAULT 'Medium'",
-      "ALTER TABLE projects ADD COLUMN status ENUM('Pending', 'In Progress', 'Completed') DEFAULT 'Pending'",
       "ALTER TABLE projects ADD COLUMN end_date DATE NULL",
       "ALTER TABLE projects ADD COLUMN created_by INT NULL",
       "ALTER TABLE projects ADD CONSTRAINT fk_projects_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL"

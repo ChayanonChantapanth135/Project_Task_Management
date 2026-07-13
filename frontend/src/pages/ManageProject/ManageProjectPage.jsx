@@ -1,22 +1,28 @@
 import React, { useState, useEffect } from "react";
-import Header from "../components/Header";
-import Footer from "../components/footer";
-import { useLanguage } from "../lib/LanguageContext";
-import { getCurrentUser } from "../lib/auth";
+import Header from "../../components/Header";
+import Footer from "../../components/footer";
+import { useLanguage } from "../../lib/LanguageContext";
+import { getCurrentUser } from "../../lib/auth";
 import { Modal } from "react-bootstrap";
 import axios from "axios";
+import ConfirmModal from "../../components/ConfirmModal";
+import ProjectCard from "./components/ProjectCard";
+import ProjectFilter from "./components/ProjectFilter";
+import ProjectTable from "./components/ProjectTable";
 
-const Projects = () => {
+const ManageProjectPage = () => {
   const { t } = useLanguage();
   const [currentUser, setCurrentUser] = useState({
     id: 1,
     name: "Admin User",
     role: "admin",
   });
-  const [roleSimulation, setRoleSimulation] = useState("admin"); // To easily test all flowchart flows: admin, manager, team_leader
+  const [roleSimulation, setRoleSimulation] = useState("admin");
 
   // Projects list state
   const [projects, setProjects] = useState([]);
+  const [viewMode, setViewMode] = useState("table"); // "table" or "board"
+  const [sortByPriority, setSortByPriority] = useState("none"); // "none", "desc", "asc"
 
   // List of Team Leaders from DB
   const [teamLeaders, setTeamLeaders] = useState([]);
@@ -67,7 +73,6 @@ const Projects = () => {
   const fetchProjects = async () => {
     try {
       const response = await axios.get("http://127.0.0.1:3000/auth/projects");
-      // Format project end dates for HTML5 input compatibility
       const formatted = response.data.map((p) => {
         if (p.end_date) {
           p.endDate = new Date(p.end_date).toISOString().split("T")[0];
@@ -96,32 +101,32 @@ const Projects = () => {
     fetchTeamLeaders();
   }, []);
 
-  // Filter projects according to User Role & Flowchart Select Query Rules:
-  // - Admin (See All)
-  // - Project Manager (Own Only)
-  // - Team Leader / Member (Assign)
   const filteredProjects = projects.filter((p) => {
-    // 1. Role-based visibility
     if (roleSimulation === "manager") {
       if (p.created_by !== currentUser.id) return false;
     } else if (roleSimulation === "team_leader") {
       if (p.teamLeaderId !== currentUser.id && p.created_by !== currentUser.id)
         return false;
     }
-
-    // 2. Search query filter
     if (searchQuery) {
       return p.name.toLowerCase().includes(searchQuery.toLowerCase());
     }
     return true;
   });
 
-  // 1. CREATE PROJECT FLOW
+  if (sortByPriority !== "none") {
+    const priorityWeight = { High: 3, Medium: 2, Low: 1 };
+    filteredProjects.sort((a, b) => {
+      const weightA = priorityWeight[a.priority] || 0;
+      const weightB = priorityWeight[b.priority] || 0;
+      return sortByPriority === "desc" ? weightB - weightA : weightA - weightB;
+    });
+  }
+
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
 
-    // Validate Form?
     if (!formData.name || !formData.endDate || !formData.teamLeaderId) {
       setErrorMessage(
         "กรุณากรอกข้อมูลให้ครบถ้วนทุกช่อง (Title, End Date, Team Leader)",
@@ -139,7 +144,6 @@ const Projects = () => {
       });
 
       setShowCreateModal(false);
-      // Reset form
       setFormData({
         name: "",
         endDate: "",
@@ -158,13 +162,11 @@ const Projects = () => {
     }
   };
 
-  // 2. VIEW PROJECT DETAILS FLOW
   const handleViewDetails = (project) => {
     setSelectedProject(project);
     setShowDetailModal(true);
   };
 
-  // 3. EDIT PROJECT FLOW
   const handleOpenEdit = (project) => {
     setSelectedProject(project);
     setEditFormData({
@@ -182,7 +184,6 @@ const Projects = () => {
     e.preventDefault();
     setErrorMessage("");
 
-    // Validate Form?
     if (
       !editFormData.name ||
       !editFormData.endDate ||
@@ -217,14 +218,12 @@ const Projects = () => {
     }
   };
 
-  // 4. DELETE PROJECT FLOW
   const handleOpenDelete = (project) => {
     setSelectedProject(project);
     setShowDeleteModal(true);
   };
 
   const handleDeleteConfirm = async () => {
-    // Flowchart: Is Admin?
     if (roleSimulation !== "admin") {
       setErrorMessage("ไม่มีสิทธิ์ลบโปรเจกต์ (เฉพาะ Admin เท่านั้น)");
       setShowDeleteModal(false);
@@ -250,208 +249,106 @@ const Projects = () => {
   };
 
   return (
-    <div className="d-flex flex-column min-vh-100 bg-light">
+    <div className="min-h-screen bg-gray-100">
       <Header />
 
-      <main className="flex-grow-1 container py-4">
-        {/* Page Title & Simulator Bar */}
-        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+      <main className="container my-4" style={{ maxWidth: "1200px" }}>
+        {/* Header and Title */}
+        <div className="mb-4 d-flex justify-content-between align-items-center">
           <div>
-            <h1 className="h3 fw-bold text-dark mb-1">🗂️ {t("projectManagementTitle")}</h1>
-            <p className="text-muted mb-0">
-              {t("projectFlowSubtitle")}
-            </p>
+            <h2 className="fw-bold text-dark d-flex align-items-center gap-2 mb-0">
+              <span>📂</span> {t("projectManagementTitle")}
+            </h2>
           </div>
 
-          {/* Role Simulator (Allows testing flow paths easily) */}
-          {/* <div className="bg-white p-2 border rounded-lg shadow-sm d-flex align-items-center gap-2">
-            <span className="text-muted small fw-bold">จำลองสิทธิ์:</span>
+          {/* Flowchart Debug Role Switcher
+          <div className="d-flex align-items-center gap-2 border bg-white p-2 rounded-lg shadow-xs">
+            <span className="text-xs text-muted fw-semibold">🔑 Flow Tester:</span>
             <select
-              className="form-select form-select-sm border-0 bg-light fw-bold"
-              style={{ width: "170px" }}
+              className="form-select form-select-sm text-xs rounded-md"
+              style={{ width: "130px" }}
               value={roleSimulation}
-              onChange={(e) => {
-                setRoleSimulation(e.target.value);
-                logActivity(
-                  `Switched simulated user role to: ${e.target.value}`,
-                );
-              }}
+              onChange={(e) => setRoleSimulation(e.target.value)}
             >
-              <option value="admin">Admin (เห็นทั้งหมด)</option>
-              <option value="manager">Project Manager (สร้างเอง)</option>
-              <option value="team_leader">
-                Team Leader (ที่ได้รับมอบหมาย)
-              </option>
+              <option value="admin">Admin (All Flow)</option>
+              <option value="manager">Manager (Creator Flow)</option>
+              <option value="team_leader">Lead (Assigned Flow)</option>
             </select>
           </div> */}
         </div>
 
-        {/* Success / Error Banners */}
+        {/* Global Toast Alerts */}
         {successMessage && (
-          <div
-            className="alert alert-success alert-dismissible fade show shadow-sm rounded-lg d-flex align-items-center gap-2"
-            role="alert"
-          >
-            <span>🎉</span> <strong>{successMessage}</strong>
-          </div>
-        )}
-        {errorMessage && (
-          <div
-            className="alert alert-danger alert-dismissible fade show shadow-sm rounded-lg d-flex align-items-center gap-2"
-            role="alert"
-          >
-            <span>⚠️</span> <strong>{errorMessage}</strong>
+          <div className="alert alert-success border-0 shadow-sm rounded-lg py-2.5 px-4 mb-4 d-flex align-items-center gap-2">
+            <span>✅</span>
+            <span
+              className="fw-medium text-success"
+              style={{ fontSize: "0.9rem" }}
+            >
+              {successMessage}
+            </span>
           </div>
         )}
 
-        {/* Toolbar & Filter Bar */}
-        <div className="card shadow-sm border-0 mb-4 rounded-lg overflow-hidden">
-          <div className="card-body bg-white p-3">
-            <div className="row g-3 align-items-center">
-              <div className="col-12 col-md-6 col-lg-8">
-                <div className="input-group">
-                  <span className="input-group-text bg-light border-end-0">
-                    🔍
-                  </span>
-                  <input
-                    type="search"
-                    className="form-control bg-light border-start-0 ps-0 rounded-end-lg"
-                    placeholder={t("searchProjectPlaceholder")}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+        {errorMessage && (
+          <div className="alert alert-danger border-0 shadow-sm rounded-lg py-2.5 px-4 mb-4 d-flex align-items-center gap-2">
+            <span>⚠️</span>
+            <span
+              className="fw-medium text-danger"
+              style={{ fontSize: "0.9rem" }}
+            >
+              {errorMessage}
+            </span>
+          </div>
+        )}
+
+        {/* Filter panel */}
+        <ProjectFilter
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          handleOpenCreate={() => setShowCreateModal(true)}
+          t={t}
+        />
+
+        {viewMode === "table" ? (
+          <ProjectTable
+            filteredProjects={filteredProjects}
+            t={t}
+            sortByPriority={sortByPriority}
+            setSortByPriority={setSortByPriority}
+            handleViewDetails={handleViewDetails}
+            handleOpenEdit={handleOpenEdit}
+            handleOpenDelete={handleOpenDelete}
+          />
+        ) : (
+          /* Grid Card View (Board View by Project) */
+          <div className="row g-4 mb-4">
+            {filteredProjects.length > 0 ? (
+              filteredProjects.map((project) => (
+                <div key={project.id} className="col-12 col-md-6 col-lg-4">
+                  <ProjectCard
+                    project={project}
+                    t={t}
+                    handleViewDetails={handleViewDetails}
+                    handleOpenEdit={handleOpenEdit}
+                    handleOpenDelete={handleOpenDelete}
                   />
                 </div>
+              ))
+            ) : (
+              <div className="col-12">
+                <div className="card shadow-sm border-0 rounded-lg text-center py-5 bg-white">
+                  <div className="fs-1 mb-2">📂</div>
+                  <p className="mb-0 text-muted fw-medium">
+                    {t("noProjectsFound")}
+                  </p>
+                </div>
               </div>
-              <div className="col-12 col-md-6 col-lg-4 text-md-end text-white">
-                <button
-                  className="btn btn-primary w-100 solid-on-hover d-flex align-items-center justify-content-center gap-2 py-2 rounded-lg"
-                  onClick={() => setShowCreateModal(true)}
-                >
-                  <span>{t("createProjectBtn")}</span>
-                </button>
-              </div>
-            </div>
+            )}
           </div>
-        </div>
-
-        {/* Project List Table */}
-        <div className="card shadow-sm border-0 rounded-lg overflow-hidden mb-4">
-          <div className="card-header bg-white py-3 border-bottom">
-            <h5 className="mb-0 fw-bold d-flex align-items-center gap-2 text-primary">
-              📋 {t("projectListTitle")} ({filteredProjects.length})
-            </h5>
-          </div>
-          <div className="table-responsive">
-            <table className="table table-hover align-middle mb-0">
-              <thead className="table-light text-uppercase text-muted small">
-                <tr>
-                  <th className="px-4 py-3">{t("colProjectName")}</th>
-                  <th className="py-3">{t("colStatus")}</th>
-                  <th className="py-3" style={{ width: "250px" }}>
-                    {t("colProgress")}
-                  </th>
-                  <th className="py-3">{t("colPriority")}</th>
-                  <th className="py-3">{t("colTeamLeader")}</th>
-                  <th className="text-end px-4 py-3">{t("colDetailAction")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProjects.length > 0 ? (
-                  filteredProjects.map((project) => (
-                    <tr key={project.id}>
-                      <td className="px-4 py-3 fw-bold text-dark">
-                        {project.name}
-                      </td>
-                      <td className="py-3">
-                        <span
-                          className={`badge px-2.5 py-1.5 rounded-pill text-xs fw-semibold ${
-                            project.status === "Completed"
-                              ? "bg-success-subtle text-success"
-                              : project.status === "In Progress"
-                                ? "bg-primary-subtle text-primary"
-                                : "bg-warning-subtle text-warning"
-                          }`}
-                        >
-                          ● {project.status}
-                        </span>
-                      </td>
-                      <td className="py-3">
-                        <div className="d-flex align-items-center gap-2">
-                          <div
-                            className="progress w-100"
-                            style={{ height: "6px", borderRadius: "10px" }}
-                          >
-                            <div
-                              className={`progress-bar rounded-pill ${
-                                project.progress === 100
-                                  ? "bg-success"
-                                  : project.progress > 50
-                                    ? "bg-primary"
-                                    : "bg-warning"
-                              }`}
-                              style={{ width: `${project.progress}%` }}
-                            ></div>
-                          </div>
-                          <span className="small text-muted fw-bold">
-                            {project.progress}%
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-3">
-                        <span
-                          className={`badge ${
-                            project.priority === "High"
-                              ? "bg-danger"
-                              : project.priority === "Medium"
-                                ? "bg-warning text-dark"
-                                : "bg-info text-dark"
-                          }`}
-                        >
-                          {project.priority}
-                        </span>
-                      </td>
-                      <td className="py-3 text-muted fw-medium">
-                        {project.teamLeaderName}
-                      </td>
-                      <td className="text-end px-4 py-3">
-                        <div className="d-inline-flex gap-2">
-                          <button
-                            className="btn btn-sm btn-secondary px-2.5 py-1.5 rounded-lg text-xs"
-                            onClick={() => handleViewDetails(project)}
-                            title="ดูรายละเอียด"
-                          >
-                            {t("viewBtn")}
-                          </button>
-                          <button
-                            className="btn btn-sm btn-primary px-2.5 py-1.5 rounded-lg text-xs"
-                            onClick={() => handleOpenEdit(project)}
-                            title="แก้ไข"
-                          >
-                            {t("editBtn")}
-                          </button>
-                          <button
-                            className="btn btn-sm btn-danger px-2.5 py-1.5 rounded-lg text-xs"
-                            onClick={() => handleOpenDelete(project)}
-                            title="ลบ"
-                          >
-                            {t("deleteBtn")}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="6" className="text-center py-5 text-muted">
-                      <div className="fs-1 mb-2">📂</div>
-                      <p className="mb-0 fw-medium">{t("noProjectsFound")}</p>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        )}
       </main>
 
       {/* CREATE MODAL */}
@@ -476,24 +373,9 @@ const Projects = () => {
               <input
                 type="text"
                 className="form-control rounded-lg"
-                placeholder="ระบุชื่อหัวข้อโปรเจกต์"
                 value={formData.name}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, name: e.target.value }))
-                }
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label small fw-bold">
-                วันที่สิ้นสุด (End Date) *
-              </label>
-              <input
-                type="date"
-                className="form-control rounded-lg"
-                value={formData.endDate}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, endDate: e.target.value }))
                 }
                 required
               />
@@ -514,9 +396,23 @@ const Projects = () => {
                 <option value="Low">Low</option>
               </select>
             </div>
-            <div className="mb-4">
+            <div className="mb-3">
               <label className="form-label small fw-bold">
-                เลือก Team Leader *
+                วันที่สิ้นสุด (End Date) *
+              </label>
+              <input
+                type="date"
+                className="form-control rounded-lg"
+                value={formData.endDate}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, endDate: e.target.value }))
+                }
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label small fw-bold">
+                หัวหน้าทีม (Team Leader) *
               </label>
               <select
                 className="form-select rounded-lg"
@@ -529,18 +425,18 @@ const Projects = () => {
                 }
                 required
               >
-                <option value="">-- กรุณาเลือก --</option>
-                {teamLeaders.map((tl) => (
-                  <option key={tl.id} value={tl.id}>
-                    {tl.username || tl.name}
+                <option value="">-- เลือกหัวหน้าทีม --</option>
+                {teamLeaders.map((leader) => (
+                  <option key={leader.id} value={leader.id}>
+                    {leader.username} ({leader.email})
                   </option>
                 ))}
               </select>
             </div>
-            <div className="d-flex gap-2 justify-content-end">
+            <div className="d-flex justify-content-end gap-2 pt-3 border-top mt-4">
               <button
                 type="button"
-                className="btn btn-outline-secondary px-4 py-2 rounded-lg"
+                className="btn btn-secondary px-4 py-2 rounded-lg"
                 onClick={() => setShowCreateModal(false)}
               >
                 ยกเลิก
@@ -549,7 +445,7 @@ const Projects = () => {
                 type="submit"
                 className="btn btn-primary px-4 py-2 rounded-lg"
               >
-                💾 บันทึกและส่งการแจ้งเตือน
+                🚀 สร้างโปรเจกต์
               </button>
             </div>
           </form>
@@ -597,9 +493,10 @@ const Projects = () => {
                   }))
                 }
               >
-                <option value="Pending">Pending</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
+                <option value="pending">{t("pending")}</option>
+                <option value="in_progress">{t("inProgress")}</option>
+                <option value="review">{t("reviewing")}</option>
+                <option value="completed">{t("completed")}</option>
               </select>
             </div>
             <div className="mb-3">
@@ -638,9 +535,9 @@ const Projects = () => {
                 required
               />
             </div>
-            <div className="mb-4">
+            <div className="mb-3">
               <label className="form-label small fw-bold">
-                เปลี่ยน Team Leader *
+                หัวหน้าทีม (Team Leader) *
               </label>
               <select
                 className="form-select rounded-lg"
@@ -653,17 +550,18 @@ const Projects = () => {
                 }
                 required
               >
-                {teamLeaders.map((tl) => (
-                  <option key={tl.id} value={tl.id}>
-                    {tl.username || tl.name}
+                <option value="">-- เลือกหัวหน้าทีม --</option>
+                {teamLeaders.map((leader) => (
+                  <option key={leader.id} value={leader.id}>
+                    {leader.username} ({leader.email})
                   </option>
                 ))}
               </select>
             </div>
-            <div className="d-flex gap-2 justify-content-end">
+            <div className="d-flex justify-content-end gap-2 pt-3 border-top mt-4">
               <button
                 type="button"
-                className="btn btn-outline-secondary px-4 py-2 rounded-lg"
+                className="btn btn-secondary px-4 py-2 rounded-lg"
                 onClick={() => setShowEditModal(false)}
               >
                 ยกเลิก
@@ -811,49 +709,28 @@ const Projects = () => {
       </Modal>
 
       {/* DELETE CONFIRM MODAL */}
-      <Modal
+      <ConfirmModal
         show={showDeleteModal}
         onHide={() => setShowDeleteModal(false)}
-        centered
-      >
-        <Modal.Body className="p-4" style={{ borderRadius: "1rem" }}>
-          {selectedProject && (
+        title={t("deleteProjectConfirmTitle")}
+        description={
+          selectedProject && (
             <>
-              <div className="text-center mb-4">
-                <span className="fs-1 text-danger">🚨</span>
-                <h5 className="fw-bold mt-2 text-danger">
-                  ยืนยันการลบโปรเจกต์?
-                </h5>
-                <p className="text-muted mt-1 small">
-                  ระบบจะทำการลบข้อมูลโปรเจกต์{" "}
-                  <strong>"{selectedProject.name}"</strong> และทำการ Cascade
-                  Delete ข้อมูลที่เกี่ยวโยงทั้งหมด (Tasks, Comments, Files)
-                </p>
-              </div>
-              <div className="d-flex gap-2 justify-content-center">
-                <button
-                  type="button"
-                  className="btn btn-light border px-4 py-2 rounded-lg w-50"
-                  onClick={() => setShowDeleteModal(false)}
-                >
-                  ยกเลิก
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-danger px-4 py-2 rounded-lg w-50"
-                  onClick={handleDeleteConfirm}
-                >
-                  💥 ยืนยันการลบ
-                </button>
-              </div>
+              {t("deleteProjectConfirmDesc1")}
+              <strong>"{selectedProject.name}"</strong>
+              {t("deleteProjectConfirmDesc2")}
             </>
-          )}
-        </Modal.Body>
-      </Modal>
+          )
+        }
+        onConfirm={handleDeleteConfirm}
+        confirmText={t("confirmDeleteBtn")}
+        cancelText={t("cancelBtn")}
+        type="danger"
+      />
 
       <Footer />
     </div>
   );
 };
 
-export default Projects;
+export default ManageProjectPage;
