@@ -148,6 +148,10 @@ const translations = {
     confirmDeleteBtn: "💥 Confirm Delete",
     confirmBtn: "Confirm",
     sortByPriorityLabel: "Sort Priority",
+    sessionTimeoutTitle: "Session Expiration Warning",
+    sessionTimeoutDesc: "Your login session is about to expire in {seconds} seconds. Would you like to continue using the web or exit?",
+    sessionTimeoutStayBtn: "Stay / Use Web",
+    sessionTimeoutExitBtn: "Exit / Logout",
 
     // Activity Page
     activityLogsTitle: "System Activity Logs",
@@ -310,6 +314,10 @@ const translations = {
     confirmDeleteBtn: "💥 ยืนยันการลบ",
     confirmBtn: "ยืนยัน",
     sortByPriorityLabel: "เรียงตามความสำคัญ",
+    sessionTimeoutTitle: "การแจ้งเตือนเซสชันหมดอายุ",
+    sessionTimeoutDesc: "เซสชันการเข้าใช้งานของคุณจะหมดอายุในอีก {seconds} วินาที คุณต้องการใช้เว็บไซต์ต่อหรือจะออกจากระบบ?",
+    sessionTimeoutStayBtn: "อยู่ต่อ / ใช้เว็บต่อ",
+    sessionTimeoutExitBtn: "ออกจากระบบ",
 
     // Activity Page
     activityLogsTitle: "System Activity Logs",

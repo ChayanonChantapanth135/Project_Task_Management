@@ -428,7 +428,7 @@ const ManageProjectPage = () => {
                 <option value="">-- เลือกหัวหน้าทีม --</option>
                 {teamLeaders.map((leader) => (
                   <option key={leader.id} value={leader.id}>
-                    {leader.username} ({leader.email})
+                    {leader.username}{leader.email ? ` (${leader.email})` : ""}
                   </option>
                 ))}
               </select>
@@ -553,7 +553,7 @@ const ManageProjectPage = () => {
                 <option value="">-- เลือกหัวหน้าทีม --</option>
                 {teamLeaders.map((leader) => (
                   <option key={leader.id} value={leader.id}>
-                    {leader.username} ({leader.email})
+                    {leader.username}{leader.email ? ` (${leader.email})` : ""}
                   </option>
                 ))}
               </select>

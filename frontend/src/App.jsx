@@ -14,11 +14,13 @@ import About from "./pages/About";
 import Contract from "./pages/Contract";
 import Activity from "./pages/Activity";
 import ProtectedRoute from "./components/ProtectedRoute";
+import SessionTimeoutHandler from "./components/SessionTimeoutHandler";
 
 function App() {
   return (
     <LanguageProvider>
       <BrowserRouter>
+        <SessionTimeoutHandler />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />

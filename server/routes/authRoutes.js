@@ -97,6 +97,39 @@ router.post('/login', async (req, res) => {
     }
 })
 
+router.post('/refresh', async (req, res) => {
+    const { token } = req.body
+    if (!token) return res.status(400).json({ message: 'Token required' })
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_KEY, { ignoreExpiration: true })
+        const db = await connectToDatabase()
+        const [rows] = await db.query('SELECT * FROM users WHERE id = ?', [decoded.id])
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+        if (rows[0].status === 'suspended') {
+            return res.status(403).json({ message: 'บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ' })
+        }
+        const tokenExpiresIn = '20m'
+        const tokenExpiresInSeconds = 20 * 60
+        const newToken = jwt.sign({ id: decoded.id }, process.env.JWT_KEY, { expiresIn: tokenExpiresIn })
+        
+        return res.status(200).json({
+            token: newToken,
+            expiresInSeconds: tokenExpiresInSeconds,
+            user: {
+                id: rows[0].id,
+                name: rows[0].username,
+                email: rows[0].email,
+                role: rows[0].role || 'user',
+                avatar: rows[0].avatar || null
+            }
+        })
+    } catch (err) {
+        return res.status(401).json({ message: 'Invalid token' })
+    }
+})
+
 router.get('/users', async (req, res) => {
     try {
         const db = await connectToDatabase();
@@ -284,10 +317,10 @@ router.get('/dashboard-stats', async (req, res) => {
 router.get('/team-leaders', async (req, res) => {
     try {
         const db = await connectToDatabase()
-        let [rows] = await db.query("SELECT id, username FROM users WHERE role = 'team_leader'")
+        let [rows] = await db.query("SELECT id, username, email FROM users WHERE role = 'team_leader'")
         if (rows.length === 0) {
             // Fallback 1: Try to fetch all users in the system
-            [rows] = await db.query("SELECT id, username FROM users")
+            [rows] = await db.query("SELECT id, username, email FROM users")
         }
         if (rows.length === 0) {
             // Fallback 2: If the system has no users yet, return simulated fallback team leaders

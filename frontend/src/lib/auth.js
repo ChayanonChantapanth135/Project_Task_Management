@@ -32,6 +32,21 @@ export const signIn = async ({ token, user, expiresInSeconds = 1200 }) => {
     window.dispatchEvent(new Event('authChanged'));
 };
 
+export const renewToken = async () => {
+    const token = localStorage.getItem('userToken');
+    if (!token) return false;
+    try {
+        const axios = (await import('axios')).default;
+        const response = await axios.post('http://127.0.0.1:3000/auth/refresh', { token });
+        const { token: newToken, user, expiresInSeconds } = response.data;
+        await signIn({ token: newToken, user, expiresInSeconds });
+        return true;
+    } catch (e) {
+        console.error("Token renewal failed:", e);
+        return false;
+    }
+};
+
 export const signOut = async () => {
     try {
         const userData = localStorage.getItem('userData');
