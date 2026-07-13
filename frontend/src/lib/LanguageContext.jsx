@@ -117,6 +117,7 @@ const translations = {
     deleteSuffix: "from the System?",
     deleteFailed: "Unable to Delete User",
   },
+
   th: {
     // Header & Navigation
     home: "หน้าแรก",

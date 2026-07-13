@@ -169,7 +169,7 @@ router.put('/users/:id', async (req, res) => {
         
         let sqlRole = 'user';
         if (role === 'Admin') sqlRole = 'admin';
-        else if (role === 'Project Manager') sqlRole = 'manager';
+        else if (role === 'Project Manager') sqlRole = 'project_manager';
         else if (role === 'Team Leader') sqlRole = 'team_leader';
         else if (role === 'Video Editor') sqlRole = 'video_editor';
         else if (role === 'Translator') sqlRole = 'translator';

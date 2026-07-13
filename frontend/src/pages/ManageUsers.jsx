@@ -411,19 +411,6 @@ const ManageUsers = () => {
                 </select>
                 <span>{t("entriesPerPageText")}</span>
               </div>
-              <div className="d-flex align-items-center gap-2">
-                <span className="text-muted">{t("searchText")}</span>
-                <input
-                  type="search"
-                  className="form-control form-control-sm rounded-lg"
-                  style={{ width: "200px" }}
-                  value={globalSearch}
-                  onChange={(e) => {
-                    setGlobalSearch(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                />
-              </div>
             </div>
 
             {/* Table */}

@@ -25,7 +25,7 @@ export const getCurrentUser = async () => {
     }
 };
 
-export const signIn = async ({ token, user, expiresInSeconds = 600 }) => {
+export const signIn = async ({ token, user, expiresInSeconds = 1200 }) => {
     localStorage.setItem('userToken', token);
     localStorage.setItem('userData', JSON.stringify(user));
     localStorage.setItem('userTokenExpiresAt', String(Date.now() + expiresInSeconds * 1000));
