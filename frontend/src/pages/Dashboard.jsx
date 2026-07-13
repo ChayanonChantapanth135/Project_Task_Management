@@ -19,6 +19,7 @@ const Dashboard = () => {
       completed: 0
     }
   });
+  const [recentActivities, setRecentActivities] = useState([]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -29,7 +30,16 @@ const Dashboard = () => {
         console.error("Error fetching stats:", error);
       }
     };
+    const fetchActivities = async () => {
+      try {
+        const response = await axios.get("http://127.0.0.1:3000/auth/activity-logs");
+        setRecentActivities(response.data);
+      } catch (error) {
+        console.error("Error fetching activity logs:", error);
+      }
+    };
     fetchStats();
+    fetchActivities();
   }, []);
 
   // ข้อมูล Stats Cards
@@ -95,10 +105,7 @@ const Dashboard = () => {
     },
   ];
 
-  // ข้อมูลกิจกรรมล่าสุด
-  const recentActivities = [
-    { user: t("systemAdmin"), action: t("loggedIn"), time: t("minuteAgo") },
-  ];
+
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -183,11 +190,14 @@ const Dashboard = () => {
                   className="flex justify-between items-start py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 px-2 rounded transition-colors"
                 >
                   <div>
-                    <p className="font-medium text-gray-800">{activity.user}</p>
-                    <p className="text-sm text-gray-500">{activity.action}</p>
+                    <p className="font-medium text-gray-800">{activity.username || activity.user || "System"}</p>
+                    <p className="text-sm text-gray-500">
+                      {activity.action}
+                      {activity.details ? ` - ${activity.details}` : ""}
+                    </p>
                   </div>
                   <span className="text-sm text-gray-400 whitespace-nowrap">
-                    {activity.time}
+                    {activity.created_at ? new Date(activity.created_at).toLocaleString() : (activity.time || "")}
                   </span>
                 </div>
               ))}

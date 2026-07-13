@@ -320,7 +320,7 @@ const ManageUsers = () => {
   };
 
   return (
-    <div className="min-h-screen bg-light">
+    <div className="min-h-screen bg-gray-100">
       <Header />
 
       <main className="container my-4" style={{ maxWidth: "1200px" }}>
@@ -338,7 +338,7 @@ const ManageUsers = () => {
             style={{ fontSize: "0.9rem" }}
             onClick={handleAddNewClick}
           >
-            <span>👤+</span> {t("addUserBtn")}
+            <span>+</span> {t("addUserBtn")}
           </button>
         </div>
 
@@ -381,7 +381,7 @@ const ManageUsers = () => {
                 />
               </div>
               <div className="col-md-2">
-                <button className="btn btn-outline-primary w-100 rounded-lg d-flex align-items-center justify-content-center gap-2">
+                <button className="btn btn-primary w-100 rounded-lg d-flex align-items-center justify-content-center gap-2">
                   🔍 {t("searchBtn")}
                 </button>
               </div>
@@ -529,19 +529,19 @@ const ManageUsers = () => {
                         <td className="text-end">
                           <div className="d-inline-flex gap-1">
                             <button
-                              className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 py-1 px-2 rounded-lg"
+                              className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 py-1 px-2 rounded-lg"
                               onClick={() => handleEditClick(user)}
                             >
                               ✏️
                             </button>
                             <button
-                              className={`btn btn-sm ${user.status === "suspended" ? "btn-outline-success" : "btn-outline-warning"} d-inline-flex align-items-center py-1 px-2 rounded-lg`}
+                              className={`btn btn-sm ${user.status === "suspended" ? "btn-success" : "btn-warning"} d-inline-flex align-items-center py-1 px-2 rounded-lg`}
                               onClick={() => handleToggleStatus(user)}
                             >
                               {user.status === "suspended" ? "🔓 " : "⏸️ "}
                             </button>
                             <button
-                              className="btn btn-sm btn-outline-danger d-inline-flex align-items-center py-1 px-2 rounded-lg"
+                              className="btn btn-sm btn-danger d-inline-flex align-items-center py-1 px-2 rounded-lg"
                               onClick={() => handleDeleteUser(user)}
                             >
                               🗑️
@@ -637,7 +637,7 @@ const ManageUsers = () => {
               className="modal-title d-flex align-items-center gap-2"
               style={{ fontWeight: "700" }}
             >
-              <span>👤+</span>{" "}
+              <span></span>{" "}
               {isEditMode ? t("editUserTitle") : t("addUserTitle")}
             </h5>
             <button

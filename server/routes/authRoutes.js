@@ -76,6 +76,9 @@ router.post('/login', async (req, res) => {
         const tokenExpiresInSeconds = 20 * 60;
         const token = jwt.sign({ id: rows[0].id }, process.env.JWT_KEY, { expiresIn: tokenExpiresIn });
 
+        // Log Login
+        await db.query("INSERT INTO activity_logs (user_id, action, details) VALUES (?, 'Login', ?)", [rows[0].id, `User logged in: ${rows[0].username}`]);
+
         return res.status(201).json({
             token: token,
             expiresIn: tokenExpiresIn,
@@ -88,7 +91,7 @@ router.post('/login', async (req, res) => {
                 avatar: rows[0].avatar || null
             }
         })
-    }catch (error) {
+    } catch (error) {
         console.error('Login error:', error.message)
         res.status(500).json({ message: error.message })
     }
@@ -272,6 +275,225 @@ router.get('/dashboard-stats', async (req, res) => {
     } catch (error) {
         console.error('Error fetching dashboard stats:', error.message);
         res.status(500).json({ message: error.message });
+    }
+})
+
+// --- PROJECTS MANAGEMENT DB ENDPOINTS ---
+
+// Fetch team leaders (all users or users with role team_leader/admin)
+router.get('/team-leaders', async (req, res) => {
+    try {
+        const db = await connectToDatabase()
+        let [rows] = await db.query("SELECT id, username FROM users WHERE role = 'team_leader'")
+        if (rows.length === 0) {
+            // Fallback 1: Try to fetch all users in the system
+            [rows] = await db.query("SELECT id, username FROM users")
+        }
+        if (rows.length === 0) {
+            // Fallback 2: If the system has no users yet, return simulated fallback team leaders
+            rows = [
+                { id: 3, username: "Somsak Somdee (Simulated)" },
+                { id: 4, username: "Wichai Jaidee (Simulated)" },
+                { id: 5, username: "Anong Rakdee (Simulated)" }
+            ]
+        }
+        res.status(200).json(rows)
+    } catch (error) {
+        console.error('Error fetching team leaders:', error.message)
+        res.status(500).json({ message: error.message })
+    }
+})
+
+// Fetch projects (and auto-seed if none exist)
+router.get('/projects', async (req, res) => {
+    try {
+        const db = await connectToDatabase()
+        
+        // Check if projects table is empty
+        const [rowsCount] = await db.query('SELECT COUNT(*) as count FROM projects')
+        if (rowsCount[0].count === 0) {
+            // Get some users to associate as creators/leaders to avoid foreign key violations
+            const [users] = await db.query('SELECT id FROM users LIMIT 3')
+            const adminId = users[0]?.id || 1
+            const leader1 = users[1]?.id || adminId
+            const leader2 = users[2]?.id || adminId
+
+            // Insert mock projects
+            const proj1 = await db.query(
+                "INSERT INTO projects (name, description, status, priority, end_date, created_by) VALUES (?, ?, ?, ?, ?, ?)",
+                ["Website Redesign", "Figma design and React implementation", "In Progress", "High", "2026-08-30", adminId]
+            )
+            const proj2 = await db.query(
+                "INSERT INTO projects (name, description, status, priority, end_date, created_by) VALUES (?, ?, ?, ?, ?, ?)",
+                ["Mobile App Development", "Flutter-based mobile app creation", "Pending", "High", "2026-12-15", adminId]
+            )
+            const proj3 = await db.query(
+                "INSERT INTO projects (name, description, status, priority, end_date, created_by) VALUES (?, ?, ?, ?, ?, ?)",
+                ["Data Analytics Dashboard", "Dashboard for KPI representation", "Completed", "Medium", "2026-07-01", adminId]
+            )
+
+            // Associate team leaders
+            if (proj1[0].insertId) await db.query("INSERT INTO project_team_leaders (project_id, user_id) VALUES (?, ?)", [proj1[0].insertId, leader1])
+            if (proj2[0].insertId) await db.query("INSERT INTO project_team_leaders (project_id, user_id) VALUES (?, ?)", [proj2[0].insertId, leader2])
+            if (proj3[0].insertId) await db.query("INSERT INTO project_team_leaders (project_id, user_id) VALUES (?, ?)", [proj3[0].insertId, leader1])
+
+            // Seed some default tasks too
+            if (proj1[0].insertId) {
+                await db.query("INSERT INTO tasks (project_id, title, status) VALUES (?, 'Design Figma mockup', 'Completed')", [proj1[0].insertId])
+                await db.query("INSERT INTO tasks (project_id, title, status) VALUES (?, 'Setup frontend routing', 'In Progress')", [proj1[0].insertId])
+                await db.query("INSERT INTO tasks (project_id, title, status) VALUES (?, 'Integrate database schema', 'Pending')", [proj1[0].insertId])
+            }
+            if (proj2[0].insertId) {
+                await db.query("INSERT INTO tasks (project_id, title, status) VALUES (?, 'Define API contracts', 'In Progress')", [proj2[0].insertId])
+            }
+            if (proj3[0].insertId) {
+                await db.query("INSERT INTO tasks (project_id, title, status) VALUES (?, 'Export CSV files', 'Completed')", [proj3[0].insertId])
+            }
+        }
+
+        // Fetch all projects along with team leaders and tasks
+        const [projects] = await db.query(`
+            SELECT p.*, u.id AS teamLeaderId, u.username AS teamLeaderName
+            FROM projects p
+            LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id
+            LEFT JOIN users u ON ptl.user_id = u.id
+            ORDER BY p.created_at DESC
+        `)
+
+        // Fetch tasks for each project
+        for (const p of projects) {
+            const [tasks] = await db.query('SELECT id, title, status FROM tasks WHERE project_id = ?', [p.id])
+            p.tasks = tasks
+            // Calculate progress based on tasks
+            if (tasks.length > 0) {
+                const completed = tasks.filter(t => t.status === 'Completed').length
+                p.progress = Math.round((completed / tasks.length) * 100)
+            } else {
+                p.progress = p.status === 'Completed' ? 100 : 0
+            }
+        }
+
+        res.status(200).json(projects)
+    } catch (error) {
+        console.error('Error fetching projects:', error.message)
+        res.status(500).json({ message: error.message })
+    }
+})
+
+// Create new project
+router.post('/projects', async (req, res) => {
+    const { name, endDate, priority, teamLeaderId, createdBy } = req.body
+    try {
+        const db = await connectToDatabase()
+        
+        // 1. Insert project
+        const [result] = await db.query(
+            "INSERT INTO projects (name, status, priority, end_date, created_by) VALUES (?, 'Pending', ?, ?, ?)",
+            [name, priority, endDate, createdBy]
+        )
+        const projectId = result.insertId
+
+        // 2. Assign team leader
+        if (teamLeaderId) {
+            await db.query("INSERT INTO project_team_leaders (project_id, user_id) VALUES (?, ?)", [projectId, teamLeaderId])
+        }
+
+        // Log Activity
+        await db.query("INSERT INTO activity_logs (user_id, action, details) VALUES (?, 'Create New Project', ?)", [createdBy, `Created project: ${name}`])
+
+        res.status(201).json({ message: 'Project created successfully', projectId })
+    } catch (error) {
+        console.error('Error creating project:', error.message)
+        res.status(500).json({ message: error.message })
+    }
+})
+
+// Edit project
+router.put('/projects/:id', async (req, res) => {
+    const { id } = req.params
+    const { name, status, priority, endDate, teamLeaderId, userId } = req.body
+    try {
+        const db = await connectToDatabase()
+
+        // 1. Update project
+        await db.query(
+            "UPDATE projects SET name = ?, status = ?, priority = ?, end_date = ? WHERE id = ?",
+            [name, status, priority, endDate, id]
+        )
+
+        // 2. Update team leader (delete existing assignments and insert new one)
+        await db.query("DELETE FROM project_team_leaders WHERE project_id = ?", [id])
+        if (teamLeaderId) {
+            await db.query("INSERT INTO project_team_leaders (project_id, user_id) VALUES (?, ?)", [id, teamLeaderId])
+        }
+
+        // Log Activity
+        await db.query("INSERT INTO activity_logs (user_id, action, details) VALUES (?, 'Edit Project', ?)", [userId, `Edited project ID: ${id}`])
+
+        res.status(200).json({ message: 'Project updated successfully' })
+    } catch (error) {
+        console.error('Error updating project:', error.message)
+        res.status(500).json({ message: error.message })
+    }
+})
+
+// Delete project
+router.delete('/projects/:id', async (req, res) => {
+    const { id } = req.params
+    const { userId } = req.query
+    try {
+        const db = await connectToDatabase()
+        
+        // Get name for logging
+        const [projRows] = await db.query('SELECT name FROM projects WHERE id = ?', [id])
+        const projName = projRows[0]?.name || id
+
+        // Delete project (cascade delete handles tasks, comments, project_team_leaders, files)
+        await db.query("DELETE FROM projects WHERE id = ?", [id])
+
+        // Log Activity
+        await db.query("INSERT INTO activity_logs (user_id, action, details) VALUES (?, 'Delete Project', ?)", [userId, `Deleted project: ${projName}`])
+
+        res.status(200).json({ message: 'Project deleted successfully' })
+    } catch (error) {
+        console.error('Error deleting project:', error.message)
+        res.status(500).json({ message: error.message })
+    }
+})
+
+// Fetch recent activity logs (limited to 10)
+router.get('/activity-logs', async (req, res) => {
+    try {
+        const db = await connectToDatabase()
+        const [rows] = await db.query(`
+            SELECT al.action, al.details, al.created_at, u.username
+            FROM activity_logs al
+            LEFT JOIN users u ON al.user_id = u.id
+            ORDER BY al.created_at DESC
+            LIMIT 100
+        `)
+        res.status(200).json(rows)
+    } catch (error) {
+        console.error('Error fetching activity logs:', error.message)
+        res.status(500).json({ message: error.message })
+    }
+})
+
+// Log user logout action
+router.post('/logout', async (req, res) => {
+    const { userId } = req.body
+    try {
+        const db = await connectToDatabase()
+        if (userId) {
+            // Get username for logging
+            const [userRows] = await db.query('SELECT username FROM users WHERE id = ?', [userId])
+            const username = userRows[0]?.username || `User ID ${userId}`
+            await db.query("INSERT INTO activity_logs (user_id, action, details) VALUES (?, 'Logout', ?)", [userId, `User logged out: ${username}`])
+        }
+        res.status(200).json({ message: 'Logged out successfully' })
+    } catch (error) {
+        console.error('Error logging logout:', error.message)
+        res.status(500).json({ message: error.message })
     }
 })
 

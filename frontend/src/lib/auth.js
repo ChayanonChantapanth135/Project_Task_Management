@@ -33,6 +33,16 @@ export const signIn = async ({ token, user, expiresInSeconds = 1200 }) => {
 };
 
 export const signOut = async () => {
+    try {
+        const userData = localStorage.getItem('userData');
+        if (userData) {
+            const user = JSON.parse(userData);
+            const axios = (await import('axios')).default;
+            await axios.post('http://127.0.0.1:3000/auth/logout', { userId: user.id });
+        }
+    } catch (e) {
+        console.error("Logout log failed:", e);
+    }
     localStorage.removeItem('userToken');
     localStorage.removeItem('userData');
     localStorage.removeItem('userTokenExpiresAt');
