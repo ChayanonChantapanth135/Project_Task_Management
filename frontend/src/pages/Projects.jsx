@@ -257,9 +257,9 @@ const Projects = () => {
         {/* Page Title & Simulator Bar */}
         <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
           <div>
-            <h1 className="h3 fw-bold text-dark mb-1">🗂️ Project Management</h1>
+            <h1 className="h3 fw-bold text-dark mb-1">🗂️ {t("projectManagementTitle")}</h1>
             <p className="text-muted mb-0">
-              โครงร่างหน้าจัดการโปรเจกต์ตาม Flowchart
+              {t("projectFlowSubtitle")}
             </p>
           </div>
 
@@ -316,7 +316,7 @@ const Projects = () => {
                   <input
                     type="search"
                     className="form-control bg-light border-start-0 ps-0 rounded-end-lg"
-                    placeholder="ค้นหาโปรเจกต์ด้วยชื่อ..."
+                    placeholder={t("searchProjectPlaceholder")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -327,7 +327,7 @@ const Projects = () => {
                   className="btn btn-primary w-100 solid-on-hover d-flex align-items-center justify-content-center gap-2 py-2 rounded-lg"
                   onClick={() => setShowCreateModal(true)}
                 >
-                  <span>+ สร้างโปรเจกต์ใหม่</span>
+                  <span>{t("createProjectBtn")}</span>
                 </button>
               </div>
             </div>
@@ -338,21 +338,21 @@ const Projects = () => {
         <div className="card shadow-sm border-0 rounded-lg overflow-hidden mb-4">
           <div className="card-header bg-white py-3 border-bottom">
             <h5 className="mb-0 fw-bold d-flex align-items-center gap-2 text-primary">
-              📋 รายการโปรเจกต์ ({filteredProjects.length})
+              📋 {t("projectListTitle")} ({filteredProjects.length})
             </h5>
           </div>
           <div className="table-responsive">
             <table className="table table-hover align-middle mb-0">
               <thead className="table-light text-uppercase text-muted small">
                 <tr>
-                  <th className="px-4 py-3">Project Name</th>
-                  <th className="py-3">Status</th>
+                  <th className="px-4 py-3">{t("colProjectName")}</th>
+                  <th className="py-3">{t("colStatus")}</th>
                   <th className="py-3" style={{ width: "250px" }}>
-                    Progress
+                    {t("colProgress")}
                   </th>
-                  <th className="py-3">Priority</th>
-                  <th className="py-3">Team Leader</th>
-                  <th className="text-end px-4 py-3">Detail / Action</th>
+                  <th className="py-3">{t("colPriority")}</th>
+                  <th className="py-3">{t("colTeamLeader")}</th>
+                  <th className="text-end px-4 py-3">{t("colDetailAction")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -420,21 +420,21 @@ const Projects = () => {
                             onClick={() => handleViewDetails(project)}
                             title="ดูรายละเอียด"
                           >
-                            View
+                            {t("viewBtn")}
                           </button>
                           <button
                             className="btn btn-sm btn-primary px-2.5 py-1.5 rounded-lg text-xs"
                             onClick={() => handleOpenEdit(project)}
                             title="แก้ไข"
                           >
-                            Edit
+                            {t("editBtn")}
                           </button>
                           <button
                             className="btn btn-sm btn-danger px-2.5 py-1.5 rounded-lg text-xs"
                             onClick={() => handleOpenDelete(project)}
                             title="ลบ"
                           >
-                            Delete
+                            {t("deleteBtn")}
                           </button>
                         </div>
                       </td>
@@ -444,7 +444,7 @@ const Projects = () => {
                   <tr>
                     <td colSpan="6" className="text-center py-5 text-muted">
                       <div className="fs-1 mb-2">📂</div>
-                      <p className="mb-0 fw-medium">ไม่พบข้อมูลโปรเจกต์</p>
+                      <p className="mb-0 fw-medium">{t("noProjectsFound")}</p>
                     </td>
                   </tr>
                 )}

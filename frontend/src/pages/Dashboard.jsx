@@ -193,7 +193,6 @@ const Dashboard = () => {
                     <p className="font-medium text-gray-800">{activity.username || activity.user || "System"}</p>
                     <p className="text-sm text-gray-500">
                       {activity.action}
-                      {activity.details ? ` - ${activity.details}` : ""}
                     </p>
                   </div>
                   <span className="text-sm text-gray-400 whitespace-nowrap">

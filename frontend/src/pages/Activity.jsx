@@ -77,9 +77,9 @@ const Activity = () => {
       >
         {/* Page Title */}
         <div className="text-center mb-5">
-          <h1 className="h2 fw-bold text-dark mb-2">📋 System Activity Logs</h1>
+          <h1 className="h2 fw-bold text-dark mb-2">📋 {t("activityLogsTitle")}</h1>
           <p className="text-muted mb-0">
-            ตรวจสอบและติดตามประวัติการทำรายการกิจกรรมทั้งหมดของระบบ
+            {t("activityLogsSubtitle")}
           </p>
         </div>
 
@@ -95,7 +95,7 @@ const Activity = () => {
                   <input
                     type="search"
                     className="form-control bg-light border-start-0 ps-0 rounded-end-lg"
-                    placeholder="ค้นหาชื่อผู้ใช้หรือรายละเอียด..."
+                    placeholder={t("searchActivityPlaceholder")}
                     value={searchQuery}
                     onChange={(e) => {
                       setSearchQuery(e.target.value);
@@ -113,17 +113,17 @@ const Activity = () => {
                     setCurrentPage(1);
                   }}
                 >
-                  <option value="all">📂 กิจกรรมทั้งหมด</option>
-                  <option value="project">📁 เกี่ยวกับโปรเจกต์</option>
-                  <option value="user">👥 เกี่ยวกับผู้ใช้งาน</option>
-                  <option value="system">⚙️ เกี่ยวกับระบบ / อื่น ๆ</option>
+                  <option value="all">{t("allActivities")}</option>
+                  <option value="project">{t("aboutProjects")}</option>
+                  <option value="user">{t("aboutUsers")}</option>
+                  <option value="system">{t("aboutSystem")}</option>
                 </select>
                 <button
-                  className="btn btn-secondary d-flex align-items-center gap-1.5 px-3 rounded-lg"
+                  className="btn d-flex align-items-center gap-1.5 px-3 rounded-lg bg-dark text-white"
                   onClick={fetchLogs}
-                  title="รีเฟรชข้อมูล"
+                  title={t("refreshBtn")}
                 >
-                  🔄
+                  ⭮
                 </button>
               </div>
             </div>
@@ -137,7 +137,7 @@ const Activity = () => {
               <div className="spinner-border text-primary" role="status">
                 <span className="visually-hidden">Loading...</span>
               </div>
-              <p className="text-muted mt-2">กำลังโหลดบันทึกกิจกรรม...</p>
+              <p className="text-muted mt-2">{t("loadingActivities")}</p>
             </div>
           ) : currentEntries.length > 0 ? (
             <div className="table-responsive">
@@ -145,14 +145,14 @@ const Activity = () => {
                 <thead className="table-light text-uppercase text-muted small">
                   <tr>
                     <th className="px-4 py-3" style={{ width: "160px" }}>
-                      Action
+                      {t("colAction")}
                     </th>
-                    <th className="py-3">Details</th>
+                    <th className="py-3">{t("colDetails")}</th>
                     <th className="py-3" style={{ width: "160px" }}>
-                      User
+                      {t("colUser")}
                     </th>
                     <th className="px-4 py-3" style={{ width: "220px" }}>
-                      Time
+                      {t("colTime")}
                     </th>
                   </tr>
                 </thead>
@@ -185,7 +185,7 @@ const Activity = () => {
                           {log.details}
                         </td>
                         <td className="py-3 text-muted fw-semibold">
-                          👤 {log.username || "System Admin"}
+                          👤 {log.username || t("systemAdmin")}
                         </td>
                         <td className="px-4 py-3 text-muted small">
                           {new Date(log.created_at).toLocaleString()}
@@ -199,9 +199,7 @@ const Activity = () => {
           ) : (
             <div className="text-center py-5 text-muted bg-white">
               <div className="fs-1 mb-2">📂</div>
-              <p className="mb-0 fw-medium">
-                ไม่พบบันทึกกิจกรรมตามเงื่อนไขที่เลือก
-              </p>
+              <p className="mb-0 fw-medium">{t("noActivitiesFound")}</p>
             </div>
           )}
         </div>
