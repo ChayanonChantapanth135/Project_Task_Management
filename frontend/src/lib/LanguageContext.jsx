@@ -81,6 +81,15 @@ const translations = {
     entriesText: "Entries",
     prevText: "Previous",
     nextText: "Next",
+    importUsersBtn: "Import Users",
+    downloadTemplateBtn: "Download Template",
+    importSuccess: "Users imported/updated successfully!",
+    importFailed: "Import failed!",
+    importConfirmTitle: "Confirm User Import",
+    importConfirmDesc: "Are you sure you want to import users from {filename}? ({count} users found)",
+    importResultTitle: "Import Completed",
+    importResultDesc: "Successfully imported {imported} new users and updated {updated} existing users.",
+    exportUsersBtn: "Export Users",
 
     // ManageUsers Modal
     addEditUserTitle: "Add / Edit User",
@@ -102,6 +111,8 @@ const translations = {
     modalCancelBtn: "Cancel",
     modalSaveBtn: "✓ Save Changes",
     modalCreateBtn: "✓ Create User",
+    uploadPhotoBtn: "Upload Photo",
+    modalStatusLabel: "Status",
     youBadge: "You",
 
     // ManageUsers messages
@@ -109,6 +120,7 @@ const translations = {
     userUpdatedSuccess: "User Updated Successfully!",
     userCreatedSuccess: "New User Account Created Successfully!",
     userAddFailed: "Unable to Add User",
+    userUpdateFailed: "Unable to Update User",
     suspendConfirm: "Do You Want to Suspend User",
     activateConfirm: "Do You Want to Reactivate User",
     confirmSuffix: "?",
@@ -247,6 +259,15 @@ const translations = {
     entriesText: "รายการ",
     prevText: "ก่อนหน้า",
     nextText: "ถัดไป",
+    importUsersBtn: "นำเข้าผู้ใช้งาน",
+    downloadTemplateBtn: "ดาวน์โหลดไฟล์ตัวอย่าง",
+    importSuccess: "นำเข้า/อัปเดตข้อมูลผู้ใช้งานเรียบร้อยแล้ว!",
+    importFailed: "การนำเข้าข้อมูลล้มเหลว!",
+    importConfirmTitle: "ยืนยันการนำเข้าผู้ใช้งาน",
+    importConfirmDesc: "คุณแน่ใจหรือไม่ว่าต้องการนำเข้าผู้ใช้งานจากไฟล์ {filename}? (พบข้อมูลทั้งหมด {count} รายการ)",
+    importResultTitle: "นำเข้าข้อมูลเสร็จสิ้น",
+    importResultDesc: "นำเข้าผู้ใช้งานใหม่สำเร็จ {imported} คน และอัปเดตผู้ใช้งานเดิม {updated} คน",
+    exportUsersBtn: "ส่งออกผู้ใช้งาน",
 
     // ManageUsers Modal
     addEditUserTitle: "เพิ่ม / แก้ไขผู้ใช้",
@@ -268,6 +289,8 @@ const translations = {
     modalCancelBtn: "ยกเลิก",
     modalSaveBtn: "✓ บันทึกการแก้ไข",
     modalCreateBtn: "✓ สร้างผู้ใช้",
+    uploadPhotoBtn: "อัปเดตภาพ",
+    modalStatusLabel: "สถานะ",
     youBadge: "คุณ",
 
     // ManageUsers messages
@@ -275,6 +298,7 @@ const translations = {
     userUpdatedSuccess: "อัปเดตข้อมูลผู้ใช้เรียบร้อยแล้ว!",
     userCreatedSuccess: "สร้างบัญชีผู้ใช้ใหม่เรียบร้อยแล้ว!",
     userAddFailed: "ไม่สามารถเพิ่มผู้ใช้งานได้",
+    userUpdateFailed: "ไม่สามารถแก้ไขข้อมูลผู้ใช้งานได้",
     suspendConfirm: "คุณต้องการพักใช้งานผู้ใช้",
     activateConfirm: "คุณต้องการเปิดใช้งานผู้ใช้",
     confirmSuffix: "ใช่หรือไม่?",

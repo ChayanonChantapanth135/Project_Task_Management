@@ -228,11 +228,12 @@ router.post('/users', async (req, res) => {
         const hashPassword = await bcrypt.hash(password, 10);
         
         let sqlRole = 'user';
-        if (role === 'Admin') sqlRole = 'admin';
-        else if (role === 'Project Manager') sqlRole = 'manager';
-        else if (role === 'Team Leader') sqlRole = 'team_leader';
-        else if (role === 'Video Editor') sqlRole = 'video_editor';
-        else if (role === 'Translator') sqlRole = 'translator';
+        const normRole = (role || '').trim().toLowerCase();
+        if (normRole === 'admin') sqlRole = 'admin';
+        else if (normRole === 'project manager' || normRole === 'manager') sqlRole = 'manager';
+        else if (normRole === 'team leader' || normRole === 'team_leader') sqlRole = 'team_leader';
+        else if (normRole === 'video editor' || normRole === 'video_editor') sqlRole = 'video_editor';
+        else if (normRole === 'translator') sqlRole = 'translator';
 
         const sqlStatus = status === 'suspended' ? 'suspended' : 'active';
 
@@ -252,7 +253,7 @@ router.post('/users', async (req, res) => {
  * - อัปเดตข้อมูลผู้ใช้งานตาม ID ที่ส่งมา (ชื่ออีเมล, บทบาท, สถานะบัญชี)
  * - หากมีการระบุรหัสผ่านใหม่ จะทำการเข้ารหัส (hash) และอัปเดตรหัสผ่านใหม่ด้วย
  */
-router.put('/users/:id', async (req, res) => {
+router.put('/users/:id', upload.single('avatar'), async (req, res) => {
     const { id } = req.params;
     const { username, email, password, role, status } = req.body;
     try {
@@ -261,23 +262,30 @@ router.put('/users/:id', async (req, res) => {
         let query = 'UPDATE users SET username = ?, email = ?, role = ?, status = ?';
         let params = [username, email, role, status || 'active'];
         
+        let sqlRole = 'user';
+        const normRole = (role || '').trim().toLowerCase();
+        if (normRole === 'admin') sqlRole = 'admin';
+        else if (normRole === 'project manager' || normRole === 'manager') sqlRole = 'manager';
+        else if (normRole === 'team leader' || normRole === 'team_leader') sqlRole = 'team_leader';
+        else if (normRole === 'video editor' || normRole === 'video_editor') sqlRole = 'video_editor';
+        else if (normRole === 'translator') sqlRole = 'translator';
+        
+        params[2] = sqlRole;
+
         if (password) {
             const hashPassword = await bcrypt.hash(password, 10);
             query += ', password = ?';
             params.push(hashPassword);
         }
+
+        if (req.file) {
+            const avatarUrl = `/uploads/${req.file.filename}`;
+            query += ', avatar = ?';
+            params.push(avatarUrl);
+        }
         
         query += ' WHERE id = ?';
         params.push(id);
-        
-        let sqlRole = 'user';
-        if (role === 'Admin') sqlRole = 'admin';
-        else if (role === 'Project Manager') sqlRole = 'project_manager';
-        else if (role === 'Team Leader') sqlRole = 'team_leader';
-        else if (role === 'Video Editor') sqlRole = 'video_editor';
-        else if (role === 'Translator') sqlRole = 'translator';
-        
-        params[2] = sqlRole;
 
         await db.query(query, params);
         res.status(200).json({ message: 'User updated successfully' });
@@ -649,4 +657,99 @@ router.post('/logout', async (req, res) => {
     }
 })
 
+// Bulk Import Users
+/**
+ * POST /users/import
+ * - นำเข้าผู้ใช้งานจำนวนมากจากไฟล์ CSV
+ * - หากอีเมลซ้ำจะเป็นการอัปเดตข้อมูลผู้ใช้งานเดิม (username, role, และ password หากระบุมา)
+ * - หากเป็นอีเมลใหม่จะทำการสร้างผู้ใช้งานใหม่
+ */
+router.post('/users/import', async (req, res) => {
+    const { users, userId } = req.body;
+    // ตรวจสอบความถูกต้องของข้อมูลที่ส่งมา
+    if (!users || !Array.isArray(users)) {
+        return res.status(400).json({ message: 'Invalid users payload' });
+    }
+
+    try {
+        const db = await connectToDatabase();
+        let importedCount = 0; // ตัวนับจำนวนสร้างใหม่
+        let updatedCount = 0;  // ตัวนับจำนวนอัปเดตข้อมูลเดิม
+
+        // ฟังก์ชันช่วยในการแปลงบทบาท (Role) ให้เข้ากันได้กับฐานข้อมูล (Enum)
+        const normalizeRole = (role) => {
+            const r = (role || '').trim().toLowerCase();
+            if (r === 'admin') return 'admin';
+            if (r === 'project manager' || r === 'manager') return 'manager';
+            if (r === 'team leader' || r === 'team_leader') return 'team_leader';
+            if (r === 'video editor' || r === 'video_editor') return 'video_editor';
+            if (r === 'translator') return 'translator';
+            return 'user';
+        };
+
+        // วนลูปประมวลผลข้อมูลผู้ใช้ทีละรายชื่อ
+        for (const item of users) {
+            const username = (item.username || '').trim();
+            const email = (item.email || '').trim();
+            const password = (item.password || '').trim();
+            const role = normalizeRole(item.role);
+
+            // ข้ามรายการหากข้อมูลอีเมลหรือชื่อเป็นค่าว่าง
+            if (!email || !username) {
+                continue;
+            }
+
+            // ตรวจสอบว่ามีผู้ใช้อีเมลนี้ในระบบอยู่แล้วหรือไม่
+            const [existing] = await db.query('SELECT id FROM users WHERE email = ?', [email]);
+
+            if (existing.length > 0) {
+                // กรณีอีเมลซ้ำ: อัปเดตข้อมูลเดิม (Username, Role)
+                const userIdToUpdate = existing[0].id;
+                let query = 'UPDATE users SET username = ?, role = ?';
+                let params = [username, role];
+
+                // หากมีการระบุรหัสผ่านใหม่ใน CSV ให้ทำ hashing และบันทึกรหัสผ่านใหม่
+                if (password) {
+                    const hashPassword = await bcrypt.hash(password, 10);
+                    query += ', password = ?';
+                    params.push(hashPassword);
+                }
+
+                query += ' WHERE id = ?';
+                params.push(userIdToUpdate);
+
+                await db.query(query, params);
+                updatedCount++;
+            } else {
+                // กรณีเป็นอีเมลใหม่: ทำการสมัครสมาชิกใหม่
+                const finalPassword = password || '123456'; // รหัสผ่านเริ่มต้นกรณีไม่ได้ใส่มา
+                const hashPassword = await bcrypt.hash(finalPassword, 10);
+                await db.query(
+                    'INSERT INTO users (username, email, password, role, status) VALUES (?, ?, ?, ?, ?)',
+                    [username, email, hashPassword, role, 'active']
+                );
+                importedCount++;
+            }
+        }
+
+        // บันทึกกิจกรรมการนำเข้าลงตารางประวัติกิจกรรม (Activity Logs)
+        await logActivity(
+            db,
+            userId || null,
+            'Import Users',
+            `Bulk imported: ${importedCount} new, updated: ${updatedCount} existing`
+        );
+
+        res.status(200).json({
+            message: 'Import completed successfully',
+            imported: importedCount,
+            updated: updatedCount,
+        });
+    } catch (error) {
+        console.error('Error importing users:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+});
+
 export default router;
+

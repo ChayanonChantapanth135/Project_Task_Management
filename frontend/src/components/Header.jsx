@@ -32,7 +32,9 @@ const Header = () => {
         if (currentUser) {
           // Fetch fresh user data (including latest avatar) from DB
           try {
-            const res = await axios.get(`http://127.0.0.1:3000/auth/users/${currentUser.id}`);
+            const res = await axios.get(
+              `http://127.0.0.1:3000/auth/users/${currentUser.id}`,
+            );
             setUser({ ...currentUser, avatar: res.data.avatar });
           } catch {
             setUser(currentUser);
@@ -152,7 +154,11 @@ const Header = () => {
                   >
                     {user?.avatar ? (
                       <img
-                        src={user.avatar}
+                        src={
+                          user.avatar.startsWith("http")
+                            ? user.avatar
+                            : `http://127.0.0.1:3000${user.avatar}`
+                        }
                         alt="Profile"
                         style={{
                           width: "32px",

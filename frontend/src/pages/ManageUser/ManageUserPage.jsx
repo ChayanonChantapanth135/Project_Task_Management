@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/footer";
 import ConfirmModal from "../../components/ConfirmModal";
@@ -17,6 +17,7 @@ import UserModal from "./components/UserModal";
 const ManageUserPage = () => {
   const { t } = useLanguage();
   const userHook = useUserManagement(t);
+  const fileInputRef = useRef(null);
 
   // โหลดโปรไฟล์ผู้ใช้ปัจจุบันเพื่อนำมาเปรียบเทียบสิทธิ์และไม่ให้ลบบัญชีตัวเองโดยไม่ได้ตั้งใจ
   useEffect(() => {
@@ -34,18 +35,53 @@ const ManageUserPage = () => {
       <main className="container my-4" style={{ maxWidth: "1200px" }}>
         {/* Header Title Row */}
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2
-            className="fw-bold text-dark d-flex align-items-center gap-2 mb-0"
-          >
+          <h2 className="fw-bold text-dark d-flex align-items-center gap-2 mb-0">
             <span>👥</span> {t("manageUsersTitle")}
           </h2>
-          <button
-            className="btn btn-primary d-flex align-items-center gap-2 px-3 py-2 rounded-lg"
-            style={{ fontSize: "0.9rem" }}
-            onClick={userHook.handleOpenAdd}
-          >
-            <span>+</span> {t("addUserBtn")}
-          </button>
+          <div className="d-flex gap-2">
+            <a
+              href="/FormatForm.csv"
+              download
+              className="btn btn-secondary d-flex align-items-center gap-2 px-3 py-2 rounded-lg"
+              style={{ fontSize: "0.9rem" }}
+            >
+              {t("downloadTemplateBtn")}
+            </a>
+            <button
+              className="btn btn-primary d-flex align-items-center gap-2 px-3 py-2 rounded-lg"
+              style={{ fontSize: "0.9rem" }}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {t("importUsersBtn")}
+            </button>
+            <button
+              className="btn btn-success d-flex align-items-center gap-2 px-3 py-2 rounded-lg"
+              style={{ fontSize: "0.9rem" }}
+              onClick={userHook.handleExportCSV}
+            >
+              {t("exportUsersBtn")}
+            </button>
+            <button
+              className="btn btn-primary d-flex align-items-center gap-2 px-3 py-2 rounded-lg"
+              style={{ fontSize: "0.9rem" }}
+              onClick={userHook.handleOpenAdd}
+            >
+              <span>+</span> {t("addUserBtn")}
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  userHook.handleImportCSV(file);
+                  e.target.value = "";
+                }
+              }}
+              accept=".csv"
+              style={{ display: "none" }}
+            />
+          </div>
         </div>
 
         {/* Top Filters Block */}
@@ -174,6 +210,42 @@ const ManageUserPage = () => {
         confirmText={t("confirmBtn")}
         cancelText={t("cancelBtn")}
         type="warning"
+      />
+
+      {/* IMPORT CONFIRM MODAL */}
+      <ConfirmModal
+        show={userHook.showImportConfirm}
+        onHide={() => userHook.setShowImportConfirm(false)}
+        title={t("importConfirmTitle")}
+        description={
+          t("importConfirmDesc")
+            ? t("importConfirmDesc")
+                .replace("{filename}", userHook.importFileName)
+                .replace("{count}", userHook.importUsersList.length)
+            : ""
+        }
+        onConfirm={userHook.handleImportConfirm}
+        confirmText={t("confirmBtn")}
+        cancelText={t("cancelBtn")}
+        type="warning"
+      />
+
+      {/* IMPORT RESULT SUCCESS MODAL */}
+      <ConfirmModal
+        show={userHook.showImportResult}
+        onHide={() => userHook.setShowImportResult(false)}
+        title={t("importResultTitle")}
+        description={
+          t("importResultDesc")
+            ? t("importResultDesc")
+                .replace("{imported}", userHook.importResultDetails.imported)
+                .replace("{updated}", userHook.importResultDetails.updated)
+            : ""
+        }
+        onConfirm={() => userHook.setShowImportResult(false)}
+        confirmText={t("confirmBtn")}
+        cancelText={t("cancelBtn")}
+        type="success"
       />
 
       <Footer />

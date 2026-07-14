@@ -38,6 +38,13 @@ export const useUserManagement = (t) => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedUserForStatus, setSelectedUserForStatus] = useState(null);
 
+  // Import users modals state
+  const [showImportConfirm, setShowImportConfirm] = useState(false);
+  const [importUsersList, setImportUsersList] = useState([]);
+  const [importFileName, setImportFileName] = useState("");
+  const [showImportResult, setShowImportResult] = useState(false);
+  const [importResultDetails, setImportResultDetails] = useState({ imported: 0, updated: 0 });
+
   const fetchUsers = async () => {
     try {
       const response = await axios.get("http://127.0.0.1:3000/auth/users");
@@ -182,7 +189,7 @@ export const useUserManagement = (t) => {
         fetchUsers();
       }, 1500);
     } catch (err) {
-      setModalError(err.response?.data?.message || t("userAddFailed"));
+      setModalError(err.response?.data?.message || (isEditMode ? t("userUpdateFailed") : t("userAddFailed")));
     }
   };
 
@@ -222,6 +229,112 @@ export const useUserManagement = (t) => {
     } catch (err) {
       alert(t("deleteFailed"));
     }
+  };
+
+  // ฟังก์ชันอ่านและตรวจสอบไฟล์ CSV ก่อนนำเข้า
+  const handleImportCSV = async (file) => {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const text = e.target.result;
+      const lines = text.split(/\r?\n/);
+      if (lines.length <= 1) {
+        alert(t("importFailed") + " (Empty file)");
+        return;
+      }
+
+      // ดึงรายชื่อ Header คอลัมน์จากแถวแรกสุด
+      const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+      const parsedUsers = [];
+
+      // วนลูปอ่านข้อมูลผู้ใช้แต่ละแถว
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        const columns = line.split(",").map((c) => c.trim().replace(/^["']|["']$/g, ""));
+        if (columns.length < headers.length) continue;
+
+        const userObj = {};
+        headers.forEach((header, idx) => {
+          userObj[header] = columns[idx] || "";
+        });
+        parsedUsers.push(userObj);
+      }
+
+      if (parsedUsers.length === 0) {
+        alert(t("importFailed") + " (No valid rows)");
+        return;
+      }
+
+      // เก็บข้อมูลที่ประมวลผลได้ลง State และเปิดป๊อปอัปยืนยันการนำเข้า
+      setImportUsersList(parsedUsers);
+      setImportFileName(file.name);
+      setShowImportConfirm(true);
+    };
+    reader.readAsText(file);
+  };
+
+  // ฟังก์ชันกดยืนยันการนำเข้าและส่งข้อมูลไปยังหลังบ้านเพื่อบันทึก
+  const handleImportConfirm = async () => {
+    try {
+      setLoading(true);
+      setShowImportConfirm(false);
+      const response = await axios.post("http://127.0.0.1:3000/auth/users/import", {
+        users: importUsersList,
+        userId: currentUser?.id,
+      });
+      // จัดเก็บข้อมูลสถิติจำนวนที่สร้างใหม่และอัปเดตเพื่อนำไปรายงานผล
+      setImportResultDetails({
+        imported: response.data.imported || 0,
+        updated: response.data.updated || 0,
+      });
+      setShowImportResult(true); // เปิดป๊อปอัปรายงานผลสำเร็จ
+      await fetchUsers(); // โหลดตารางผู้ใช้ใหม่
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || t("importFailed"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ฟังก์ชันส่งออกรายชื่อผู้ใช้ทั้งหมดเป็นไฟล์ CSV
+  const handleExportCSV = () => {
+    if (users.length === 0) {
+      alert("No users to export");
+      return;
+    }
+
+    // ส่วนหัวของไฟล์ CSV ตามรูปแบบตัวอย่าง
+    const csvHeaders = "username,email,role,status\n";
+    const csvRows = users.map(u => {
+      // แปลงชื่อบทบาทการแสดงผลกลับเป็นรหัสบทบาทตัวพิมพ์เล็กสำหรับเก็บข้อมูล
+      let rawRole = "user";
+      if (u.role === "Admin") rawRole = "admin";
+      else if (u.role === "Project Manager") rawRole = "manager";
+      else if (u.role === "Team Leader") rawRole = "team_leader";
+      else if (u.role === "Video Editor") rawRole = "video_editor";
+      else if (u.role === "Translator") rawRole = "translator";
+
+      const name = `"${(u.name || '').replace(/"/g, '""')}"`;
+      const email = `"${(u.email || '').replace(/"/g, '""')}"`;
+      const role = `"${rawRole}"`;
+      const status = `"${u.status || 'active'}"`;
+      
+      return `${name},${email},${role},${status}`;
+    }).join("\n");
+
+    // ใส่ BOM เพื่อให้เปิดโปรแกรม Microsoft Excel แล้วอักษรไทยไม่เพี้ยน
+    const csvContent = "\uFEFF" + csvHeaders + csvRows;
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `users_export_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Filtered Users computation
@@ -272,6 +385,13 @@ export const useUserManagement = (t) => {
     showStatusModal,
     setShowStatusModal,
     selectedUserForStatus,
+    showImportConfirm,
+    setShowImportConfirm,
+    importFileName,
+    importUsersList,
+    showImportResult,
+    setShowImportResult,
+    importResultDetails,
     handleInputChange,
     handleAvatarChange,
     handleOpenAdd,
@@ -281,6 +401,9 @@ export const useUserManagement = (t) => {
     handleStatusConfirm,
     handleDeleteUser,
     handleDeleteConfirm,
+    handleImportCSV,
+    handleImportConfirm,
+    handleExportCSV,
     filteredUsers,
   };
 };
