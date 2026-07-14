@@ -1,6 +1,17 @@
 import React from "react";
 import { Modal } from "react-bootstrap";
 
+/**
+ * คอมโพเนนต์กล่องข้อความยืนยันการทำรายการ (ConfirmModal Component)
+ * @param {boolean} show - แสดงหรือซ่อน Modal
+ * @param {Function} onHide - ฟังก์ชันปิด Modal (ยกเลิก)
+ * @param {string} title - หัวข้อของ Modal
+ * @param {string} description - รายละเอียดประกอบการตัดสินใจ
+ * @param {Function} onConfirm - ฟังก์ชันการทำงานเมื่อผู้ใช้กดยืนยัน
+ * @param {string} confirmText - ข้อความปุ่มยืนยัน
+ * @param {string} cancelText - ข้อความปุ่มยกเลิก
+ * @param {string} type - ประเภทแจ้งเตือน ("danger", "warning", "info", "success") สำหรับแสดงสีและอีโมจิให้เหมาะกับความสำคัญ
+ */
 const ConfirmModal = ({
   show,
   onHide,
@@ -11,7 +22,7 @@ const ConfirmModal = ({
   cancelText = "Cancel",
   type = "danger" // "danger", "warning", "info", "success"
 }) => {
-  // Map types to styles and emojis
+  // จับคู่ประเภทเพื่อกำหนดลักษณะสีของปุ่มและอีโมจิประกอบการแจ้งเตือน
   let emoji = "🚨";
   let titleColor = "text-danger";
   let confirmBtnClass = "btn-danger";

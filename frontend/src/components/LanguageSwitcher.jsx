@@ -1,6 +1,13 @@
 import React from "react";
 import { useLanguage } from "../lib/LanguageContext";
 
+/**
+ * คอมโพเนนต์ตัวสลับภาษา (LanguageSwitcher Component)
+ * - แสดงปุ่มกดเลือกภาษา TH (ไทย) และ EN (อังกฤษ)
+ * - อัปเดตภาษาที่เลือกไปยัง LanguageContext
+ * @param {string} variant - สไตล์ปุ่ม ("light" หรือ "dark")
+ * @param {string} size - ขนาดปุ่ม ("sm", "md", "lg")
+ */
 const LanguageSwitcher = ({ variant = "light", size = "sm" }) => {
   const { language, setLanguage } = useLanguage();
 

@@ -5,6 +5,12 @@ import { signIn } from '../lib/auth'
 import { useLanguage } from '../lib/LanguageContext'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 
+/**
+ * คอมโพเนนต์หน้าล็อกอิน (Login Page Component)
+ * - รับข้อมูล Email และ Password จากผู้ใช้
+ * - ตรวจสอบความถูกต้องและส่งคำขอยืนยันตัวตนไปยังเซิร์ฟเวอร์
+ * - จัดการบันทึกสถานะการล็อกอินและเปลี่ยนเส้นทางไปยังหน้า Dashboard
+ */
 const Login = () => {
     const { language, setLanguage, t } = useLanguage()
     const [values, setValues] = React.useState({
@@ -17,10 +23,19 @@ const Login = () => {
     const [showPassword, setShowPassword] = React.useState(false)
     const navigate = useNavigate()
 
+    /**
+     * ฟังก์ชันรับและอัปเดตข้อมูลการกรอกฟิลด์อินพุตในแบบฟอร์ม
+     */
     const handleChange = (e) => {
         setValues({...values, [e.target.name]: e.target.value})
     }
 
+    /**
+     * ฟังก์ชันส่งแบบฟอร์มล็อกอิน (Submit handler)
+     * - ตรวจสอบความครบถ้วนของข้อมูล
+     * - ยิงคำขอ POST ไปหา /auth/login
+     * - บันทึกโทเค็นเข้าสู่ระบบ และนำทางผู้ใช้ไปยัง Dashboard
+     */
     const handleSubmit = async (e) => {
         e.preventDefault()
         setMessage('')

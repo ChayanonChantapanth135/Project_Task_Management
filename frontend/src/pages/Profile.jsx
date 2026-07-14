@@ -2,6 +2,10 @@ import React from "react";
 import Header from "../components/Header";
 import Footer from "../components/footer";
 
+/**
+ * คอมโพเนนต์หน้าโปรไฟล์ (Profile Page Component)
+ * - แสดงและแก้ไขข้อมูลส่วนตัวของผู้ใช้งาน รวมถึงรูปภาพโปรไฟล์ (Avatar)
+ */
 const Profile = () => {
   return (
     <div>

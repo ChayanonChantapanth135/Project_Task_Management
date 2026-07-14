@@ -4,6 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../lib/LanguageContext";
 import { signOut, renewToken } from "../lib/auth";
 
+/**
+ * คอมโพเนนต์ตรวจสอบและแจ้งเตือนการหมดอายุเซสชันการเข้าสู่ระบบ (SessionTimeoutHandler Component)
+ * - รันตัวนับเวลาถอยหลัง 1 วินาทีเพื่อคอยตรวจสอบว่าโทเค็นหมดอายุเมื่อไร
+ * - หากเหลือเวลาน้อยกว่า 60 วินาที จะแสดงหน้าต่างแจ้งเตือน (Modal Alert) พร้อมปุ่มต่ออายุหรือออกจากระบบ
+ * - ทำการล็อกเอาต์ผู้ใช้อัตโนมัติเมื่อหมดเวลาเพื่อความปลอดภัยสูงสุด
+ */
 const SessionTimeoutHandler = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -12,6 +18,9 @@ const SessionTimeoutHandler = () => {
   const countdownIntervalRef = useRef(null);
 
   useEffect(() => {
+    /**
+     * ฟังก์ชันตรวจสอบเวลาที่เหลืออยู่ของโทเค็นจาก localStorage
+     */
     const checkSession = () => {
       const token = localStorage.getItem("userToken");
       const expiresAtStr = localStorage.getItem("userTokenExpiresAt");
@@ -87,12 +96,20 @@ const SessionTimeoutHandler = () => {
     return () => clearInterval(countdownIntervalRef.current);
   }, [showModal]);
 
+  /**
+   * ฟังก์ชันดำเนินการล็อกเอาต์เมื่อกดยกเลิกหรือเวลาถอยหลังหมดลง
+   */
   const handleLogout = async () => {
     setShowModal(false);
     await signOut();
     navigate("/Home");
   };
 
+  /**
+   * ฟังก์ชันขอต่ออายุเซสชัน (Renew Token) ผ่านการยิง API ไปหาฝั่ง Backend
+   * - หากการต่ออายุสำเร็จ จะปิด Modal เตือนความจำ
+   * - หากล้มเหลว จะส่งต่อไปยังกระบวนการล็อกเอาต์ผู้ใช้
+   */
   const handleExtend = async () => {
     const success = await renewToken();
     if (success) {
@@ -111,21 +128,21 @@ const SessionTimeoutHandler = () => {
       keyboard={false}
       centered
     >
-      <Modal.Body className="p-4 text-center" style={{ borderRadius: "1rem" }}>
-        <div className="mb-3 text-warning" style={{ fontSize: "3rem" }}>
-          ⏰
+      <Modal.Body className="p-4" style={{ borderRadius: "1rem" }}>
+        <div className="text-center mb-4">
+          <span className="fs-1">🚨</span>
+          <h5 className="fw-bold mt-2 text-danger">
+            {t("sessionTimeoutTitle")}
+          </h5>
+          <div className="text-muted mt-2 small">
+            {t("sessionTimeoutDesc").replace("{seconds}", String(secondsRemaining))}
+          </div>
         </div>
-        <h4 className="fw-bold mb-3">{t("sessionTimeoutTitle")}</h4>
-        <p className="text-secondary mb-4" style={{ fontSize: "0.95rem" }}>
-          {t("sessionTimeoutDesc").replace("{seconds}", String(secondsRemaining))}
-        </p>
 
         {/* Dynamic Countdown Bar */}
         <div className="progress mb-4" style={{ height: "6px", borderRadius: "10px" }}>
           <div
-            className={`progress-bar progress-bar-striped progress-bar-animated ${
-              secondsRemaining <= 15 ? "bg-danger" : "bg-warning"
-            }`}
+            className={`progress-bar progress-bar-striped progress-bar-animated bg-danger`}
             style={{
               width: `${(secondsRemaining / 60) * 100}%`,
               transition: "width 1s linear",
@@ -133,15 +150,17 @@ const SessionTimeoutHandler = () => {
           ></div>
         </div>
 
-        <div className="d-flex justify-content-center gap-2">
+        <div className="d-flex gap-2 justify-content-center">
           <button
-            className="btn btn-outline-secondary px-4 py-2 rounded-lg text-sm fw-semibold"
+            type="button"
+            className="btn btn-light border px-4 py-2 rounded-lg w-50"
             onClick={handleLogout}
           >
             {t("sessionTimeoutExitBtn")}
           </button>
           <button
-            className="btn btn-primary px-4 py-2 rounded-lg text-sm fw-semibold"
+            type="button"
+            className="btn btn-danger px-4 py-2 rounded-lg w-50"
             onClick={handleExtend}
           >
             {t("sessionTimeoutStayBtn")}

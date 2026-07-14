@@ -10,6 +10,12 @@ import ProjectCard from "./components/ProjectCard";
 import ProjectFilter from "./components/ProjectFilter";
 import ProjectTable from "./components/ProjectTable";
 
+/**
+ * คอมโพเนนต์หน้าจัดการโครงการ (ManageProjectPage Component)
+ * - แสดงรายการโครงการทั้งหมดในระบบผ่านตาราง (Table View) หรือการ์ดความคืบหน้า (Board View)
+ * - รองรับการกรอง ค้นหาโครงการ และเรียงตามลำดับความสำคัญ (Priority)
+ * - จัดการแบบฟอร์มบันทึกข้อมูลโครงการใหม่ แก้ไข และยิง API ดึงข้อมูลจริงจากฐานข้อมูล
+ */
 const ManageProjectPage = () => {
   const { t } = useLanguage();
   const [currentUser, setCurrentUser] = useState({

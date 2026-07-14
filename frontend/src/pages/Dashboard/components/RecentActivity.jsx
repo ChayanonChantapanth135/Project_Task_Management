@@ -1,6 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
+/**
+ * คอมโพเนนต์แสดงบันทึกกิจกรรมล่าสุดบนแดชบอร์ด (RecentActivity Component)
+ * @param {Function} t - ฟังก์ชันช่วยแปลภาษา
+ * @param {Array} recentActivities - รายการกิจกรรมล่าสุดที่ดึงมาจาก API
+ */
 const RecentActivity = ({ t, recentActivities }) => {
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">

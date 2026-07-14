@@ -8,11 +8,17 @@ import { useUserManagement } from "./hooks/useUserManagement";
 import UserTable from "./components/UserTable";
 import UserModal from "./components/UserModal";
 
+/**
+ * คอมโพเนนต์หน้าจัดการผู้ใช้ของระบบ (ManageUserPage Component)
+ * - แสดงตารางรายชื่อผู้ใช้ที่ผ่านตัวกรองบทบาท (Role) สถานะ (Status) และแถบค้นหา (Search)
+ * - เรียกใช้งาน useUserManagement Custom Hook สำหรับดำเนินตรรกะเบื้องหลัง
+ * - แสดงและควบคุมการทำงานร่วมกับ Modals สำหรับเพิ่ม/แก้ไขผู้ใช้งาน ยืนยันการระงับ หรือยืนยันการลบผู้ใช้
+ */
 const ManageUserPage = () => {
   const { t } = useLanguage();
   const userHook = useUserManagement(t);
 
-  // Load current user profile (matching original effect)
+  // โหลดโปรไฟล์ผู้ใช้ปัจจุบันเพื่อนำมาเปรียบเทียบสิทธิ์และไม่ให้ลบบัญชีตัวเองโดยไม่ได้ตั้งใจ
   useEffect(() => {
     const fetchUser = async () => {
       const user = await getCurrentUser();

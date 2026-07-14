@@ -3,6 +3,10 @@ import Header from "../components/Header";
 import Footer from "../components/footer";
 import { useLanguage } from "../lib/LanguageContext";
 
+/**
+ * คอมโพเนนต์หน้าเกี่ยวกับเรา (About Page Component)
+ * - แสดงรายละเอียดเกี่ยวกัยบริษัท/ระบบงาน
+ */
 const About = () => {
   const { t } = useLanguage();
   return (

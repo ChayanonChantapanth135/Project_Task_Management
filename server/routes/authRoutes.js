@@ -54,6 +54,13 @@ const router = express.Router()
 //     }
 // })
 
+/**
+ * POST /login
+ * - ตรวจสอบความถูกต้องของ Email และ Password
+ * - ตรวจสอบว่าบัญชีผู้ใช้ถูกระงับ (suspended) หรือไม่
+ * - ลงบันทึกประวัติการเข้าใช้งาน (Activity Log)
+ * - ออก Token (JWT) สำหรับใช้ในการยืนยันตัวตน มีอายุการใช้งาน 20 นาที
+ */
 router.post('/login', async (req, res) => {
     const { email, password } = req.body
     console.log('Login request received:', { email })
@@ -97,6 +104,12 @@ router.post('/login', async (req, res) => {
     }
 })
 
+/**
+ * POST /refresh
+ * - ทำการต่ออายุ Token (Refresh Token) 
+ * - รับ Token เดิม ตรวจสอบความถูกต้อง และออก Token ใหม่ให้อีก 20 นาที
+ * - ช่วยให้ผู้ใช้ระบบไม่ต้องล็อกอินใหม่บ่อยๆ ตราบใดที่ยังใช้งานระบบอยู่
+ */
 router.post('/refresh', async (req, res) => {
     const { token } = req.body
     if (!token) return res.status(400).json({ message: 'Token required' })
@@ -130,6 +143,11 @@ router.post('/refresh', async (req, res) => {
     }
 })
 
+/**
+ * GET /users
+ * - ดึงข้อมูลผู้ใช้งานทั้งหมดในระบบ (ยกเว้นรหัสผ่าน)
+ * - ใช้แสดงผลในหน้ารายการผู้ใช้งาน (Manage Users)
+ */
 router.get('/users', async (req, res) => {
     try {
         const db = await connectToDatabase();
@@ -141,6 +159,10 @@ router.get('/users', async (req, res) => {
     }
 })
 
+/**
+ * GET /users/:id
+ * - ดึงข้อมูลประวัติและข้อมูลเฉพาะของผู้ใช้งานตาม ID ที่ระบุ
+ */
 router.get('/users/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -154,6 +176,13 @@ router.get('/users/:id', async (req, res) => {
     }
 })
 
+// สำหรับlogin
+/**
+ * POST /users
+ * - สร้างบัญชีผู้ใช้งานใหม่โดยผู้ดูแลระบบ (Admin)
+ * - ทำการเข้ารหัสผ่านด้วย bcrypt ก่อนบันทึก
+ * - แปลงบทบาท (Role) จากหน้าบ้าน (เช่น Admin, Project Manager) ให้เป็นค่าระดับฐานข้อมูล (เช่น admin, manager)
+ */
 router.post('/users', async (req, res) => {
     const { username, email, password, role, status } = req.body;
     try {
@@ -185,6 +214,11 @@ router.post('/users', async (req, res) => {
     }
 })
 
+/**
+ * PUT /users/:id
+ * - อัปเดตข้อมูลผู้ใช้งานตาม ID ที่ส่งมา (ชื่ออีเมล, บทบาท, สถานะบัญชี)
+ * - หากมีการระบุรหัสผ่านใหม่ จะทำการเข้ารหัส (hash) และอัปเดตรหัสผ่านใหม่ด้วย
+ */
 router.put('/users/:id', async (req, res) => {
     const { id } = req.params;
     const { username, email, password, role, status } = req.body;
@@ -220,6 +254,10 @@ router.put('/users/:id', async (req, res) => {
     }
 })
 
+/**
+ * DELETE /users/:id
+ * - ลบบัญชีผู้ใช้งานออกจากระบบตาม ID ที่ระบุ
+ */
 router.delete('/users/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -233,6 +271,12 @@ router.delete('/users/:id', async (req, res) => {
 })
 
 // Upload avatar and update user's avatar in DB
+/**
+ * POST /upload-avatar/:id
+ * - อัปโหลดรูปภาพโปรไฟล์ (Avatar) ของผู้ใช้งานโดยใช้ multer
+ * - ตรวจสอบความถูกต้องของไฟล์รูปภาพ และจำกัดขนาดไม่เกิน 2MB
+ * - บันทึกที่อยู่รูปภาพ (URL) ลงในฐานข้อมูลของบัญชีผู้ใช้
+ */
 router.post('/upload-avatar/:id', upload.single('avatar'), async (req, res) => {
     const { id } = req.params
     try {
@@ -249,6 +293,11 @@ router.post('/upload-avatar/:id', upload.single('avatar'), async (req, res) => {
     }
 })
 
+/**
+ * GET /dashboard-stats
+ * - ดึงข้อมูลสถิติรวมสำหรับหน้า Dashboard
+ * - นับจำนวนผู้ใช้งานทั้งหมด, โครงการทั้งหมด, และงานทั้งหมด (แยกสถานะ และงานที่เกินกำหนด)
+ */
 router.get('/dashboard-stats', async (req, res) => {
     try {
         const db = await connectToDatabase();
@@ -314,6 +363,11 @@ router.get('/dashboard-stats', async (req, res) => {
 // --- PROJECTS MANAGEMENT DB ENDPOINTS ---
 
 // Fetch team leaders (all users or users with role team_leader/admin)
+/**
+ * GET /team-leaders
+ * - ดึงรายชื่อผู้ใช้ที่มีบทบาทเป็น Team Leader เพื่อให้เลือกตอนสร้างโครงการ
+ * - หากไม่มีข้อมูล จะทำการดึงข้อมูลผู้ใช้ทั้งหมด หรือใช้ข้อมูลจำลอง (mock data)
+ */
 router.get('/team-leaders', async (req, res) => {
     try {
         const db = await connectToDatabase()
@@ -338,6 +392,12 @@ router.get('/team-leaders', async (req, res) => {
 })
 
 // Fetch projects (and auto-seed if none exist)
+/**
+ * GET /projects
+ * - ดึงรายชื่อโครงการทั้งหมดพร้อมกับข้อมูลหัวหน้าทีม (Team Leader) 
+ * - คำนวณความคืบหน้า (Progress) เป็นเปอร์เซ็นต์ตามจำนวนงาน (Tasks) ที่เสร็จสิ้น
+ * - หากระบบยังไม่มีโครงการใดๆ จะสร้างข้อมูลโครงการและงานจำลองขึ้นมาโดยอัตโนมัติ (Auto-seeding)
+ */
 router.get('/projects', async (req, res) => {
     try {
         const db = await connectToDatabase()
@@ -414,6 +474,12 @@ router.get('/projects', async (req, res) => {
 })
 
 // Create new project
+/**
+ * POST /projects
+ * - สร้างโครงการใหม่ พร้อมกำหนดระดับความสำคัญ (Priority) วันส่งงาน (End Date)
+ * - กำหนดผู้ดูแลโครงการ (Team Leader)
+ * - บันทึกประวัติกิจกรรมการสร้างโครงการลงฐานข้อมูล
+ */
 router.post('/projects', async (req, res) => {
     const { name, endDate, priority, teamLeaderId, createdBy } = req.body
     try {
@@ -442,6 +508,12 @@ router.post('/projects', async (req, res) => {
 })
 
 // Edit project
+/**
+ * PUT /projects/:id
+ * - แก้ไขรายละเอียดโครงการ (ชื่อ, สถานะ, ความสำคัญ, วันส่งงาน, หัวหน้าทีม) ตาม ID ของโครงการ
+ * - อัปเดตข้อมูลความเชื่อมโยงกับ Team Leader ในตารางกลาง (project_team_leaders)
+ * - บันทึกประวัติกิจกรรมการแก้ไข
+ */
 router.put('/projects/:id', async (req, res) => {
     const { id } = req.params
     const { name, status, priority, endDate, teamLeaderId, userId } = req.body
@@ -471,6 +543,11 @@ router.put('/projects/:id', async (req, res) => {
 })
 
 // Delete project
+/**
+ * DELETE /projects/:id
+ * - ลบโครงการออกจากระบบ (Cascade Delete จะทำการลบงาน, คอมเมนต์, ไฟล์ที่เกี่ยวกับโครงการนี้โดยอัตโนมัติ)
+ * - บันทึกประวัติกิจกรรมการลบ
+ */
 router.delete('/projects/:id', async (req, res) => {
     const { id } = req.params
     const { userId } = req.query
@@ -495,6 +572,11 @@ router.delete('/projects/:id', async (req, res) => {
 })
 
 // Fetch recent activity logs (limited to 10)
+/**
+ * GET /activity-logs
+ * - ดึงประวัติกิจกรรมการทำงานของระบบ (สูงสุด 100 รายการล่าสุด) เช่น การล็อกอิน การสร้าง/แก้ไขโครงการ 
+ * - แสดงผลร่วมกับชื่อผู้ใช้งานที่ทำกิจกรรมนั้นๆ
+ */
 router.get('/activity-logs', async (req, res) => {
     try {
         const db = await connectToDatabase()
@@ -513,6 +595,10 @@ router.get('/activity-logs', async (req, res) => {
 })
 
 // Log user logout action
+/**
+ * POST /logout
+ * - บันทึกประวัติการออกจากระบบ (Logout) ของผู้ใช้งาน
+ */
 router.post('/logout', async (req, res) => {
     const { userId } = req.body
     try {

@@ -337,6 +337,11 @@ const translations = {
   },
 };
 
+/**
+ * ผู้ให้บริการเปลี่ยนภาษาของระบบ (LanguageProvider Component)
+ * - กำหนดสถานะภาษาเริ่มต้น (ค่าเริ่มต้นคือ ภาษาไทย 'th' ดึงจาก localStorage)
+ * - บันทึกการเปลี่ยนแปลงค่าภาษาลงใน localStorage เมื่อค่าภาษาเปลี่ยน
+ */
 export const LanguageProvider = ({ children }) => {
   const [language, setLanguage] = useState(() => {
     return localStorage.getItem("language") || "th";
@@ -346,10 +351,18 @@ export const LanguageProvider = ({ children }) => {
     localStorage.setItem("language", language);
   }, [language]);
 
+  /**
+   * ฟังก์ชันสำหรับสลับภาษาระหว่างภาษาไทย (th) และภาษาอังกฤษ (en)
+   */
   const toggleLanguage = () => {
     setLanguage((prev) => (prev === "en" ? "th" : "en"));
   };
 
+  /**
+   * ฟังก์ชันแปลคำศัพท์ตาม Key ที่กำหนด
+   * @param {string} key - คีย์เวิร์ดคำศัพท์
+   * @returns {string} คำที่แปลแล้ว (หากไม่มีในพจนานุกรม จะคืนค่า key กลับไป)
+   */
   const t = (key) => {
     return translations[language][key] || key;
   };
@@ -363,6 +376,10 @@ export const LanguageProvider = ({ children }) => {
   );
 };
 
+/**
+ * Custom Hook สำหรับเรียกใช้งานข้อมูลภาษาและการแปลคำศัพท์ในคอมโพเนนต์อื่น ๆ
+ * @returns {{language: string, setLanguage: Function, toggleLanguage: Function, t: Function}}
+ */
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
   if (!context) {

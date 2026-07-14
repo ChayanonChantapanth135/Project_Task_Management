@@ -6,6 +6,13 @@ import axios from "axios";
 import StatCard from "./components/StatCard";
 import RecentActivity from "./components/RecentActivity";
 
+/**
+ * คอมโพเนนต์หน้าแดชบอร์ดสรุปผล (DashboardPage Component)
+ * - แสดง Stat Cards สรุปยอดผู้ใช้, โครงการ, งานทั้งหมด และงานที่ล่าช้า
+ * - แสดงสถานะของงานย่อยทั้งหมด (Pending, In Progress, Reviewing, Completed)
+ * - แสดงประวัติกิจกรรมล่าสุดของระบบ (Recent Activities)
+ * - ดึงข้อมูลสถิติจาก API /auth/dashboard-stats และ /auth/activity-logs
+ */
 const DashboardPage = () => {
   const { t } = useLanguage();
   const [stats, setStats] = useState({

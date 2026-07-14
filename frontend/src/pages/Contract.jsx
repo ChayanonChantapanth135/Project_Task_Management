@@ -3,6 +3,10 @@ import Header from "../components/Header";
 import Footer from "../components/footer";
 import { useLanguage } from "../lib/LanguageContext";
 
+/**
+ * คอมโพเนนต์หน้าติดต่อเรา (Contract Page Component)
+ * - แสดงช่องทางและแบบฟอร์มการติดต่อกับบริษัท
+ */
 const Contract = () => {
   const { t } = useLanguage();
   return (

@@ -1,6 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
+/**
+ * คอมโพเนนต์แถบส่วนท้ายของหน้าเว็บ (Footer Component)
+ * - แสดงลิขสิทธิ์ © 2026 Company, Inc
+ * - แสดงลิงก์นำทางเพิ่มเติมของหน้าสาธารณะ (Home, Contract, About)
+ */
 const Footer = () => {
   return (
     <div className="container">

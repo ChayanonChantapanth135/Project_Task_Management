@@ -4,6 +4,11 @@ import Footer from "../components/footer";
 import { useLanguage } from "../lib/LanguageContext";
 import axios from "axios";
 
+/**
+ * คอมโพเนนต์หน้าบันทึกกิจกรรมย้อนหลัง (Activity Page Component)
+ * - แสดงรายการบันทึกประวัติการทำรายการต่างๆ ของระบบ (Activity Logs) แบบแบ่งหน้า (Pagination)
+ * - ค้นหาและกรองกิจกรรมตามประเภท (เกี่ยวกับระบบ, โปรเจกต์, ผู้ใช้งาน)
+ */
 const Activity = () => {
   const { t } = useLanguage();
   const [logs, setLogs] = useState([]);
@@ -13,7 +18,9 @@ const Activity = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const entriesPerPage = 6;
 
-  // Fetch all activity logs from DB
+  /**
+   * ดึงประวัติกิจกรรมการทำงานทั้งหมดจาก API หลังบ้าน
+   */
   const fetchLogs = async () => {
     setLoading(true);
     try {

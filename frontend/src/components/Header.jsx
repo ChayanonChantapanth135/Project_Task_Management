@@ -7,6 +7,13 @@ import { useLanguage } from "../lib/LanguageContext";
 import axios from "axios";
 import LanguageSwitcher from "./LanguageSwitcher";
 
+/**
+ * คอมโพเนนต์แถบเมนูด้านบน (Header / Navigation Bar Component)
+ * - แสดงโลโก้ของระบบ
+ * - แสดงลิงก์นำทางไปยังเมนูต่างๆ (Dashboard, Manage Users, Projects, Tasks, Reports)
+ * - จัดการโหลดข้อมูลโปรไฟล์และรูปภาพอัปเดตล่าสุดของผู้ใช้ผ่าน API
+ * - ให้ผู้ใช้งานล็อกเอาต์และสลับภาษาได้ผ่านวิดเจ็ต
+ */
 const Header = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -14,6 +21,11 @@ const Header = () => {
   const { language, setLanguage, t } = useLanguage();
 
   useEffect(() => {
+    /**
+     * ฟังก์ชันตรวจสอบสถานะล็อกอินของผู้ใช้งาน
+     * - เรียก getCurrentUser() เพื่อนำข้อมูลจาก localStorage มาตรวจสอบความถูกต้องและเช็กหมดอายุ
+     * - ยิง API ไปยังหลังบ้านเพื่อดึงข้อมูลอัปเดตล่าสุด (รูปภาพโปรไฟล์ล่าสุด)
+     */
     const checkUser = async () => {
       try {
         const currentUser = await getCurrentUser();
@@ -36,6 +48,7 @@ const Header = () => {
       }
     };
     checkUser();
+    // รับฟังเหตุการณ์เมื่อมีการเปลี่ยนแปลงข้อมูลล็อกอิน (เช่น เข้าสู่ระบบหรือออกจากระบบที่หน้าต่างอื่น)
     window.addEventListener("authChanged", checkUser);
     window.addEventListener("storage", checkUser);
     return () => {
@@ -44,6 +57,11 @@ const Header = () => {
     };
   }, []);
 
+  /**
+   * ฟังก์ชันจัดการออกจากระบบ (Sign Out)
+   * - เรียก signOut() เพื่อล้าง Token และแจ้งเตือนเซิร์ฟเวอร์
+   * - รีเซ็ต state ผู้ใช้งาน และนำทางไปยังหน้า Home
+   */
   const handleSignOut = async () => {
     try {
       await signOut();

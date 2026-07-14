@@ -1,6 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
+/**
+ * คอมโพเนนต์การ์ดสถิติ (StatCard Component)
+ * - แสดงตัวเลขสถิติอย่างง่าย หัวข้อ และไอคอนประกอบ
+ * - รองรับการใส่คำอธิบายเพิ่มเติม (subtitle) หรือ ลิงก์นำทางไปยังหน้ารายละเอียดหลัก
+ */
 const StatCard = ({ title, value, subtitle, link, path, bgColor, icon }) => {
   return (
     <div className={`${bgColor} rounded-lg p-4 text-white shadow-lg hover:shadow-xl transition-shadow cursor-pointer`}>

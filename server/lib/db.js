@@ -2,6 +2,10 @@ import mysql from 'mysql2/promise'
 
 let connection;
 
+/**
+ * เชื่อมต่อกับฐานข้อมูล MySQL (ใช้รูปแบบ Singleton เพื่อแชร์การเชื่อมต่อเดียว)
+ * @returns {Promise<Connection>} ออบเจกต์การเชื่อมต่อฐานข้อมูล
+ */
 export const connectToDatabase = async () => {
   if (!connection) {
     connection = await mysql.createConnection({

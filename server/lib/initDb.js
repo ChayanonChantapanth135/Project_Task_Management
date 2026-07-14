@@ -1,5 +1,12 @@
 import mysql from 'mysql2/promise'
 
+/**
+ * ตั้งค่าและเตรียมความพร้อมของฐานข้อมูล (Database Initialization)
+ * - สร้างฐานข้อมูลหากยังไม่มี
+ * - สร้างตารางที่จำเป็นทั้งหมด 11 ตาราง (roles, users, projects, tasks, comments, files, etc.)
+ * - ใส่ข้อมูลเริ่มต้น (Seed) เช่น บทบาทผู้ใช้งานเริ่มต้น (Default Roles)
+ * - เพิ่มคอลัมน์ที่ขาดหายไปเผื่อกรณีอัปเกรดฐานข้อมูลแบบปลอดภัย
+ */
 export const initializeDatabase = async () => {
   let connection;
   try {

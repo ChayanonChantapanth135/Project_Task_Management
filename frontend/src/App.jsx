@@ -16,6 +16,13 @@ import Activity from "./pages/Activity";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SessionTimeoutHandler from "./components/SessionTimeoutHandler";
 
+/**
+ * คอมโพเนนต์หลักของระบบ (App Component)
+ * - ห่อหุ้มแอปพลิเคชันด้วย LanguageProvider สำหรับจัดการเปลี่ยนภาษา (ไทย/อังกฤษ/ญี่ปุ่น/จีน)
+ * - ใช้ React Router เพื่อกำหนดเส้นทาง URL ในระบบ (Routing)
+ * - กำหนด ProtectedRoute สำหรับหน้าที่ต้องการล็อกอินก่อนเข้าถึง
+ * - โหลด SessionTimeoutHandler เพื่อตรวจสอบและแจ้งเตือนเซสชันหมดอายุ
+ */
 function App() {
   return (
     <LanguageProvider>

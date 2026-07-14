@@ -3,6 +3,11 @@ import Header from "../components/Header";
 import Footer from "../components/footer";
 import { useLanguage } from "../lib/LanguageContext";
 
+/**
+ * คอมโพเนนต์หน้าแรก (Home Page Component)
+ * - แสดงส่วนหัว (Header) และส่วนท้าย (Footer)
+ * - หน้าแรกแบบสาธารณะที่เปิดให้ทุกคนเข้าถึงได้โดยไม่ต้องล็อกอิน
+ */
 const Home = () => {
   const { t } = useLanguage();
 
