@@ -34,6 +34,39 @@ const upload = multer({
 
 const router = express.Router()
 
+// Helper to log user activity without duplicate consecutive logs
+async function logActivity(db, userId, action, details) {
+    try {
+        let lastLog = [];
+        if (userId) {
+            [lastLog] = await db.query(
+                "SELECT id, action, details FROM activity_logs WHERE user_id = ? ORDER BY id DESC LIMIT 1",
+                [userId]
+            );
+        } else {
+            [lastLog] = await db.query(
+                "SELECT id, action, details FROM activity_logs WHERE user_id IS NULL ORDER BY id DESC LIMIT 1"
+            );
+        }
+
+        if (lastLog.length > 0 && lastLog[0].action === action && lastLog[0].details === details) {
+            // Update the timestamp of the last log instead of inserting a duplicate row
+            await db.query(
+                "UPDATE activity_logs SET created_at = CURRENT_TIMESTAMP WHERE id = ?",
+                [lastLog[0].id]
+            );
+        } else {
+            // Insert a new log entry
+            await db.query(
+                "INSERT INTO activity_logs (user_id, action, details) VALUES (?, ?, ?)",
+                [userId, action, details]
+            );
+        }
+    } catch (error) {
+        console.error("Error writing activity log:", error.message);
+    }
+}
+
 // router.post('/register', async (req, res) => {
 //     const { username, email, password } = req.body
 //     console.log('Register request received:', { username, email })
@@ -84,7 +117,7 @@ router.post('/login', async (req, res) => {
         const token = jwt.sign({ id: rows[0].id }, process.env.JWT_KEY, { expiresIn: tokenExpiresIn });
 
         // Log Login
-        await db.query("INSERT INTO activity_logs (user_id, action, details) VALUES (?, 'Login', ?)", [rows[0].id, `User logged in: ${rows[0].username}`]);
+        await logActivity(db, rows[0].id, 'Login', `User logged in: ${rows[0].username}`);
 
         return res.status(201).json({
             token: token,
@@ -498,7 +531,7 @@ router.post('/projects', async (req, res) => {
         }
 
         // Log Activity
-        await db.query("INSERT INTO activity_logs (user_id, action, details) VALUES (?, 'Create New Project', ?)", [createdBy, `Created project: ${name}`])
+        await logActivity(db, createdBy, 'Create New Project', `Created project: ${name}`);
 
         res.status(201).json({ message: 'Project created successfully', projectId })
     } catch (error) {
@@ -533,7 +566,7 @@ router.put('/projects/:id', async (req, res) => {
         }
 
         // Log Activity
-        await db.query("INSERT INTO activity_logs (user_id, action, details) VALUES (?, 'Edit Project', ?)", [userId, `Edited project ID: ${id}`])
+        await logActivity(db, userId, 'Edit Project', `Edited project ID: ${id}`);
 
         res.status(200).json({ message: 'Project updated successfully' })
     } catch (error) {
@@ -562,7 +595,7 @@ router.delete('/projects/:id', async (req, res) => {
         await db.query("DELETE FROM projects WHERE id = ?", [id])
 
         // Log Activity
-        await db.query("INSERT INTO activity_logs (user_id, action, details) VALUES (?, 'Delete Project', ?)", [userId, `Deleted project: ${projName}`])
+        await logActivity(db, userId, 'Delete Project', `Deleted project: ${projName}`);
 
         res.status(200).json({ message: 'Project deleted successfully' })
     } catch (error) {
@@ -607,7 +640,7 @@ router.post('/logout', async (req, res) => {
             // Get username for logging
             const [userRows] = await db.query('SELECT username FROM users WHERE id = ?', [userId])
             const username = userRows[0]?.username || `User ID ${userId}`
-            await db.query("INSERT INTO activity_logs (user_id, action, details) VALUES (?, 'Logout', ?)", [userId, `User logged out: ${username}`])
+            await logActivity(db, userId, 'Logout', `User logged out: ${username}`);
         }
         res.status(200).json({ message: 'Logged out successfully' })
     } catch (error) {
