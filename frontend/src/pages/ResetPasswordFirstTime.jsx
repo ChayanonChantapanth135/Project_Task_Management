@@ -40,7 +40,7 @@ const ResetPasswordFirstTime = () => {
     setError("");
 
     if (!values.password || !values.confirmPassword) {
-      setError(language === "th" ? "กรุณากรอกข้อมูลให้ครบถ้วน" : "Please fill in all fields.");
+      setError(t("fillAllFields"));
       return;
     }
 
@@ -56,11 +56,7 @@ const ResetPasswordFirstTime = () => {
         password: values.password,
       });
 
-      setMessage(
-        language === "th"
-          ? "เปลี่ยนรหัสผ่านสำเร็จ! กำลังนำคุณเข้าสู่หน้าแดชบอร์ด..."
-          : "Password updated successfully! Redirecting to dashboard..."
-      );
+      setMessage(t("firstTimeResetSuccess"));
 
       // อัปเดตสถานะใน localStorage เพื่อลบ flag บังคับรีเซ็ตออก
       const updatedUser = { ...currentUser, is_force_reset: 0 };
@@ -78,7 +74,7 @@ const ResetPasswordFirstTime = () => {
         navigate("/Dashboard");
       }, 2000);
     } catch (err) {
-      setError(err.response?.data?.message || (language === "th" ? "เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน" : "Failed to reset password."));
+      setError(err.response?.data?.message || t("firstTimeResetFailed"));
     } finally {
       setLoading(false);
     }
@@ -178,12 +174,10 @@ const ResetPasswordFirstTime = () => {
               letterSpacing: "-0.02em",
             }}
           >
-            {language === "th" ? "เปลี่ยนรหัสผ่านครั้งแรก" : "First Time Reset Password"}
+            {t("firstTimeResetTitle")}
           </h3>
           <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.85rem" }}>
-            {language === "th"
-              ? "กรุณาเปลี่ยนรหัสผ่านเพื่อความปลอดภัยก่อนเริ่มต้นใช้งาน"
-              : "Please change your password for safety before getting started"}
+            {t("firstTimeResetDesc")}
           </p>
         </div>
 
@@ -308,7 +302,7 @@ const ResetPasswordFirstTime = () => {
                 textTransform: "uppercase",
               }}
             >
-              {t("confirmPasswordLabel") || "Confirm New Password"}
+              {t("confirmPasswordLabel")}
             </label>
             <div style={{ position: "relative" }}>
               <span
@@ -370,13 +364,7 @@ const ResetPasswordFirstTime = () => {
               marginTop: "0.5rem",
             }}
           >
-            {loading
-              ? language === "th"
-                ? "กำลังเปลี่ยนรหัสผ่าน..."
-                : "Updating..."
-              : language === "th"
-              ? "บันทึกรหัสผ่านใหม่"
-              : "Save New Password"}
+            {loading ? t("updatingPassword") : t("saveNewPassword")}
           </button>
 
           {/* Logout Button */}
@@ -398,7 +386,7 @@ const ResetPasswordFirstTime = () => {
                 (e.target.style.color = "rgba(255,255,255,0.5)")
               }
             >
-              {language === "th" ? "← ออกจากระบบ" : "← Logout"}
+              {"← " + t("signOut")}
             </button>
           </div>
         </form>

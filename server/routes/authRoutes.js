@@ -271,7 +271,7 @@ router.post('/users', upload.single('avatar'), async (req, res) => {
         );
 
         // 4. ส่งรหัสผ่านชั่วคราวให้ผู้ใช้ทางอีเมลผ่าน nodemailer
-        const emailUser = (process.env.EMAIL_USER || 'chayanon.1547@gmail.com').replace(/['"]/g, '').trim();
+        const emailUser = (process.env.EMAIL_USER || 'chayanon.sent@gmail.com').replace(/['"]/g, '').trim();
         const emailPass = (process.env.EMAIL_PASS || '').replace(/['"]/g, '').trim();
 
         if (emailPass) {
@@ -285,21 +285,21 @@ router.post('/users', upload.single('avatar'), async (req, res) => {
                 });
 
                 const mailOptions = {
-                    from: `"RNM AUTH" <${emailUser}>`,
+                    from: `"Project Management" <${emailUser}>`,
                     to: email,
-                    subject: 'ข้อมูลบัญชีผู้ใช้งานใหม่ (Your New Account Details)',
+                    subject: 'New Account Registration - Project Management',
                     html: `
                         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                            <h2 style="color: #0d6efd; text-align: center;">ยินดีต้อนรับสู่ RNM AUTH</h2>
-                            <p>สวัสดีครับคุณ <b>${username}</b>,</p>
-                            <p>บัญชีผู้ใช้ของคุณถูกสร้างขึ้นเรียบร้อยแล้วโดยผู้ดูแลระบบ ข้อมูลการเข้าสู่ระบบของคุณมีดังนี้:</p>
+                            <h2 style="color: #0d6efd; text-align: center;">Welcome to Project Management</h2>
+                            <p>Hello <b>${username}</b>,</p>
+                            <p>Your user account has been successfully created by the administrator. Here are your login details:</p>
                             <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                                <p style="margin: 5px 0;"><b>อีเมล (Email):</b> ${email}</p>
-                                <p style="margin: 5px 0;"><b>รหัสผ่านชั่วคราว (Temporary Password):</b> <span style="font-size: 16px; font-weight: bold; color: #dc3545;">${password}</span></p>
+                                <p style="margin: 5px 0;"><b>Email:</b> ${email}</p>
+                                <p style="margin: 5px 0;"><b>Temporary Password:</b> <span style="font-size: 16px; font-weight: bold; color: #dc3545;">${password}</span></p>
                             </div>
-                            <p style="color: #ea580c; font-weight: bold;">* ระบบจะบังคับให้คุณเปลี่ยนรหัสผ่านใหม่ในการเข้าสู่ระบบครั้งแรกเพื่อความปลอดภัย</p>
+                            <p style="color: #ea580c; font-weight: bold;">* You will be forced to reset your password on your first login for security purposes.</p>
                             <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-                            <p style="font-size: 12px; color: #777; text-align: center;">กรุณาเก็บรักษารหัสผ่านนี้ไว้เป็นความลับ</p>
+                            <p style="font-size: 12px; color: #777; text-align: center;">Please keep these credentials secure and confidential.</p>
                         </div>
                     `
                 };
@@ -835,12 +835,13 @@ router.post('/send-otp', async (req, res) => {
     const { email } = req.body;
     try {
         const db = await connectToDatabase();
-        const [users] = await db.query('SELECT id FROM users WHERE email = ?', [email]);
+        const [users] = await db.query('SELECT id, username FROM users WHERE email = ?', [email]);
         if (users.length === 0) {
             return res.status(404).json({ message: 'ไม่พบอีเมลผู้ใช้ในระบบ / User not found' });
         }
 
         const userId = users[0].id;
+        const username = users[0].username;
         
         // 1. สุ่มตัวเลข 6 หลัก (เลข 100000 - 999999)
         const otpCode = crypto.randomInt(100000, 999999).toString();
@@ -858,7 +859,7 @@ router.post('/send-otp', async (req, res) => {
         console.log(`[OTP Sent] Email: ${email}, Code: ${otpCode}`);
 
         // 4. ตั้งค่า nodemailer เพื่อส่งอีเมล
-        const emailUser = (process.env.EMAIL_USER || 'chayanon.1547@gmail.com').replace(/['"]/g, '').trim();
+        const emailUser = (process.env.EMAIL_USER || 'chayanon.sent@gmail.com').replace(/['"]/g, '').trim();
         const emailPass = (process.env.EMAIL_PASS || '').replace(/['"]/g, '').trim();
 
         const transporter = nodemailer.createTransport({
@@ -870,20 +871,20 @@ router.post('/send-otp', async (req, res) => {
         });
 
         const mailOptions = {
-            from: `"RNM AUTH" <${emailUser}>`,
+            from: `"Project Management" <${emailUser}>`,
             to: email,
-            subject: 'รหัสยืนยัน OTP สำหรับการรีเซ็ตรหัสผ่าน (OTP Verification Code)',
+            subject: 'OTP Verification Code - Project Management',
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                    <h2 style="color: #fbbf24; text-align: center;">RNM AUTH - OTP Verification</h2>
-                    <p>สวัสดีครับ,</p>
-                    <p>คุณได้รับคำขอรหัส OTP สำหรับการรีเซ็ตรหัสผ่านบัญชีผู้ใช้ของคุณ</p>
+                    <h2 style="color: #0d6efd; text-align: center;">OTP Verification</h2>
+                    <p>Hello <b>${username}</b>,</p>
+                    <p>You requested a one-time password (OTP) to reset your account password.</p>
                     <div style="background-color: #f9f9f9; padding: 15px; text-align: center; border-radius: 8px; margin: 20px 0;">
                         <span style="font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #1a1a2e;">${otpCode}</span>
                     </div>
-                    <p style="color: #ea580c; font-weight: bold;">* รหัส OTP นี้จะหมดอายุภายใน 3 นาที และสามารถใช้งานได้เพียงครั้งเดียวเท่านั้น</p>
+                    <p style="color: #ea580c; font-weight: bold;">* This OTP code will expire in 3 minutes and can only be used once.</p>
                     <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-                    <p style="font-size: 12px; color: #777; text-align: center;">หากคุณไม่ได้ขอกู้คืนรหัสผ่าน กรุณาละเลยอีเมลฉบับนี้</p>
+                    <p style="font-size: 12px; color: #777; text-align: center;">If you did not request this, you can safely ignore this email.</p>
                 </div>
             `
         };

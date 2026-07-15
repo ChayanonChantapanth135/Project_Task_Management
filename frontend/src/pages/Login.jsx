@@ -71,7 +71,7 @@ const Login = () => {
       });
 
       if (response.data.requirePasswordReset) {
-        setMessage(response.data.message || "กรุณาเปลี่ยนรหัสผ่านก่อนเข้าใช้งานครั้งแรก");
+        setMessage(t("forceResetPrompt"));
         setValues({ email: "", password: "" });
         setTimeout(() => {
           navigate("/reset-password-first-time");
