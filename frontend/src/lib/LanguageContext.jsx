@@ -26,6 +26,15 @@ const translations = {
     fillAllFields: "Please Fill In All Fields",
     loginSuccess: "Login Successful! Redirecting...",
     loginFailed: "Login Failed. Please Try Again.",
+    forgotPasswordLink: "Forgot Password?",
+    resetPasswordTitle: "Reset Password",
+    newPasswordLabel: "New Password",
+    confirmPasswordLabel: "Confirm New Password",
+    resetSuccess: "Password reset successfully! Redirecting to login...",
+    passwordsMismatch: "Passwords do not match!",
+    otpCodeLabel: "OTP",
+    otpCodePlaceholder: "6-digit OTP code",
+    sendOtpBtn: "Send OTP",
 
     // Home Page
     homeMessage: "Home For Unregistered Users",
@@ -86,9 +95,11 @@ const translations = {
     importSuccess: "Users imported/updated successfully!",
     importFailed: "Import failed!",
     importConfirmTitle: "Confirm User Import",
-    importConfirmDesc: "Are you sure you want to import users from {filename}? ({count} users found)",
+    importConfirmDesc:
+      "Are you sure you want to import users from {filename}? ({count} users found)",
     importResultTitle: "Import Completed",
-    importResultDesc: "Successfully imported {imported} new users and updated {updated} existing users.",
+    importResultDesc:
+      "Successfully imported {imported} new users and updated {updated} existing users.",
     exportUsersBtn: "Export Users",
 
     // ManageUsers Modal
@@ -161,7 +172,8 @@ const translations = {
     confirmBtn: "Confirm",
     sortByPriorityLabel: "Sort Priority",
     sessionTimeoutTitle: "Session Expiration Warning",
-    sessionTimeoutDesc: "Your login session is about to expire in {seconds} seconds. Would you like to continue using the web or exit?",
+    sessionTimeoutDesc:
+      "Your login session is about to expire in {seconds} seconds. Would you like to continue using the web or exit?",
     sessionTimeoutStayBtn: "Stay / Use Web",
     sessionTimeoutExitBtn: "Exit / Logout",
 
@@ -204,6 +216,15 @@ const translations = {
     fillAllFields: "กรุณากรอกข้อมูลให้ครบทุกช่อง",
     loginSuccess: "เข้าสู่ระบบสำเร็จ! กำลังนำทางไปยังหน้าแรก...",
     loginFailed: "การเข้าสู่ระบบล้มเหลว โปรดลองอีกครั้ง",
+    forgotPasswordLink: "ลืมรหัสผ่าน?",
+    resetPasswordTitle: "รีเซ็ตรหัสผ่าน",
+    newPasswordLabel: "รหัสผ่านใหม่",
+    confirmPasswordLabel: "ยืนยันรหัสผ่านใหม่",
+    resetSuccess: "รีเซ็ตรหัสผ่านสำเร็จ! กำลังนำทางไปยังหน้าล็อกอิน...",
+    passwordsMismatch: "รหัสผ่านไม่ตรงกัน!",
+    otpCodeLabel: "รหัส OTP",
+    otpCodePlaceholder: "กรอกรหัส OTP 6 หลัก",
+    sendOtpBtn: "ส่งรหัส OTP",
 
     // Home Page
     homeMessage: "หน้าแรกสำหรับผู้ใช้ทั่วไป",
@@ -264,9 +285,11 @@ const translations = {
     importSuccess: "นำเข้า/อัปเดตข้อมูลผู้ใช้งานเรียบร้อยแล้ว!",
     importFailed: "การนำเข้าข้อมูลล้มเหลว!",
     importConfirmTitle: "ยืนยันการนำเข้าผู้ใช้งาน",
-    importConfirmDesc: "คุณแน่ใจหรือไม่ว่าต้องการนำเข้าผู้ใช้งานจากไฟล์ {filename}? (พบข้อมูลทั้งหมด {count} รายการ)",
+    importConfirmDesc:
+      "คุณแน่ใจหรือไม่ว่าต้องการนำเข้าผู้ใช้งานจากไฟล์ {filename}? (พบข้อมูลทั้งหมด {count} รายการ)",
     importResultTitle: "นำเข้าข้อมูลเสร็จสิ้น",
-    importResultDesc: "นำเข้าผู้ใช้งานใหม่สำเร็จ {imported} คน และอัปเดตผู้ใช้งานเดิม {updated} คน",
+    importResultDesc:
+      "นำเข้าผู้ใช้งานใหม่สำเร็จ {imported} คน และอัปเดตผู้ใช้งานเดิม {updated} คน",
     exportUsersBtn: "ส่งออกผู้ใช้งาน",
 
     // ManageUsers Modal
@@ -339,7 +362,8 @@ const translations = {
     confirmBtn: "ยืนยัน",
     sortByPriorityLabel: "เรียงตามความสำคัญ",
     sessionTimeoutTitle: "การแจ้งเตือนเซสชันหมดอายุ",
-    sessionTimeoutDesc: "เซสชันการเข้าใช้งานของคุณจะหมดอายุในอีก {seconds} วินาที คุณต้องการใช้เว็บไซต์ต่อหรือจะออกจากระบบ?",
+    sessionTimeoutDesc:
+      "เซสชันการเข้าใช้งานของคุณจะหมดอายุในอีก {seconds} วินาที คุณต้องการใช้เว็บไซต์ต่อหรือจะออกจากระบบ?",
     sessionTimeoutStayBtn: "อยู่ต่อ / ใช้เว็บต่อ",
     sessionTimeoutExitBtn: "ออกจากระบบ",
 

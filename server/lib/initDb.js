@@ -60,6 +60,7 @@ export const initializeDatabase = async () => {
         role_id INT NULL,
         avatar VARCHAR(512) DEFAULT NULL,
         status ENUM('active','suspended') DEFAULT 'active',
+        is_force_reset TINYINT(1) DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE SET NULL
       )
@@ -191,12 +192,26 @@ export const initializeDatabase = async () => {
       )
     `)
 
+    // 12. Create otp_requests table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS otp_requests (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,            -- ผูกกับ ID ของผู้ใช้
+        otp_code VARCHAR(6) NOT NULL,    -- เก็บเลข OTP 6 หลัก
+        expires_at TIMESTAMP NOT NULL,   -- เวลาหมดอายุ (เช่น เวลาปัจจุบัน + 3 นาที)
+        is_used TINYINT(1) DEFAULT 0,    -- สถานะ (0 = ยังไม่ใช้, 1 = ใช้แล้ว)
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `)
+
     // Safely add missing columns to existing tables
     const alterQueries = [
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS role ENUM('admin','manager','video_editor','translator','team_leader','user') DEFAULT 'user'",
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS role_id INT NULL",
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR(512) DEFAULT NULL",
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS status ENUM('active','suspended') DEFAULT 'active'",
+      "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_force_reset TINYINT(1) DEFAULT 1",
     ]
     for (const q of alterQueries) {
       try { await connection.query(q) } catch (e) { /* ignore if column already exists */ }
@@ -213,7 +228,7 @@ export const initializeDatabase = async () => {
       try { await connection.query(q) } catch (e) { /* ignore if column or constraint already exists */ }
     }
     
-    console.log('Database initialized successfully with all 11 tables.')
+    console.log('Database initialized successfully with all 12 tables.')
     await connection.end()
   } catch (error) {
     console.error('Database initialization error:', error.message)

@@ -15,6 +15,8 @@ import Contract from "./pages/Contract";
 import Activity from "./pages/Activity";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SessionTimeoutHandler from "./components/SessionTimeoutHandler";
+import ResetPassword from "./pages/ResetPassword";
+import ResetPasswordFirstTime from "./pages/ResetPasswordFirstTime";
 
 /**
  * คอมโพเนนต์หลักของระบบ (App Component)
@@ -35,6 +37,8 @@ function App() {
           <Route path="/About" element={<About />} />
           <Route path="/Contract" element={<Contract />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/ResetPassword" element={<ResetPassword />} />
+          <Route path="/reset-password-first-time" element={<ResetPasswordFirstTime />} />
           {/* <Route path='/register' element={<Register />} /> */}
 
           {/* Protected Routes */}

@@ -1,4 +1,6 @@
 import express from 'express'
+import crypto from 'crypto'
+import nodemailer from 'nodemailer'
 import {connectToDatabase} from '../lib/db.js'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
@@ -97,6 +99,8 @@ async function logActivity(db, userId, action, details) {
 router.post('/login', async (req, res) => {
     const { email, password } = req.body
     console.log('Login request received:', { email })
+    // หน่วงเวลา 3 วินาทีตามที่ผู้ใช้ร้องขอ
+    // await new Promise(resolve => setTimeout(resolve, 3000));
     try {
         const db = await connectToDatabase()
         const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]) 
@@ -119,6 +123,24 @@ router.post('/login', async (req, res) => {
         // Log Login
         await logActivity(db, rows[0].id, 'Login', `User logged in: ${rows[0].username}`);
 
+        if (rows[0].is_force_reset === 1) {
+            return res.status(201).json({
+                requirePasswordReset: true,
+                message: "กรุณาเปลี่ยนรหัสผ่านก่อนเข้าใช้งานครั้งแรก",
+                token: token,
+                expiresIn: tokenExpiresIn,
+                expiresInSeconds: tokenExpiresInSeconds,
+                user: {
+                    id: rows[0].id,
+                    name: rows[0].username,
+                    email: rows[0].email,
+                    role: rows[0].role || 'user',
+                    avatar: rows[0].avatar || null,
+                    is_force_reset: 1
+                }
+            })
+        }
+
         return res.status(201).json({
             token: token,
             expiresIn: tokenExpiresIn,
@@ -128,7 +150,8 @@ router.post('/login', async (req, res) => {
                 name: rows[0].username,
                 email: rows[0].email,
                 role: rows[0].role || 'user',
-                avatar: rows[0].avatar || null
+                avatar: rows[0].avatar || null,
+                is_force_reset: 0
             }
         })
     } catch (error) {
@@ -216,7 +239,7 @@ router.get('/users/:id', async (req, res) => {
  * - ทำการเข้ารหัสผ่านด้วย bcrypt ก่อนบันทึก
  * - แปลงบทบาท (Role) จากหน้าบ้าน (เช่น Admin, Project Manager) ให้เป็นค่าระดับฐานข้อมูล (เช่น admin, manager)
  */
-router.post('/users', async (req, res) => {
+router.post('/users', upload.single('avatar'), async (req, res) => {
     const { username, email, password, role, status } = req.body;
     try {
         const db = await connectToDatabase();
@@ -237,9 +260,14 @@ router.post('/users', async (req, res) => {
 
         const sqlStatus = status === 'suspended' ? 'suspended' : 'active';
 
+        let avatarUrl = null;
+        if (req.file) {
+            avatarUrl = `/uploads/${req.file.filename}`;
+        }
+
         const [result] = await db.query(
-            'INSERT INTO users (username, email, password, role, status) VALUES (?, ?, ?, ?, ?)',
-            [username, email, hashPassword, sqlRole, sqlStatus]
+            'INSERT INTO users (username, email, password, role, status, avatar) VALUES (?, ?, ?, ?, ?, ?)',
+            [username, email, hashPassword, sqlRole, sqlStatus, avatarUrl]
         );
         res.status(201).json({ message: 'User created successfully', id: result.insertId });
     } catch (error) {
@@ -747,6 +775,179 @@ router.post('/users/import', async (req, res) => {
         });
     } catch (error) {
         console.error('Error importing users:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Send OTP Request
+/**
+ * POST /send-otp
+ * - ตรวจสอบว่ามีอีเมลในระบบหรือไม่
+ * - สุ่มเลข OTP 6 หลักโดยใช้ crypto.randomInt
+ * - บันทึกลงตาราง otp_requests พร้อมเวลาหมดอายุ 3 นาที
+ * - แสดง OTP ที่คอนโซลเพื่อทดสอบ
+ */
+router.post('/send-otp', async (req, res) => {
+    const { email } = req.body;
+    try {
+        const db = await connectToDatabase();
+        const [users] = await db.query('SELECT id FROM users WHERE email = ?', [email]);
+        if (users.length === 0) {
+            return res.status(404).json({ message: 'ไม่พบอีเมลผู้ใช้ในระบบ / User not found' });
+        }
+
+        const userId = users[0].id;
+        
+        // 1. สุ่มตัวเลข 6 หลัก (เลข 100000 - 999999)
+        const otpCode = crypto.randomInt(100000, 999999).toString();
+        
+        // 2. คำนวณเวลาหมดอายุ (ปัจจุบัน + 3 นาที)
+        const expiresAt = new Date(Date.now() + 3 * 60 * 1000);
+
+        // 3. บันทึกลง MySQL
+        await db.query(
+            'INSERT INTO otp_requests (user_id, otp_code, expires_at) VALUES (?, ?, ?)',
+            [userId, otpCode, expiresAt]
+        );
+
+        // แสดงผลรหัส OTP ที่คอนโซลของเซิร์ฟเวอร์เพื่อความสะดวกในการทดสอบ/พัฒนา
+        console.log(`[OTP Sent] Email: ${email}, Code: ${otpCode}`);
+
+        // 4. ตั้งค่า nodemailer เพื่อส่งอีเมล
+        const emailUser = (process.env.EMAIL_USER || 'chayanon.1547@gmail.com').replace(/['"]/g, '').trim();
+        const emailPass = (process.env.EMAIL_PASS || '').replace(/['"]/g, '').trim();
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: emailUser,
+                pass: emailPass
+            }
+        });
+
+        const mailOptions = {
+            from: `"RNM AUTH" <${emailUser}>`,
+            to: email,
+            subject: 'รหัสยืนยัน OTP สำหรับการรีเซ็ตรหัสผ่าน (OTP Verification Code)',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                    <h2 style="color: #fbbf24; text-align: center;">RNM AUTH - OTP Verification</h2>
+                    <p>สวัสดีครับ,</p>
+                    <p>คุณได้รับคำขอรหัส OTP สำหรับการรีเซ็ตรหัสผ่านบัญชีผู้ใช้ของคุณ</p>
+                    <div style="background-color: #f9f9f9; padding: 15px; text-align: center; border-radius: 8px; margin: 20px 0;">
+                        <span style="font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #1a1a2e;">${otpCode}</span>
+                    </div>
+                    <p style="color: #ea580c; font-weight: bold;">* รหัส OTP นี้จะหมดอายุภายใน 3 นาที และสามารถใช้งานได้เพียงครั้งเดียวเท่านั้น</p>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                    <p style="font-size: 12px; color: #777; text-align: center;">หากคุณไม่ได้ขอกู้คืนรหัสผ่าน กรุณาละเลยอีเมลฉบับนี้</p>
+                </div>
+            `
+        };
+
+        // หากมีการตั้งค่ารหัสผ่านอีเมลใน env ให้ทำการส่งจริง ถ้าไม่มีให้ข้าม (เพื่อไม่ให้พังในการทดสอบ)
+        if (emailPass) {
+            await transporter.sendMail(mailOptions);
+        } else {
+            console.warn('[Warning] EMAIL_PASS is not configured in .env. Skipping real email delivery, showing OTP on console/frontend.');
+        }
+
+        res.status(200).json({ 
+            message: 'ส่งรหัส OTP เรียบร้อยแล้ว (OTP sent successfully)',
+            otpCode: otpCode 
+        });
+    } catch (error) {
+        console.error('Error sending OTP:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Reset user password
+/**
+ * POST /reset-password
+ * - ทำการรีเซ็ตรหัสผ่านของผู้ใช้งานระบุตามอีเมล
+ * - ตรวจสอบว่าอีเมลมีอยู่ในระบบจริงหรือไม่
+ * - ตรวจสอบรหัส OTP ให้ถูกต้อง
+ * - เข้ารหัสผ่านใหม่ (hash) และบันทึกลงฐานข้อมูล
+ */
+router.post('/reset-password', async (req, res) => {
+    const { email, password, otpCode } = req.body;
+    try {
+        const db = await connectToDatabase();
+        // ตรวจสอบว่าผู้ใช้งานที่มีอีเมลนี้มีอยู่จริงหรือไม่
+        const [rows] = await db.query('SELECT id, username FROM users WHERE email = ?', [email]);
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const userId = rows[0].id;
+
+        // 1. ตรวจสอบความถูกต้องของ OTP
+        const [otpRows] = await db.query(`
+            SELECT * FROM otp_requests 
+            WHERE user_id = ? 
+              AND otp_code = ? 
+              AND is_used = 0 
+              AND expires_at > NOW() 
+            ORDER BY created_at DESC 
+            LIMIT 1
+        `, [userId, otpCode]);
+
+        if (otpRows.length === 0) {
+            return res.status(400).json({ message: 'รหัส OTP ไม่ถูกต้อง หรือหมดอายุแล้ว (Invalid or expired OTP)' });
+        }
+
+        const otpRequestId = otpRows[0].id;
+
+        // 2. กฎเหล็ก: อัปเดตตาราง otp_requests ให้ is_used = 1 ทันที เพื่อป้องกันการใช้งานซ้ำ
+        await db.query('UPDATE otp_requests SET is_used = 1 WHERE id = ?', [otpRequestId]);
+
+        const hashPassword = await bcrypt.hash(password, 10);
+
+        // อัปเดตรหัสผ่านใหม่
+        await db.query('UPDATE users SET password = ? WHERE id = ?', [hashPassword, userId]);
+
+        // บันทึกกิจกรรมลง Activity Logs
+        await logActivity(db, userId, 'Reset Password', `User reset password for: ${email}`);
+
+        res.status(200).json({ message: 'Password reset successfully' });
+    } catch (error) {
+        console.error('Error resetting password:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Reset password on first login
+/**
+ * POST /reset-password-first-time
+ * - สำหรับการเปลี่ยนรหัสผ่านครั้งแรกเมื่อเข้าสู่ระบบ
+ * - อัปเดตรหัสผ่านใหม่ที่ผ่านการเข้ารหัสแล้ว
+ * - อัปเดตคอลัมน์ is_force_reset = 0 เพื่อปลดล็อก
+ */
+router.post('/reset-password-first-time', async (req, res) => {
+    const { userId, password } = req.body;
+    try {
+        const db = await connectToDatabase();
+        
+        // ตรวจสอบว่าผู้ใช้มีอยู่จริงหรือไม่
+        const [rows] = await db.query('SELECT id, email FROM users WHERE id = ?', [userId]);
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const hashPassword = await bcrypt.hash(password, 10);
+
+        // อัปเดตตาราง users
+        await db.query(
+            'UPDATE users SET password = ?, is_force_reset = 0 WHERE id = ?',
+            [hashPassword, userId]
+        );
+
+        // บันทึกกิจกรรมลง Activity Logs
+        await logActivity(db, userId, 'Reset Password First Time', `User reset password on first login for: ${rows[0].email}`);
+
+        res.status(200).json({ message: 'Password updated successfully' });
+    } catch (error) {
+        console.error('Error resetting password on first login:', error.message);
         res.status(500).json({ message: error.message });
     }
 });

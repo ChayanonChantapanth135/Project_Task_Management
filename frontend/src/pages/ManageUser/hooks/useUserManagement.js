@@ -90,6 +90,11 @@ export const useUserManagement = (t) => {
     fetchUsers();
   }, []);
 
+  // Reset page to 1 when filters or search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [roleFilter, statusFilter, searchQuery]);
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -179,7 +184,7 @@ export const useUserManagement = (t) => {
         });
         setModalSuccess(t("userUpdateSuccess") || "บันทึกการแก้ไขเรียบร้อยแล้ว!");
       } else {
-        await axios.post("http://127.0.0.1:3000/auth/register", data, {
+        await axios.post("http://127.0.0.1:3000/auth/users", data, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         setModalSuccess(t("userCreatedSuccess") || "สร้างบัญชีผู้ใช้ใหม่เรียบร้อยแล้ว!");

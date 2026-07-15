@@ -11,6 +11,7 @@ import { getCurrentUser } from '../lib/auth';
 const ProtectedRoute = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
+  const [isForceReset, setIsForceReset] = useState(false);
 
   useEffect(() => {
     /**
@@ -18,7 +19,12 @@ const ProtectedRoute = ({ children }) => {
      */
     const checkAuth = async () => {
       const user = await getCurrentUser();
-      setAuthenticated(user !== null);
+      if (user) {
+        setAuthenticated(true);
+        setIsForceReset(user.is_force_reset === 1);
+      } else {
+        setAuthenticated(false);
+      }
       setLoading(false);
     };
     checkAuth();
@@ -36,6 +42,10 @@ const ProtectedRoute = ({ children }) => {
 
   if (!authenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (isForceReset) {
+    return <Navigate to="/reset-password-first-time" replace />;
   }
 
   return children;
