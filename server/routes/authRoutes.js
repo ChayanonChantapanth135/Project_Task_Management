@@ -269,6 +269,50 @@ router.post('/users', upload.single('avatar'), async (req, res) => {
             'INSERT INTO users (username, email, password, role, status, avatar) VALUES (?, ?, ?, ?, ?, ?)',
             [username, email, hashPassword, sqlRole, sqlStatus, avatarUrl]
         );
+
+        // 4. ส่งรหัสผ่านชั่วคราวให้ผู้ใช้ทางอีเมลผ่าน nodemailer
+        const emailUser = (process.env.EMAIL_USER || 'chayanon.1547@gmail.com').replace(/['"]/g, '').trim();
+        const emailPass = (process.env.EMAIL_PASS || '').replace(/['"]/g, '').trim();
+
+        if (emailPass) {
+            try {
+                const transporter = nodemailer.createTransport({
+                    service: 'gmail',
+                    auth: {
+                        user: emailUser,
+                        pass: emailPass
+                    }
+                });
+
+                const mailOptions = {
+                    from: `"RNM AUTH" <${emailUser}>`,
+                    to: email,
+                    subject: 'ข้อมูลบัญชีผู้ใช้งานใหม่ (Your New Account Details)',
+                    html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                            <h2 style="color: #0d6efd; text-align: center;">ยินดีต้อนรับสู่ RNM AUTH</h2>
+                            <p>สวัสดีครับคุณ <b>${username}</b>,</p>
+                            <p>บัญชีผู้ใช้ของคุณถูกสร้างขึ้นเรียบร้อยแล้วโดยผู้ดูแลระบบ ข้อมูลการเข้าสู่ระบบของคุณมีดังนี้:</p>
+                            <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                                <p style="margin: 5px 0;"><b>อีเมล (Email):</b> ${email}</p>
+                                <p style="margin: 5px 0;"><b>รหัสผ่านชั่วคราว (Temporary Password):</b> <span style="font-size: 16px; font-weight: bold; color: #dc3545;">${password}</span></p>
+                            </div>
+                            <p style="color: #ea580c; font-weight: bold;">* ระบบจะบังคับให้คุณเปลี่ยนรหัสผ่านใหม่ในการเข้าสู่ระบบครั้งแรกเพื่อความปลอดภัย</p>
+                            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                            <p style="font-size: 12px; color: #777; text-align: center;">กรุณาเก็บรักษารหัสผ่านนี้ไว้เป็นความลับ</p>
+                        </div>
+                    `
+                };
+
+                await transporter.sendMail(mailOptions);
+                console.log(`[Welcome Email Sent] Email: ${email}`);
+            } catch (mailErr) {
+                console.error('Error sending welcome email:', mailErr.message);
+            }
+        } else {
+            console.warn('[Warning] EMAIL_PASS is not configured in .env. Skipping welcome email delivery.');
+        }
+
         res.status(201).json({ message: 'User created successfully', id: result.insertId });
     } catch (error) {
         console.error('Error creating user:', error.message);
