@@ -1,6 +1,7 @@
 import express from 'express'
 import crypto from 'crypto'
 import nodemailer from 'nodemailer'
+// Trigger restart to reload latest .env configurations
 import {connectToDatabase} from '../lib/db.js'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'

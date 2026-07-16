@@ -24,6 +24,33 @@ const ResetPassword = () => {
   const [showPassword, setShowPassword] = React.useState(false);
   const navigate = useNavigate();
 
+  const [otpCooldown, setOtpCooldown] = React.useState(() => {
+    const savedExpiry = localStorage.getItem("otp_expiry");
+    if (savedExpiry) {
+      const remaining = Math.ceil((parseInt(savedExpiry, 10) - Date.now()) / 1000);
+      return remaining > 0 ? remaining : 0;
+    }
+    return 0;
+  });
+
+  React.useEffect(() => {
+    let timer;
+    if (otpCooldown > 0) {
+      timer = setInterval(() => {
+        setOtpCooldown((prev) => {
+          if (prev <= 1) {
+            localStorage.removeItem("otp_expiry");
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [otpCooldown]);
+
   const handleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
   };
@@ -45,10 +72,16 @@ const ResetPassword = () => {
         email: values.email,
       });
       const receivedOtp = response.data.otpCode;
+
+      // ตั้งเวลาคูลดาวน์ 3 นาที (180 วินาที) และบันทึกลง localStorage เพื่อกันการ refresh หน้าเว็บ
+      const expiryTime = Date.now() + 180 * 1000;
+      localStorage.setItem("otp_expiry", expiryTime.toString());
+      setOtpCooldown(180);
+
       setMessage(
         language === "th"
-          ? `ส่งรหัส OTP ไปยังอีเมลของท่านแล้ว (รหัสทดสอบคือ: ${receivedOtp})`
-          : `OTP sent to your email (Testing code is: ${receivedOtp})`,
+          ? `ส่งรหัส OTP ไปยังอีเมลของท่านแล้ว`
+          : `OTP sent to your email`,
       );
     } catch (err) {
       setError(
@@ -273,7 +306,7 @@ const ResetPassword = () => {
                 style={{
                   width: "100%",
                   boxSizing: "border-box",
-                  padding: "0.75rem 6.5rem 0.75rem 2.75rem",
+                  padding: "0.75rem 7.2rem 0.75rem 2.75rem",
                   borderRadius: "0.875rem",
                   border: "1px solid rgba(255,255,255,0.12)",
                   background: "rgba(255,255,255,0.07)",
@@ -295,7 +328,7 @@ const ResetPassword = () => {
                 type="button"
                 className="btn btn-warning btn-sm"
                 onClick={handleSendOtp}
-                disabled={loading}
+                disabled={loading || otpCooldown > 0}
                 style={{
                   position: "absolute",
                   right: "0.5rem",
@@ -305,12 +338,22 @@ const ResetPassword = () => {
                   fontSize: "0.75rem",
                   fontWeight: "600",
                   borderRadius: "0.6rem",
-                  boxShadow: "0 2px 8px rgba(251,191,36,0.2)",
+                  boxShadow: otpCooldown > 0 ? "none" : "0 2px 8px rgba(251,191,36,0.2)",
                   border: "none",
                   zIndex: 3,
+                  cursor: (loading || otpCooldown > 0) ? "not-allowed" : "pointer",
+                  backgroundColor: otpCooldown > 0 ? "rgba(251, 191, 36, 0.2)" : undefined,
+                  color: otpCooldown > 0 ? "#fbbf24" : undefined,
+                  opacity: "1",
                 }}
               >
-                {loading ? t("loading...") : t("sendOtpBtn")}
+                {loading
+                  ? t("loading...")
+                  : otpCooldown > 0
+                  ? language === "th"
+                    ? `รอ ${Math.floor(otpCooldown / 60)}:${(otpCooldown % 60).toString().padStart(2, "0")} นาที`
+                    : `${Math.floor(otpCooldown / 60)}:${(otpCooldown % 60).toString().padStart(2, "0")} min`
+                  : t("sendOtpBtn")}
               </button>
             </div>
           </div>

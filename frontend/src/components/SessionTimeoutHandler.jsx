@@ -135,12 +135,18 @@ const SessionTimeoutHandler = () => {
             {t("sessionTimeoutTitle")}
           </h5>
           <div className="text-muted mt-2 small">
-            {t("sessionTimeoutDesc").replace("{seconds}", String(secondsRemaining))}
+            {t("sessionTimeoutDesc").replace(
+              "{seconds}",
+              String(secondsRemaining),
+            )}
           </div>
         </div>
 
         {/* Dynamic Countdown Bar */}
-        <div className="progress mb-4" style={{ height: "6px", borderRadius: "10px" }}>
+        <div
+          className="progress mb-4"
+          style={{ height: "6px", borderRadius: "10px" }}
+        >
           <div
             className={`progress-bar progress-bar-striped progress-bar-animated bg-danger`}
             style={{

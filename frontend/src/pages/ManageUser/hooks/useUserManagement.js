@@ -344,7 +344,7 @@ export const useUserManagement = (t) => {
 
   // Filtered Users computation
   const filteredUsers = users.filter((user) => {
-    const matchesRole = roleFilter === "all" || user.role.toLowerCase().replace(" ", "_") === roleFilter.toLowerCase();
+    const matchesRole = roleFilter === "all" || user.role.toLowerCase() === roleFilter.toLowerCase();
     const matchesStatus = statusFilter === "all" || user.status === statusFilter;
 
     const matchesTopSearch =

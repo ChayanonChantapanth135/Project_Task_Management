@@ -5,6 +5,7 @@
 ---
 
 ## 1. ระบบจัดการผู้ใช้และบทบาท (User & Role Management)
+
 - [x] **สร้างฐานข้อมูลและตารางผู้ใช้งาน (Database & Table)** - รองรับบทบาท Admin, Project Manager, Video Editor, Translator, Team Leader
 - [x] **ลงทะเบียน/เพิ่มผู้ใช้ใหม่ (Add User)** - พร้อมอัปโหลดรูปภาพโปรไฟล์ผ่าน Multer
 - [x] **แก้ไขข้อมูลผู้ใช้ (Edit User)** - อัปเดตรูปภาพโปรไฟล์ ชื่อ บทบาท และรหัสผ่าน
@@ -15,7 +16,9 @@
 ---
 
 ## 2. ระบบจัดการโครงการ (Project Management Flow)
+
 ตาม Flowchart ด้านล่างซ้าย:
+
 - [x] **สร้างตารางโครงการ (Create `projects` Table)**:
   - ฟิลด์ที่จำเป็น: `id`, `project_name`, `description`, `status` (เช่น Active, Completed, Cancelled), `created_at`
 - [x] **ระบบเพิ่มโครงการใหม่ (Create Project)**:
@@ -32,7 +35,9 @@
 ---
 
 ## 3. ระบบจัดการงาน (Task Management Flow)
+
 ตาม Flowchart ด้านขวา:
+
 - [ ] **สร้างตารางงาน (Create `tasks` Table)**:
   - ฟิลด์ที่จำเป็น: `id`, `project_id` (เชื่อมกับตารางโครงการ), `task_name`, `assigned_to` (เชื่อมกับ ID ผู้ใช้), `status` (ENUM: 'pending', 'in_progress', 'reviewing', 'completed'), `due_date`, `created_at`
 - [ ] **ระบบมอบหมายงาน (Create/Assign Task)**:
@@ -48,12 +53,14 @@
 ---
 
 ## 4. ระบบการรายงานและตรวจสอบ (Reports & Activity Logging)
+
 ตาม Flowchart ด้านขวาบนและล่างขวา:
-- [ ] **ระบบประวัติกิจกรรม (Activity Logs)**:
+
+- [x] **ระบบประวัติกิจกรรม (Activity Logs)**:
   - บันทึกประวัติการทำงาน (เช่น ใครล็อกอิน, ใครสร้างโครงการใหม่, ใครอัปเดตงาน) ลงในฐานข้อมูล
   - แสดงผลรายการกิจกรรมล่าสุดในหน้า Dashboard และหน้า `/Activity` (View All)
 - [ ] **หน้าสถิติและรายงาน (Reports Page)**:
-  - พัฒนาหน้า `/Reports` เพื่อแสดงกราฟหรืองานที่เลยกำหนด (Overdue Tasks) 
+  - พัฒนาหน้า `/Reports` เพื่อแสดงกราฟหรืองานที่เลยกำหนด (Overdue Tasks)
   - การกรองข้อมูลแยกตามโครงการหรือผู้ใช้งาน
 
 Frontend npm run dev /
