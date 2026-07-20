@@ -32,6 +32,8 @@ const ManageProjectPage = () => {
 
   // List of Team Leaders from DB
   const [teamLeaders, setTeamLeaders] = useState([]);
+  // List of all users from DB
+  const [users, setUsers] = useState([]);
 
   // UI / Navigation States
   const [searchQuery, setSearchQuery] = useState("");
@@ -43,8 +45,12 @@ const ManageProjectPage = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+  const [showViewTaskModal, setShowViewTaskModal] = useState(false);
 
   const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [tempStatus, setTempStatus] = useState("Pending");
 
   // Form States
   const [formData, setFormData] = useState({
@@ -63,6 +69,16 @@ const ManageProjectPage = () => {
     teamLeaderId: "",
   });
 
+  const [taskFormData, setTaskFormData] = useState({
+    title: "",
+    taskType: "แปล",
+    customTaskType: "",
+    description: "",
+    priority: "Medium",
+    dueDate: "",
+    assignedTo: "",
+  });
+
   // Load current user profile
   useEffect(() => {
     const fetchUser = async () => {
@@ -75,6 +91,16 @@ const ManageProjectPage = () => {
     fetchUser();
   }, []);
 
+  // Keep selectedProject in sync with updated projects list
+  useEffect(() => {
+    if (selectedProject && projects.length > 0) {
+      const updatedProj = projects.find((p) => p.id === selectedProject.id);
+      if (updatedProj) {
+        setSelectedProject(updatedProj);
+      }
+    }
+  }, [projects]);
+
   // Fetch projects and team leaders from DB
   const fetchProjects = async () => {
     try {
@@ -82,6 +108,14 @@ const ManageProjectPage = () => {
       const formatted = response.data.map((p) => {
         if (p.end_date) {
           p.endDate = new Date(p.end_date).toISOString().split("T")[0];
+        }
+        if (p.tasks) {
+          p.tasks = p.tasks.map((t) => {
+            if (t.due_date) {
+              t.dueDate = new Date(t.due_date).toISOString().split("T")[0];
+            }
+            return t;
+          });
         }
         return p;
       });
@@ -93,18 +127,26 @@ const ManageProjectPage = () => {
 
   const fetchTeamLeaders = async () => {
     try {
-      const response = await axios.get(
-        "/auth/team-leaders",
-      );
+      const response = await axios.get("/auth/team-leaders");
       setTeamLeaders(response.data);
     } catch (err) {
       console.error("Failed to fetch team leaders from DB", err);
     }
   };
 
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get("/auth/users");
+      setUsers(response.data);
+    } catch (err) {
+      console.error("Failed to fetch users from DB", err);
+    }
+  };
+
   useEffect(() => {
     fetchProjects();
     fetchTeamLeaders();
+    fetchUsers();
   }, []);
 
   const filteredProjects = projects.filter((p) => {
@@ -134,9 +176,7 @@ const ManageProjectPage = () => {
     setErrorMessage("");
 
     if (!formData.name || !formData.endDate || !formData.teamLeaderId) {
-      setErrorMessage(
-        t("fillRequiredFieldsProject")
-      );
+      setErrorMessage(t("fillRequiredFieldsProject"));
       return;
     }
 
@@ -157,9 +197,7 @@ const ManageProjectPage = () => {
         teamLeaderId: "",
       });
 
-      setSuccessMessage(
-        t("projectCreatedSuccess")
-      );
+      setSuccessMessage(t("projectCreatedSuccess"));
       setTimeout(() => setSuccessMessage(""), 5000);
       fetchProjects();
     } catch (err) {
@@ -195,24 +233,19 @@ const ManageProjectPage = () => {
       !editFormData.endDate ||
       !editFormData.teamLeaderId
     ) {
-      setErrorMessage(
-        t("fillRequiredFieldsProject")
-      );
+      setErrorMessage(t("fillRequiredFieldsProject"));
       return;
     }
 
     try {
-      await axios.put(
-        `/auth/projects/${editFormData.id}`,
-        {
-          name: editFormData.name,
-          status: editFormData.status,
-          priority: editFormData.priority,
-          endDate: editFormData.endDate,
-          teamLeaderId: Number(editFormData.teamLeaderId),
-          userId: currentUser?.id || 1,
-        },
-      );
+      await axios.put(`/auth/projects/${editFormData.id}`, {
+        name: editFormData.name,
+        status: editFormData.status,
+        priority: editFormData.priority,
+        endDate: editFormData.endDate,
+        teamLeaderId: Number(editFormData.teamLeaderId),
+        userId: currentUser?.id || 1,
+      });
 
       setShowEditModal(false);
       setSuccessMessage(t("projectUpdatedSuccess"));
@@ -237,12 +270,9 @@ const ManageProjectPage = () => {
     }
 
     try {
-      await axios.delete(
-        `/auth/projects/${selectedProject.id}`,
-        {
-          params: { userId: currentUser?.id || 1 },
-        },
-      );
+      await axios.delete(`/auth/projects/${selectedProject.id}`, {
+        params: { userId: currentUser?.id || 1 },
+      });
 
       setShowDeleteModal(false);
       setSuccessMessage(t("projectDeletedSuccess"));
@@ -251,6 +281,60 @@ const ManageProjectPage = () => {
     } catch (err) {
       console.error("Delete project failed", err);
       setErrorMessage(t("projectDeleteFailed"));
+    }
+  };
+
+  const handleAddTaskSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    if (!taskFormData.title) {
+      setErrorMessage("สร้างไม่สำเร็จ: กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน");
+      return;
+    }
+
+    try {
+      const typeValue =
+        taskFormData.taskType === "อื่นๆ"
+          ? taskFormData.customTaskType
+          : taskFormData.taskType;
+
+      const payload = {
+        projectId: selectedProject.id,
+        title: taskFormData.title,
+        description: taskFormData.description,
+        taskType: typeValue,
+        priority: taskFormData.priority,
+        dueDate: taskFormData.dueDate || null,
+        assignedTo: taskFormData.assignedTo || null,
+        createdBy: currentUser?.id || 1,
+      };
+
+      await axios.post("/auth/tasks", payload);
+
+      setSuccessMessage("Create Success");
+      setTimeout(() => setSuccessMessage(""), 5000);
+
+      // Reset Form
+      setTaskFormData({
+        title: "",
+        taskType: "แปล",
+        customTaskType: "",
+        description: "",
+        priority: "Medium",
+        dueDate: "",
+        assignedTo: "",
+      });
+
+      setShowAddTaskModal(false);
+      fetchProjects();
+    } catch (err) {
+      console.error("Failed to create task:", err);
+      setErrorMessage(
+        err.response?.data?.message || "สร้างไม่สำเร็จ: เกิดข้อผิดพลาดของระบบ",
+      );
+      setTimeout(() => setErrorMessage(""), 5000);
     }
   };
 
@@ -488,7 +572,9 @@ const ManageProjectPage = () => {
               />
             </div>
             <div className="mb-3">
-              <label className="form-label small fw-bold">{t("modalProjectStatus")}</label>
+              <label className="form-label small fw-bold">
+                {t("modalProjectStatus")}
+              </label>
               <select
                 className="form-select rounded-lg"
                 value={editFormData.status}
@@ -670,16 +756,65 @@ const ManageProjectPage = () => {
                     selectedProject.tasks.map((task) => (
                       <div
                         key={task.id}
-                        className="list-group-item d-flex justify-content-between align-items-center"
+                        className="list-group-item d-flex align-items-center justify-content-between py-3"
                       >
-                        <span className="text-dark fw-medium">
-                          {task.title}
-                        </span>
-                        <span
-                          className={`badge text-xs ${task.status === "Completed" ? "bg-success" : "bg-secondary"}`}
+                         {/* Left: Task Title */}
+                        <div
+                          className="d-flex flex-column justify-content-center"
+                          style={{ flex: 1, minWidth: "150px" }}
                         >
-                          {task.status}
-                        </span>
+                          <span className="text-dark fw-medium">
+                            {task.title}
+                          </span>
+                        </div>
+
+                        {/* Middle: Assignee & Due Date */}
+                        <div
+                          className="d-flex flex-column gap-1 text-muted small"
+                          style={{
+                            flex: 1,
+                            minWidth: "180px",
+                            paddingLeft: "15px",
+                          }}
+                        >
+                          <span className="d-block">
+                            👤 {task.assigned_to_name || t("unassigned")}
+                          </span>
+                          {task.dueDate && (
+                            <span className="d-block">📅 {task.dueDate}</span>
+                          )}
+                        </div>
+
+                        {/* Middle-Right: Status Badge */}
+                        <div className="ms-3" style={{ minWidth: "110px" }}>
+                          <span
+                            className={`badge text-xs ${
+                              task.status === "Completed"
+                                ? "bg-success"
+                                : task.status === "Reviewing"
+                                ? "bg-warning text-dark"
+                                : task.status === "In Progress"
+                                ? "bg-info text-dark"
+                                : "bg-secondary"
+                            }`}
+                          >
+                            {task.status || "Pending"}
+                          </span>
+                        </div>
+
+                        {/* Right: View Task Detail Button */}
+                        <div className="ms-3">
+                          <button
+                            className="btn btn-sm btn-primary rounded-lg text-xs"
+                            onClick={() => {
+                              setSelectedTask(task);
+                              setTempStatus(task.status || "Pending");
+                              setShowViewTaskModal(true);
+                            }}
+                          >
+                            {t("viewTaskDetail")}
+                          </button>
+                        </div>
                       </div>
                     ))
                   ) : (
@@ -693,20 +828,13 @@ const ManageProjectPage = () => {
               <div className="d-flex gap-2 justify-content-end border-top pt-3">
                 <button
                   type="button"
-                  className="btn btn-outline-secondary px-4 py-2 rounded-lg"
-                  onClick={() => setShowDetailModal(false)}
-                >
-                  {t("projectDetailsClose")}
-                </button>
-                <button
-                  type="button"
                   className="btn btn-primary px-4 py-2 rounded-lg"
                   onClick={() => {
                     setShowDetailModal(false);
-                    handleOpenEdit(selectedProject);
+                    setShowAddTaskModal(true);
                   }}
                 >
-                  ✏️ {t("projectDetailsEdit")}
+                  + {t("Add Task")}
                 </button>
               </div>
             </>
@@ -733,6 +861,396 @@ const ManageProjectPage = () => {
         cancelText={t("cancelBtn")}
         type="danger"
       />
+
+      {/* ADD TASK MODAL */}
+      <Modal
+        show={showAddTaskModal}
+        onHide={() => setShowAddTaskModal(false)}
+        centered
+      >
+        <Modal.Body className="p-4" style={{ borderRadius: "1rem" }}>
+          <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+            <h5 className="fw-bold mb-0">📝 สร้างงานใหม่ (Add Task)</h5>
+            <button
+              className="btn-close"
+              onClick={() => setShowAddTaskModal(false)}
+            ></button>
+          </div>
+          <form onSubmit={handleAddTaskSubmit}>
+            {/* Project Name (Read Only) */}
+            <div className="mb-3">
+              <label className="form-label small fw-bold">
+                โปรเจกต์ (Project)
+              </label>
+              <input
+                type="text"
+                className="form-control bg-light rounded-lg text-muted"
+                value={selectedProject ? selectedProject.name : ""}
+                readOnly
+              />
+            </div>
+
+            {/* Title / Task Name */}
+            <div className="mb-3">
+              <label className="form-label small fw-bold">
+                ชื่องาน (Task Name) *
+              </label>
+              <input
+                type="text"
+                className="form-control rounded-lg"
+                placeholder="กรอกชื่อกิจกรรม/งาน"
+                value={taskFormData.title}
+                onChange={(e) =>
+                  setTaskFormData((prev) => ({
+                    ...prev,
+                    title: e.target.value,
+                  }))
+                }
+                required
+              />
+            </div>
+
+            {/* Task Type */}
+            <div className="mb-3">
+              <label className="form-label small fw-bold">
+                ประเภทงาน (Task Type)
+              </label>
+              <select
+                className="form-select rounded-lg"
+                value={taskFormData.taskType}
+                onChange={(e) =>
+                  setTaskFormData((prev) => ({
+                    ...prev,
+                    taskType: e.target.value,
+                  }))
+                }
+              >
+                <option value="แปล">แปล (Translate)</option>
+                <option value="ตัดต่อ">ตัดต่อ (Video Edit)</option>
+                <option value="อื่นๆ">อื่นๆ (Others)</option>
+              </select>
+            </div>
+
+            {/* Custom Task Type (Shown if อื่นๆ is selected) */}
+            {taskFormData.taskType === "อื่นๆ" && (
+              <div className="mb-3">
+                <label className="form-label small fw-bold">
+                  ระบุประเภทงานเพิ่มเติม *
+                </label>
+                <input
+                  type="text"
+                  className="form-control rounded-lg"
+                  placeholder="ระบุประเภทงานเพิ่มเติมของคุณ"
+                  value={taskFormData.customTaskType}
+                  onChange={(e) =>
+                    setTaskFormData((prev) => ({
+                      ...prev,
+                      customTaskType: e.target.value,
+                    }))
+                  }
+                  required
+                />
+              </div>
+            )}
+
+            {/* Description */}
+            <div className="mb-3">
+              <label className="form-label small fw-bold">
+                รายละเอียด (Description)
+              </label>
+              <textarea
+                className="form-control rounded-lg"
+                rows="3"
+                placeholder="กรอกรายละเอียดงาน"
+                value={taskFormData.description}
+                onChange={(e) =>
+                  setTaskFormData((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+              />
+            </div>
+
+            {/* Priority */}
+            <div className="mb-3">
+              <label className="form-label small fw-bold">
+                ความสำคัญ (Priority)
+              </label>
+              <select
+                className="form-select rounded-lg"
+                value={taskFormData.priority}
+                onChange={(e) =>
+                  setTaskFormData((prev) => ({
+                    ...prev,
+                    priority: e.target.value,
+                  }))
+                }
+              >
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+
+            {/* Due Date */}
+            <div className="mb-3">
+              <label className="form-label small fw-bold">
+                วันส่งงาน (Due Date)
+              </label>
+              <input
+                type="date"
+                className="form-control rounded-lg"
+                value={taskFormData.dueDate}
+                onChange={(e) =>
+                  setTaskFormData((prev) => ({
+                    ...prev,
+                    dueDate: e.target.value,
+                  }))
+                }
+              />
+            </div>
+
+            {/* Assignee */}
+            <div className="mb-3">
+              <label className="form-label small fw-bold">
+                ผู้รับผิดชอบ (Assignee) - Optional
+              </label>
+              <select
+                className="form-select rounded-lg"
+                value={taskFormData.assignedTo}
+                onChange={(e) =>
+                  setTaskFormData((prev) => ({
+                    ...prev,
+                    assignedTo: e.target.value,
+                  }))
+                }
+              >
+                <option value="">-- ไม่ระบุผู้รับผิดชอบ --</option>
+                <optgroup label="👑 Team Leader">
+                  {users
+                    .filter((u) => u.role === "team_leader")
+                    .map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.username}
+                      </option>
+                    ))}
+                </optgroup>
+                <optgroup label="🗣️ Translator">
+                  {users
+                    .filter((u) => u.role === "translator")
+                    .map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.username}
+                      </option>
+                    ))}
+                </optgroup>
+                <optgroup label="🎬 Video Editor">
+                  {users
+                    .filter((u) => u.role === "video_editor")
+                    .map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.username}
+                      </option>
+                    ))}
+                </optgroup>
+              </select>
+            </div>
+
+            <div className="d-flex justify-content-end gap-2 pt-3 border-top mt-4">
+              <button
+                type="button"
+                className="btn btn-secondary px-4 py-2 rounded-lg"
+                onClick={() => setShowAddTaskModal(false)}
+              >
+                ยกเลิก (Cancel)
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary px-4 py-2 rounded-lg"
+              >
+                + สร้างงาน (Create Task)
+              </button>
+            </div>
+          </form>
+        </Modal.Body>
+      </Modal>
+
+      {/* VIEW TASK DETAIL MODAL */}
+      <Modal
+        show={showViewTaskModal}
+        onHide={() => setShowViewTaskModal(false)}
+        centered
+      >
+        <Modal.Body className="p-4" style={{ borderRadius: "1rem" }}>
+          <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+            <h5 className="fw-bold mb-0">🔍 {t("taskDetailsTitle")}</h5>
+            <button
+              className="btn-close"
+              onClick={() => setShowViewTaskModal(false)}
+            ></button>
+          </div>
+          <div>
+            {/* Project Name (Read Only) */}
+            <div className="mb-3">
+              <label className="form-label small fw-bold text-muted">
+                {t("taskProjectLabel")}
+              </label>
+              <input
+                type="text"
+                className="form-control bg-light rounded-lg text-muted"
+                value={selectedProject ? selectedProject.name : ""}
+                readOnly
+                disabled
+              />
+            </div>
+
+            {/* Title / Task Name */}
+            <div className="mb-3">
+              <label className="form-label small fw-bold text-muted">
+                {t("taskNameLabel")}
+              </label>
+              <input
+                type="text"
+                className="form-control bg-light rounded-lg text-muted"
+                value={selectedTask ? selectedTask.title : ""}
+                readOnly
+                disabled
+              />
+            </div>
+
+            {/* Task Type */}
+            <div className="mb-3">
+              <label className="form-label small fw-bold text-muted">
+                {t("taskTypeLabel")}
+              </label>
+              <input
+                type="text"
+                className="form-control bg-light rounded-lg text-muted"
+                value={selectedTask ? selectedTask.task_type || selectedTask.taskType || "" : ""}
+                readOnly
+                disabled
+              />
+            </div>
+
+            {/* Description */}
+            <div className="mb-3">
+              <label className="form-label small fw-bold text-muted">
+                {t("taskDescLabel")}
+              </label>
+              <textarea
+                className="form-control bg-light rounded-lg text-muted"
+                rows="3"
+                value={selectedTask ? selectedTask.description || t("noDescription") : ""}
+                readOnly
+                disabled
+              />
+            </div>
+
+            {/* Priority */}
+            <div className="mb-3">
+              <label className="form-label small fw-bold text-muted">
+                {t("taskPriorityLabel")}
+              </label>
+              <input
+                type="text"
+                className="form-control bg-light rounded-lg text-muted"
+                value={selectedTask ? selectedTask.priority || "" : ""}
+                readOnly
+                disabled
+              />
+            </div>
+
+            {/* Due Date */}
+            <div className="mb-3">
+              <label className="form-label small fw-bold text-muted">
+                {t("taskDueDateLabel")}
+              </label>
+              <input
+                type="text"
+                className="form-control bg-light rounded-lg text-muted"
+                value={selectedTask ? selectedTask.dueDate || selectedTask.due_date || "" : ""}
+                readOnly
+                disabled
+              />
+            </div>
+
+            {/* Assignee */}
+            <div className="mb-3">
+              <label className="form-label small fw-bold text-muted">
+                {t("taskAssigneeLabel")}
+              </label>
+              <input
+                type="text"
+                className="form-control bg-light rounded-lg text-muted"
+                value={selectedTask ? selectedTask.assigned_to_name || t("noAssignee") : ""}
+                readOnly
+                disabled
+              />
+            </div>
+
+            {/* Task Status */}
+            <div className="mb-3">
+              <label className="form-label small fw-bold text-muted">
+                {t("taskStatus")}
+              </label>
+              <select
+                className="form-select rounded-lg"
+                value={tempStatus}
+                onChange={(e) => setTempStatus(e.target.value)}
+              >
+                <option value="Pending">{t("taskStatusPending")}</option>
+                <option value="In Progress">{t("taskStatusInProgress")}</option>
+                <option value="Reviewing">{t("taskStatusReviewing")}</option>
+                <option value="Completed">{t("taskStatusCompleted")}</option>
+              </select>
+            </div>
+
+            <div className="d-flex justify-content-end gap-2 pt-3 border-top mt-4">
+              <button
+                type="button"
+                className="btn btn-secondary px-4 py-2 rounded-lg"
+                onClick={() => setShowViewTaskModal(false)}
+              >
+                {t("cancelBtn")}
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary px-4 py-2 rounded-lg"
+                onClick={async () => {
+                  try {
+                    await axios.put(`/auth/tasks/${selectedTask.id}/status`, {
+                      status: tempStatus,
+                      userId: currentUser?.id
+                    });
+                    
+                    // Update task status inside selectedProject locally
+                    if (selectedProject && selectedProject.tasks) {
+                      const updatedTasks = selectedProject.tasks.map(t =>
+                        t.id === selectedTask.id ? { ...t, status: tempStatus } : t
+                      );
+                      const completed = updatedTasks.filter(t => t.status && t.status.toLowerCase() === 'completed').length;
+                      const progress = updatedTasks.length > 0 ? Math.round((completed / updatedTasks.length) * 100) : 0;
+                      setSelectedProject(prev => ({ ...prev, tasks: updatedTasks, progress }));
+                    }
+
+                    setSuccessMessage("อัปเดตสถานะงานสำเร็จ");
+                    setTimeout(() => setSuccessMessage(""), 5000);
+                    setShowViewTaskModal(false);
+                    fetchProjects();
+                  } catch (err) {
+                    console.error("Failed to update task status:", err);
+                    setErrorMessage("ไม่สามารถอัปเดตสถานะงานได้");
+                    setTimeout(() => setErrorMessage(""), 5000);
+                  }
+                }}
+              >
+                {t("updateStatusBtn")}
+              </button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
 
       <Footer />
     </div>

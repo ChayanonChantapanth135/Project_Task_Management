@@ -20,6 +20,12 @@ const DashboardPage = () => {
     projects: 0,
     tasks: 0,
     overdueTasks: 0,
+    projectStatus: {
+      pending: 0,
+      inProgress: 0,
+      review: 0,
+      completed: 0,
+    },
     taskStatus: {
       pending: 0,
       inProgress: 0,
@@ -88,6 +94,33 @@ const DashboardPage = () => {
     },
   ];
 
+  const projectStatus = [
+    {
+      label: t("statusPending"),
+      value: stats.projectStatus?.pending || 0,
+      color: "text-gray-600",
+      bgColor: "bg-gray-50",
+    },
+    {
+      label: t("statusInProgress"),
+      value: stats.projectStatus?.inProgress || 0,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+    },
+    {
+      label: t("statusReview"),
+      value: stats.projectStatus?.review || 0,
+      color: "text-teal-600",
+      bgColor: "bg-teal-50",
+    },
+    {
+      label: t("statusCompleted"),
+      value: stats.projectStatus?.completed || 0,
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-50",
+    },
+  ];
+
   const taskStatus = [
     {
       label: t("pending"),
@@ -127,28 +160,55 @@ const DashboardPage = () => {
           ))}
         </div>
 
-        {/* Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* taskStatus */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-xl">⏱️</span>
-              <h3 className="text-lg font-semibold text-gray-800">
-                {t("taskStatus")}
-              </h3>
+          {/* Combined Project & Task Status */}
+          <div className="bg-white rounded-lg shadow-sm p-6 flex flex-col justify-between" style={{ minHeight: "500px" }}>
+            {/* projectStatus */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-xl">📁</span>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {t("projectStatus")}
+                </h3>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {projectStatus.map((status, index) => (
+                  <div
+                    key={index}
+                    className={`${status.bgColor} rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-shadow`}
+                  >
+                    <p className={`text-3xl font-bold ${status.color}`}>
+                      {status.value}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1">{status.label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {taskStatus.map((status, index) => (
-                <div
-                  key={index}
-                  className={`${status.bgColor} rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-shadow`}
-                >
-                  <p className={`text-3xl font-bold ${status.color}`}>
-                    {status.value}
-                  </p>
-                  <p className="text-sm text-gray-600 mt-1">{status.label}</p>
-                </div>
-              ))}
+
+            <hr className="my-2 border-gray-200" />
+
+            {/* taskStatus */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-xl">⏱️</span>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {t("taskStatus")}
+                </h3>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {taskStatus.map((status, index) => (
+                  <div
+                    key={index}
+                    className={`${status.bgColor} rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-shadow`}
+                  >
+                    <p className={`text-3xl font-bold ${status.color}`}>
+                      {status.value}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1">{status.label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 

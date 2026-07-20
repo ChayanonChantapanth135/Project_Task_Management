@@ -212,6 +212,9 @@ export const initializeDatabase = async () => {
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR(512) DEFAULT NULL",
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS status ENUM('active','suspended') DEFAULT 'active'",
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_force_reset TINYINT(1) DEFAULT 1",
+      "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS task_type VARCHAR(50) DEFAULT NULL",
+      "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS priority ENUM('Low', 'Medium', 'High') DEFAULT 'Medium'",
+      "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS due_date DATE DEFAULT NULL",
     ]
     for (const q of alterQueries) {
       try { await connection.query(q) } catch (e) { /* ignore if column already exists */ }
@@ -222,7 +225,8 @@ export const initializeDatabase = async () => {
       "ALTER TABLE projects ADD COLUMN priority ENUM('Low', 'Medium', 'High') DEFAULT 'Medium'",
       "ALTER TABLE projects ADD COLUMN end_date DATE NULL",
       "ALTER TABLE projects ADD COLUMN created_by INT NULL",
-      "ALTER TABLE projects ADD CONSTRAINT fk_projects_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL"
+      "ALTER TABLE projects ADD CONSTRAINT fk_projects_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL",
+      "ALTER TABLE tasks MODIFY COLUMN status ENUM('Pending', 'In Progress', 'Reviewing', 'Completed') DEFAULT 'Pending'"
     ]
     for (const q of alterProjectsQueries) {
       try { await connection.query(q) } catch (e) { /* ignore if column or constraint already exists */ }

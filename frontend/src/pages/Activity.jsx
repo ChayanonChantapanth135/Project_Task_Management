@@ -185,7 +185,7 @@ const Activity = () => {
                           <span
                             className={`badge px-2.5 py-1.5 rounded text-xs fw-semibold ${badgeClass}`}
                           >
-                            {log.action}
+                            {t(log.action)}
                           </span>
                         </td>
                         <td className="py-3 text-dark fw-medium">

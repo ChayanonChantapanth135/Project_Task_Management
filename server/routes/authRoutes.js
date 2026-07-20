@@ -473,6 +473,11 @@ router.get('/dashboard-stats', async (req, res) => {
 
         // Since projects and tasks tables might not exist yet, we query gracefully
         let projectCount = 0;
+        let pendingProjects = 0;
+        let inProgressProjects = 0;
+        let reviewProjects = 0;
+        let completedProjects = 0;
+
         let taskCount = 0;
         let overdueTaskCount = 0;
         let pendingTasks = 0;
@@ -483,6 +488,18 @@ router.get('/dashboard-stats', async (req, res) => {
         try {
             const [pRows] = await db.query('SELECT COUNT(*) as count FROM projects');
             projectCount = pRows[0].count;
+
+            const [pendingProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'pending'");
+            pendingProjects = pendingProjRows[0].count;
+
+            const [inProgressProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'in_progress'");
+            inProgressProjects = inProgressProjRows[0].count;
+
+            const [reviewProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'review'");
+            reviewProjects = reviewProjRows[0].count;
+
+            const [completedProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'completed'");
+            completedProjects = completedProjRows[0].count;
         } catch (e) { /* ignore if projects table doesn't exist */ }
 
         try {
@@ -490,20 +507,20 @@ router.get('/dashboard-stats', async (req, res) => {
             taskCount = tRows[0].count;
             
             // Query counts by status/overdue if columns exist
-            const [pendingRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'pending'");
+            const [pendingRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'Pending'");
             pendingTasks = pendingRows[0].count;
 
-            const [progressRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'in_progress'");
+            const [progressRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'In Progress'");
             inProgressTasks = progressRows[0].count;
 
-            const [reviewRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'reviewing'");
+            const [reviewRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'Reviewing'");
             reviewingTasks = reviewRows[0].count;
 
-            const [completedRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'completed'");
+            const [completedRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'Completed'");
             completedTasks = completedRows[0].count;
 
             // Simple overdue query if due_date column exists
-            const [overdueRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE due_date < NOW() AND status != 'completed'");
+            const [overdueRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE due_date < NOW() AND status != 'Completed'");
             overdueTaskCount = overdueRows[0].count;
         } catch (e) { /* ignore if tasks table doesn't exist */ }
 
@@ -512,6 +529,12 @@ router.get('/dashboard-stats', async (req, res) => {
             projects: projectCount,
             tasks: taskCount,
             overdueTasks: overdueTaskCount,
+            projectStatus: {
+                pending: pendingProjects,
+                inProgress: inProgressProjects,
+                review: reviewProjects,
+                completed: completedProjects
+            },
             taskStatus: {
                 pending: pendingTasks,
                 inProgress: inProgressTasks,
@@ -620,14 +643,19 @@ router.get('/projects', async (req, res) => {
 
         // Fetch tasks for each project
         for (const p of projects) {
-            const [tasks] = await db.query('SELECT id, title, status FROM tasks WHERE project_id = ?', [p.id])
+            const [tasks] = await db.query(`
+                SELECT t.id, t.title, t.status, t.due_date, t.assigned_to, t.description, t.task_type, t.priority, u.username AS assigned_to_name
+                FROM tasks t
+                LEFT JOIN users u ON t.assigned_to = u.id
+                WHERE t.project_id = ?
+            `, [p.id])
             p.tasks = tasks
             // Calculate progress based on tasks
             if (tasks.length > 0) {
-                const completed = tasks.filter(t => t.status === 'Completed').length
+                const completed = tasks.filter(t => t.status && t.status.toLowerCase() === 'completed').length
                 p.progress = Math.round((completed / tasks.length) * 100)
             } else {
-                p.progress = p.status === 'Completed' ? 100 : 0
+                p.progress = (p.status && p.status.toLowerCase() === 'completed') ? 100 : 0
             }
         }
 
@@ -735,6 +763,92 @@ router.delete('/projects/:id', async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 })
+
+// Create new task
+/**
+ * POST /tasks
+ * - สร้างงานใหม่ภายใต้โครงการที่เลือก
+ * - รองรับ ประเภทงาน, รายละเอียด, ลำดับความสำคัญ (Priority), วันกำหนดส่ง (Due Date)
+ * - เลือกระบุผู้รับผิดชอบงานได้ (Assignee)
+ * - หากมีผู้รับผิดชอบ จะสร้างการแจ้งเตือน (Notification) ไปยังผู้ใช้นั้นๆ
+ * - บันทึกประวัติกิจกรรมการทำงานลงฐานข้อมูล
+ */
+router.post('/tasks', async (req, res) => {
+    const { projectId, title, description, taskType, priority, dueDate, assignedTo, createdBy } = req.body
+    
+    // 1. Validate Form?
+    if (!projectId || !title) {
+        return res.status(400).json({ message: 'สร้างไม่สำเร็จ: กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน' })
+    }
+
+    try {
+        const db = await connectToDatabase()
+
+        // 2. INSERT INTO tasks status = "Pending"
+        const [result] = await db.query(
+            "INSERT INTO tasks (project_id, title, description, task_type, priority, due_date, assigned_to, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')",
+            [projectId, title, description || null, taskType || null, priority || 'Medium', dueDate || null, assignedTo ? Number(assignedTo) : null]
+        )
+        const taskId = result.insertId
+
+        // 3. Has Assignee? -> Send Notification
+        if (assignedTo) {
+            const [projRows] = await db.query('SELECT name FROM projects WHERE id = ?', [projectId])
+            const projectName = projRows[0]?.name || `ID ${projectId}`
+            const notifMessage = `คุณได้รับมอบหมายงานใหม่: "${title}" ในโปรเจกต์ "${projectName}"`
+            await db.query(
+                "INSERT INTO notifications (user_id, message, read_status) VALUES (?, ?, FALSE)",
+                [Number(assignedTo), notifMessage]
+            )
+        }
+
+        // 4. Log Activity "Create Task Success"
+        await logActivity(db, createdBy || null, 'Create Task Success', `Created task: ${title} under project ID: ${projectId}`)
+
+        // 5. Show "Create Success"
+        res.status(201).json({ message: 'Create Success', taskId })
+    } catch (error) {
+        console.error('Error creating task:', error.message)
+        res.status(500).json({ message: 'สร้างไม่สำเร็จ: เกิดข้อผิดพลาดของระบบ' })
+    }
+})
+
+// Update task status
+router.put('/tasks/:id/status', async (req, res) => {
+    const { id } = req.params
+    const { status, userId } = req.body
+    try {
+        const db = await connectToDatabase()
+        
+        // 1. Get task information (title, project_id, etc.)
+        const [taskRows] = await db.query('SELECT t.title, t.project_id, t.status AS old_status, p.name AS project_name, p.created_by AS project_creator FROM tasks t JOIN projects p ON t.project_id = p.id WHERE t.id = ?', [id])
+        if (taskRows.length === 0) {
+            return res.status(404).json({ message: 'ไม่พบข้อมูลงาน / Task not found' })
+        }
+        const { title, project_id, project_name, project_creator } = taskRows[0]
+
+        // 2. Update status
+        await db.query('UPDATE tasks SET status = ? WHERE id = ?', [status, id])
+
+        // 3. Log activity
+        await logActivity(db, userId || null, 'Update Task Status', `Updated task "${title}" status to "${status}"`)
+
+        // 4. Send notification to the project creator/assigner
+        if (project_creator && Number(project_creator) !== Number(userId)) {
+            const notifMessage = `งาน "${title}" ในโปรเจกต์ "${project_name}" ถูกอัปเดตสถานะเป็น "${status}"`
+            await db.query(
+                "INSERT INTO notifications (user_id, message, read_status) VALUES (?, ?, FALSE)",
+                [Number(project_creator), notifMessage]
+            )
+        }
+
+        res.status(200).json({ message: 'อัปเดตสถานะสำเร็จ / Status updated successfully' })
+    } catch (error) {
+        console.error('Error updating task status:', error.message)
+        res.status(500).json({ message: error.message })
+    }
+})
+
 
 // Fetch recent activity logs (limited to 10)
 /**
