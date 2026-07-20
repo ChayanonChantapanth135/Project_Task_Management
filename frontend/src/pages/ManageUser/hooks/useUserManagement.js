@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+// นำเข้า API_URL สำหรับใช้ต่อคำนำหน้าของรูปภาพโปรไฟล์ (Avatar) แบบไดนามิก
+import { API_URL } from "../../../config";
 
 export const useUserManagement = (t) => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -47,7 +49,7 @@ export const useUserManagement = (t) => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:3000/auth/users");
+      const response = await axios.get("/auth/users");
       const mappedUsers = response.data.map((u) => {
         const name = u.username || "User";
         const initials =
@@ -154,7 +156,7 @@ export const useUserManagement = (t) => {
       isActive: user.status === "active",
     });
     setAvatarFile(null);
-    setAvatarPreview(user.avatar ? `http://127.0.0.1:3000${user.avatar}` : null);
+    setAvatarPreview(user.avatar ? (user.avatar.startsWith("http") ? user.avatar : `${API_URL}${user.avatar}`) : null);
     setModalError("");
     setModalSuccess("");
     setShowAddModal(true);
@@ -179,12 +181,12 @@ export const useUserManagement = (t) => {
 
     try {
       if (isEditMode) {
-        await axios.put(`http://127.0.0.1:3000/auth/users/${selectedUserId}`, data, {
+        await axios.put(`/auth/users/${selectedUserId}`, data, {
           headers: { "Content-Type": "multipart/form-data" },
         });
-        setModalSuccess(t("userUpdateSuccess") || "บันทึกการแก้ไขเรียบร้อยแล้ว!");
+        setModalSuccess(t("userUpdatedSuccess") || "บันทึกการแก้ไขเรียบร้อยแล้ว!");
       } else {
-        await axios.post("http://127.0.0.1:3000/auth/users", data, {
+        await axios.post("/auth/users", data, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         setModalSuccess(t("userCreatedSuccess") || "สร้างบัญชีผู้ใช้ใหม่เรียบร้อยแล้ว!");
@@ -207,7 +209,7 @@ export const useUserManagement = (t) => {
     if (!selectedUserForStatus) return;
     const nextStatus = selectedUserForStatus.status === "active" ? "suspended" : "active";
     try {
-      await axios.put(`http://127.0.0.1:3000/auth/users/${selectedUserForStatus.id}`, {
+      await axios.put(`/auth/users/${selectedUserForStatus.id}`, {
         username: selectedUserForStatus.name,
         email: selectedUserForStatus.email,
         role: selectedUserForStatus.role,
@@ -228,7 +230,7 @@ export const useUserManagement = (t) => {
   const handleDeleteConfirm = async () => {
     if (!selectedUserForDelete) return;
     try {
-      await axios.delete(`http://127.0.0.1:3000/auth/users/${selectedUserForDelete.id}`);
+      await axios.delete(`/auth/users/${selectedUserForDelete.id}`);
       fetchUsers();
       setShowDeleteModal(false);
     } catch (err) {
@@ -285,7 +287,7 @@ export const useUserManagement = (t) => {
     try {
       setLoading(true);
       setShowImportConfirm(false);
-      const response = await axios.post("http://127.0.0.1:3000/auth/users/import", {
+      const response = await axios.post("/auth/users/import", {
         users: importUsersList,
         userId: currentUser?.id,
       });

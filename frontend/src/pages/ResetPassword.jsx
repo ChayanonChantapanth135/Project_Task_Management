@@ -68,7 +68,7 @@ const ResetPassword = () => {
     setError("");
     setMessage("");
     try {
-      const response = await axios.post("http://127.0.0.1:3000/auth/send-otp", {
+      const response = await axios.post("/auth/send-otp", {
         email: values.email,
       });
       const receivedOtp = response.data.otpCode;
@@ -116,7 +116,7 @@ const ResetPassword = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://127.0.0.1:3000/auth/reset-password",
+        "/auth/reset-password",
         {
           email: values.email,
           otpCode: values.otpCode,
@@ -533,7 +533,7 @@ const ResetPassword = () => {
               </span>
               <input
                 id="confirmPassword"
-                type={showPassword ? "text" : "password"}
+                type="password"
                 name="confirmPassword"
                 placeholder={t("passwordPlaceholder")}
                 value={values.confirmPassword}

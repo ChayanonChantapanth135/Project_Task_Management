@@ -1,4 +1,6 @@
 import React from "react";
+// นำเข้า API_URL สำหรับนำไปแสดงผลรูปโปรไฟล์ของผู้ใช้ให้สอดคล้องกับพอร์ตเซิร์ฟเวอร์แบบไดนามิก
+import { API_URL } from "../../../config";
 
 const getRoleBadgeStyle = (role) => {
   switch (role) {
@@ -98,7 +100,7 @@ const UserTable = ({
                             src={
                               user.avatar.startsWith("http")
                                 ? user.avatar
-                                : `http://127.0.0.1:3000${user.avatar}`
+                                : `${API_URL}${user.avatar}`
                             }
                             alt={user.name}
                             className="rounded-circle"

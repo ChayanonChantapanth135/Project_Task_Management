@@ -33,7 +33,7 @@ const DashboardPage = () => {
     const fetchStats = async () => {
       try {
         const response = await axios.get(
-          "http://127.0.0.1:3000/auth/dashboard-stats"
+          "/auth/dashboard-stats"
         );
         setStats(response.data);
       } catch (error) {
@@ -43,7 +43,7 @@ const DashboardPage = () => {
     const fetchActivities = async () => {
       try {
         const response = await axios.get(
-          "http://127.0.0.1:3000/auth/activity-logs"
+          "/auth/activity-logs"
         );
         setRecentActivities(response.data);
       } catch (error) {

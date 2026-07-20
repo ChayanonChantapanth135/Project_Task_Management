@@ -51,7 +51,7 @@ const ResetPasswordFirstTime = () => {
 
     setLoading(true);
     try {
-      await axios.post("http://127.0.0.1:3000/auth/reset-password-first-time", {
+      await axios.post("/auth/reset-password-first-time", {
         userId: currentUser.id,
         password: values.password,
       });
@@ -320,7 +320,7 @@ const ResetPasswordFirstTime = () => {
               </span>
               <input
                 id="confirmPassword"
-                type={showPassword ? "text" : "password"}
+                type="password"
                 name="confirmPassword"
                 placeholder={t("passwordPlaceholder")}
                 value={values.confirmPassword}

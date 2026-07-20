@@ -25,7 +25,7 @@ const Activity = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        "http://127.0.0.1:3000/auth/activity-logs",
+        "/auth/activity-logs",
       );
       setLogs(response.data);
     } catch (error) {

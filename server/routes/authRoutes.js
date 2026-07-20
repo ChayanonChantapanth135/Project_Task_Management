@@ -8,6 +8,7 @@ import jwt from 'jsonwebtoken'
 import multer from 'multer'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import fs from 'fs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -36,6 +37,36 @@ const upload = multer({
 })
 
 const router = express.Router()
+
+// ฟังก์ชันช่วย (Helper) สำหรับลบไฟล์รูปโปรไฟล์เก่าออกจากเซิร์ฟเวอร์อย่างปลอดภัยเพื่อไม่ให้เป็นไฟล์ขยะค้างอยู่ในโฟลเดอร์ uploads
+function deleteOldAvatar(avatarPath) {
+    if (!avatarPath) return;
+    try {
+        let fileName = '';
+        // ตรวจสอบว่าเป็น URL สมบูรณ์ (เริ่มด้วย http) หรือไม่ เพื่อดึงชื่อไฟล์ออกมา
+        if (avatarPath.startsWith('http')) {
+            const parts = avatarPath.split('/uploads/');
+            if (parts.length > 1) {
+                fileName = parts[1];
+            }
+        } else if (avatarPath.startsWith('/uploads/')) {
+            // กรณีเป็น Relative Path เช่น /uploads/avatar-xxx.jpg
+            fileName = avatarPath.replace('/uploads/', '');
+        }
+
+        // หากแกะชื่อไฟล์ได้สำเร็จ ให้ตรวจสอบและทำลายไฟล์บนดิสก์จริง
+        if (fileName) {
+            const filePath = path.join(__dirname, '../uploads', fileName);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath); // ลบไฟล์บนฮาร์ดดิสก์
+                console.log(`[Avatar Cleanup] Deleted old file: ${filePath}`);
+            }
+        }
+    } catch (error) {
+        console.error('Error deleting old avatar file:', error.message);
+    }
+}
+
 
 // Helper to log user activity without duplicate consecutive logs
 async function logActivity(db, userId, action, details) {
@@ -352,6 +383,11 @@ router.put('/users/:id', upload.single('avatar'), async (req, res) => {
         }
 
         if (req.file) {
+            // ดึงข้อมูลรูปภาพประจำตัวอันเดิมของผู้ใช้ออกมาและลบทิ้งก่อนเซฟไฟล์ใหม่
+            const [userRows] = await db.query('SELECT avatar FROM users WHERE id = ?', [id]);
+            if (userRows.length > 0 && userRows[0].avatar) {
+                deleteOldAvatar(userRows[0].avatar);
+            }
             const avatarUrl = `/uploads/${req.file.filename}`;
             query += ', avatar = ?';
             params.push(avatarUrl);
@@ -376,6 +412,11 @@ router.delete('/users/:id', async (req, res) => {
     const { id } = req.params;
     try {
         const db = await connectToDatabase();
+        // ดึงข้อมูลรูปโปรไฟล์และลบออกจากโฟลเดอร์เซิร์ฟเวอร์ก่อนที่จะทำการลบแถวข้อมูลผู้ใช้งานในฐานข้อมูล
+        const [userRows] = await db.query('SELECT avatar FROM users WHERE id = ?', [id]);
+        if (userRows.length > 0 && userRows[0].avatar) {
+            deleteOldAvatar(userRows[0].avatar);
+        }
         await db.query('DELETE FROM users WHERE id = ?', [id]);
         res.status(200).json({ message: 'User deleted successfully' });
     } catch (error) {
@@ -397,8 +438,18 @@ router.post('/upload-avatar/:id', upload.single('avatar'), async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded' })
         }
-        const avatarUrl = `http://127.0.0.1:3000/uploads/${req.file.filename}`
         const db = await connectToDatabase()
+        
+        // ค้นหาและลบรูปโปรไฟล์อันเดิมออกจากดิสก์เซิร์ฟเวอร์
+        const [userRows] = await db.query('SELECT avatar FROM users WHERE id = ?', [id])
+        if (userRows.length > 0 && userRows[0].avatar) {
+            deleteOldAvatar(userRows[0].avatar)
+        }
+
+        // นำ BASE_URL มาใช้สร้าง URL เต็มรูปแบบสำหรับการเข้าถึงรูปภาพแทนการฮาร์ดโค้ด
+        const baseUrl = process.env.BASE_URL || 'http://127.0.0.1:3000'
+        const avatarUrl = `${baseUrl}/uploads/${req.file.filename}`
+        
         await db.query('UPDATE users SET avatar = ? WHERE id = ?', [avatarUrl, id])
         res.status(200).json({ message: 'Avatar uploaded successfully', avatarUrl })
     } catch (error) {

@@ -6,6 +6,8 @@ import { signOut, getCurrentUser } from "../lib/auth";
 import { useLanguage } from "../lib/LanguageContext";
 import axios from "axios";
 import LanguageSwitcher from "./LanguageSwitcher";
+// นำเข้า API_URL สำหรับแปลงลิงก์รูปประจำตัวของผู้ใช้งานแถบเมนูบนสุดแบบไดนามิก
+import { API_URL } from "../config";
 
 /**
  * คอมโพเนนต์แถบเมนูด้านบน (Header / Navigation Bar Component)
@@ -32,10 +34,12 @@ const Header = () => {
         if (currentUser) {
           // Fetch fresh user data (including latest avatar) from DB
           try {
-            const res = await axios.get(
-              `http://127.0.0.1:3000/auth/users/${currentUser.id}`,
-            );
-            setUser({ ...currentUser, avatar: res.data.avatar });
+            const res = await axios.get(`/auth/users/${currentUser.id}`);
+            setUser({
+              ...currentUser,
+              avatar: res.data.avatar,
+              role: res.data.role,
+            });
           } catch {
             setUser(currentUser);
           }
@@ -157,7 +161,7 @@ const Header = () => {
                         src={
                           user.avatar.startsWith("http")
                             ? user.avatar
-                            : `http://127.0.0.1:3000${user.avatar}`
+                            : `${API_URL}${user.avatar}`
                         }
                         alt="Profile"
                         style={{
@@ -189,6 +193,26 @@ const Header = () => {
                       <strong>{user?.name || "User"}</strong>
                       <br />
                       <small className="text-muted">{user?.email}</small>
+                      {user?.role && (
+                        <div
+                          style={{
+                            fontSize: "0.8rem",
+                            color: "#f59e0b",
+                            fontWeight: "600",
+                            marginTop: "2px",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          {{
+                            admin: "Admin",
+                            manager: "Project Manager",
+                            team_leader: "Team Leader",
+                            video_editor: "Video Editor",
+                            translator: "Translator",
+                            user: "User",
+                          }[user.role.toLowerCase()] || user.role}
+                        </div>
+                      )}
                     </Dropdown.Header>
                     <Dropdown.Divider />
                     <Dropdown.Item as={Link} to="/Profile">

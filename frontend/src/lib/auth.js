@@ -50,7 +50,7 @@ export const renewToken = async () => {
     if (!token) return false;
     try {
         const axios = (await import('axios')).default;
-        const response = await axios.post('http://127.0.0.1:3000/auth/refresh', { token });
+        const response = await axios.post('/auth/refresh', { token });
         const { token: newToken, user, expiresInSeconds } = response.data;
         await signIn({ token: newToken, user, expiresInSeconds });
         return true;
@@ -72,7 +72,7 @@ export const signOut = async () => {
         if (userData) {
             const user = JSON.parse(userData);
             const axios = (await import('axios')).default;
-            await axios.post('http://127.0.0.1:3000/auth/logout', { userId: user.id });
+            await axios.post('/auth/logout', { userId: user.id });
         }
     } catch (e) {
         console.error("Logout log failed:", e);

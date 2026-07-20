@@ -78,7 +78,7 @@ const ManageProjectPage = () => {
   // Fetch projects and team leaders from DB
   const fetchProjects = async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:3000/auth/projects");
+      const response = await axios.get("/auth/projects");
       const formatted = response.data.map((p) => {
         if (p.end_date) {
           p.endDate = new Date(p.end_date).toISOString().split("T")[0];
@@ -94,7 +94,7 @@ const ManageProjectPage = () => {
   const fetchTeamLeaders = async () => {
     try {
       const response = await axios.get(
-        "http://127.0.0.1:3000/auth/team-leaders",
+        "/auth/team-leaders",
       );
       setTeamLeaders(response.data);
     } catch (err) {
@@ -135,13 +135,13 @@ const ManageProjectPage = () => {
 
     if (!formData.name || !formData.endDate || !formData.teamLeaderId) {
       setErrorMessage(
-        "กรุณากรอกข้อมูลให้ครบถ้วนทุกช่อง (Title, End Date, Team Leader)",
+        t("fillRequiredFieldsProject")
       );
       return;
     }
 
     try {
-      await axios.post("http://127.0.0.1:3000/auth/projects", {
+      await axios.post("/auth/projects", {
         name: formData.name,
         endDate: formData.endDate,
         priority: formData.priority,
@@ -158,13 +158,13 @@ const ManageProjectPage = () => {
       });
 
       setSuccessMessage(
-        "สร้างโปรเจกต์ใหม่และส่งการแจ้งเตือนไปยัง Team Leader สำเร็จ!",
+        t("projectCreatedSuccess")
       );
       setTimeout(() => setSuccessMessage(""), 5000);
       fetchProjects();
     } catch (err) {
       console.error("Create project failed", err);
-      setErrorMessage("ไม่สามารถสร้างโปรเจกต์ได้");
+      setErrorMessage(t("projectCreateFailed"));
     }
   };
 
@@ -196,14 +196,14 @@ const ManageProjectPage = () => {
       !editFormData.teamLeaderId
     ) {
       setErrorMessage(
-        "กรุณากรอกข้อมูลให้ครบถ้วนทุกช่อง (Title, End Date, Team Leader)",
+        t("fillRequiredFieldsProject")
       );
       return;
     }
 
     try {
       await axios.put(
-        `http://127.0.0.1:3000/auth/projects/${editFormData.id}`,
+        `/auth/projects/${editFormData.id}`,
         {
           name: editFormData.name,
           status: editFormData.status,
@@ -215,12 +215,12 @@ const ManageProjectPage = () => {
       );
 
       setShowEditModal(false);
-      setSuccessMessage("แก้ไขข้อมูลโปรเจกต์สำเร็จ!");
+      setSuccessMessage(t("projectUpdatedSuccess"));
       setTimeout(() => setSuccessMessage(""), 5000);
       fetchProjects();
     } catch (err) {
       console.error("Edit project failed", err);
-      setErrorMessage("ไม่สามารถแก้ไขข้อมูลโปรเจกต์ได้");
+      setErrorMessage(t("projectUpdateFailed"));
     }
   };
 
@@ -231,26 +231,26 @@ const ManageProjectPage = () => {
 
   const handleDeleteConfirm = async () => {
     if (roleSimulation !== "admin") {
-      setErrorMessage("ไม่มีสิทธิ์ลบโปรเจกต์ (เฉพาะ Admin เท่านั้น)");
+      setErrorMessage(t("noPermissionDeleteProject"));
       setShowDeleteModal(false);
       return;
     }
 
     try {
       await axios.delete(
-        `http://127.0.0.1:3000/auth/projects/${selectedProject.id}`,
+        `/auth/projects/${selectedProject.id}`,
         {
           params: { userId: currentUser?.id || 1 },
         },
       );
 
       setShowDeleteModal(false);
-      setSuccessMessage("ลบโปรเจกต์พร้อมข้อมูลที่เกี่ยวข้องทั้งหมดสำเร็จ!");
+      setSuccessMessage(t("projectDeletedSuccess"));
       setTimeout(() => setSuccessMessage(""), 5000);
       fetchProjects();
     } catch (err) {
       console.error("Delete project failed", err);
-      setErrorMessage("ไม่สามารถลบโปรเจกต์ได้");
+      setErrorMessage(t("projectDeleteFailed"));
     }
   };
 
@@ -365,7 +365,7 @@ const ManageProjectPage = () => {
       >
         <Modal.Body className="p-4" style={{ borderRadius: "1rem" }}>
           <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-            <h5 className="fw-bold mb-0">🆕 สร้างโปรเจกต์ใหม่</h5>
+            <h5 className="fw-bold mb-0">🆕 {t("createProjectTitle")}</h5>
             <button
               className="btn-close"
               onClick={() => setShowCreateModal(false)}
@@ -374,7 +374,7 @@ const ManageProjectPage = () => {
           <form onSubmit={handleCreateSubmit}>
             <div className="mb-3">
               <label className="form-label small fw-bold">
-                หัวข้อโปรเจกต์ (Title) *
+                {t("modalProjectTitle")} *
               </label>
               <input
                 type="text"
@@ -388,7 +388,7 @@ const ManageProjectPage = () => {
             </div>
             <div className="mb-3">
               <label className="form-label small fw-bold">
-                ระดับความสำคัญ (Priority)
+                {t("modalProjectPriority")}
               </label>
               <select
                 className="form-select rounded-lg"
@@ -404,7 +404,7 @@ const ManageProjectPage = () => {
             </div>
             <div className="mb-3">
               <label className="form-label small fw-bold">
-                วันที่สิ้นสุด (End Date) *
+                {t("modalProjectEndDate")} *
               </label>
               <input
                 type="date"
@@ -418,7 +418,7 @@ const ManageProjectPage = () => {
             </div>
             <div className="mb-3">
               <label className="form-label small fw-bold">
-                หัวหน้าทีม (Team Leader) *
+                {t("modalProjectTeamLeader")} *
               </label>
               <select
                 className="form-select rounded-lg"
@@ -431,10 +431,10 @@ const ManageProjectPage = () => {
                 }
                 required
               >
-                <option value="">-- เลือกหัวหน้าทีม --</option>
+                <option value="">-- {t("modalProjectTeamLeader")} --</option>
                 {teamLeaders.map((leader) => (
                   <option key={leader.id} value={leader.id}>
-                    {leader.username}{leader.email ? ` (${leader.email})` : ""}
+                    {leader.username}
                   </option>
                 ))}
               </select>
@@ -445,13 +445,13 @@ const ManageProjectPage = () => {
                 className="btn btn-secondary px-4 py-2 rounded-lg"
                 onClick={() => setShowCreateModal(false)}
               >
-                ยกเลิก
+                {t("cancelBtn")}
               </button>
               <button
                 type="submit"
                 className="btn btn-primary px-4 py-2 rounded-lg"
               >
-                🚀 สร้างโปรเจกต์
+                🚀 {t("createProjectBtnSubmit")}
               </button>
             </div>
           </form>
@@ -466,7 +466,7 @@ const ManageProjectPage = () => {
       >
         <Modal.Body className="p-4" style={{ borderRadius: "1rem" }}>
           <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-            <h5 className="fw-bold mb-0">✏️ แก้ไขโปรเจกต์</h5>
+            <h5 className="fw-bold mb-0">✏️ {t("editProjectTitle")}</h5>
             <button
               className="btn-close"
               onClick={() => setShowEditModal(false)}
@@ -475,7 +475,7 @@ const ManageProjectPage = () => {
           <form onSubmit={handleEditSubmit}>
             <div className="mb-3">
               <label className="form-label small fw-bold">
-                หัวข้อโปรเจกต์ (Title) *
+                {t("modalProjectTitle")} *
               </label>
               <input
                 type="text"
@@ -488,7 +488,7 @@ const ManageProjectPage = () => {
               />
             </div>
             <div className="mb-3">
-              <label className="form-label small fw-bold">สถานะ (Status)</label>
+              <label className="form-label small fw-bold">{t("modalProjectStatus")}</label>
               <select
                 className="form-select rounded-lg"
                 value={editFormData.status}
@@ -507,7 +507,7 @@ const ManageProjectPage = () => {
             </div>
             <div className="mb-3">
               <label className="form-label small fw-bold">
-                ระดับความสำคัญ (Priority)
+                {t("modalProjectPriority")}
               </label>
               <select
                 className="form-select rounded-lg"
@@ -526,7 +526,7 @@ const ManageProjectPage = () => {
             </div>
             <div className="mb-3">
               <label className="form-label small fw-bold">
-                วันที่สิ้นสุด (End Date) *
+                {t("modalProjectEndDate")} *
               </label>
               <input
                 type="date"
@@ -543,7 +543,7 @@ const ManageProjectPage = () => {
             </div>
             <div className="mb-3">
               <label className="form-label small fw-bold">
-                หัวหน้าทีม (Team Leader) *
+                {t("modalProjectTeamLeader")} *
               </label>
               <select
                 className="form-select rounded-lg"
@@ -556,10 +556,10 @@ const ManageProjectPage = () => {
                 }
                 required
               >
-                <option value="">-- เลือกหัวหน้าทีม --</option>
+                <option value="">-- {t("modalProjectTeamLeader")} --</option>
                 {teamLeaders.map((leader) => (
                   <option key={leader.id} value={leader.id}>
-                    {leader.username}{leader.email ? ` (${leader.email})` : ""}
+                    {leader.username}
                   </option>
                 ))}
               </select>
@@ -570,13 +570,13 @@ const ManageProjectPage = () => {
                 className="btn btn-secondary px-4 py-2 rounded-lg"
                 onClick={() => setShowEditModal(false)}
               >
-                ยกเลิก
+                {t("cancelBtn")}
               </button>
               <button
                 type="submit"
                 className="btn btn-primary px-4 py-2 rounded-lg"
               >
-                💾 บันทึกการแก้ไข
+                💾 {t("modalSaveProject")}
               </button>
             </div>
           </form>
@@ -594,7 +594,7 @@ const ManageProjectPage = () => {
           {selectedProject && (
             <>
               <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-                <h5 className="fw-bold mb-0">🔍 รายละเอียดโปรเจกต์</h5>
+                <h5 className="fw-bold mb-0">🔍 {t("projectDetailsTitle")}</h5>
                 <button
                   className="btn-close"
                   onClick={() => setShowDetailModal(false)}
@@ -605,7 +605,7 @@ const ManageProjectPage = () => {
                 <div className="col-12 col-md-6">
                   <div className="mb-3">
                     <span className="text-muted small d-block">
-                      ชื่อโปรเจกต์
+                      {t("projectDetailsName")}
                     </span>
                     <strong className="fs-5 text-dark">
                       {selectedProject.name}
@@ -613,7 +613,7 @@ const ManageProjectPage = () => {
                   </div>
                   <div className="mb-3">
                     <span className="text-muted small d-block">
-                      ระดับความสำคัญ
+                      {t("colPriority")}
                     </span>
                     <span
                       className={`badge ${selectedProject.priority === "High" ? "bg-danger" : "bg-warning text-dark"}`}
@@ -625,7 +625,7 @@ const ManageProjectPage = () => {
                 <div className="col-12 col-md-6">
                   <div className="mb-3">
                     <span className="text-muted small d-block">
-                      กำหนดส่ง (End Date)
+                      {t("projectDetailsDueDate")}
                     </span>
                     <strong className="text-dark">
                       📅 {selectedProject.endDate}
@@ -633,7 +633,7 @@ const ManageProjectPage = () => {
                   </div>
                   <div className="mb-3">
                     <span className="text-muted small d-block">
-                      Team Leader ผู้รับผิดชอบ
+                      {t("projectDetailsLeader")}
                     </span>
                     <span className="text-primary fw-bold">
                       👤 {selectedProject.teamLeaderName}
@@ -646,7 +646,7 @@ const ManageProjectPage = () => {
               <div className="mb-4 p-3 bg-light rounded-lg">
                 <div className="d-flex justify-content-between mb-2">
                   <span className="fw-bold small text-muted">
-                    ความคืบหน้าโดยรวม
+                    {t("projectDetailsProgress")}
                   </span>
                   <span className="fw-bold text-primary">
                     {selectedProject.progress}%
@@ -663,7 +663,7 @@ const ManageProjectPage = () => {
               {/* Tasks List */}
               <div className="mb-4">
                 <h6 className="fw-bold text-dark mb-3">
-                  📝 รายการงานในโปรเจกต์ (Tasks)
+                  📝 {t("projectDetailsTaskList")}
                 </h6>
                 <div className="list-group rounded-lg shadow-xs">
                   {selectedProject.tasks && selectedProject.tasks.length > 0 ? (
@@ -684,7 +684,7 @@ const ManageProjectPage = () => {
                     ))
                   ) : (
                     <div className="list-group-item text-center py-3 text-muted text-xs">
-                      ไม่มีงานที่ต้องทำในโปรเจกต์นี้
+                      {t("projectDetailsNoTasks")}
                     </div>
                   )}
                 </div>
@@ -696,7 +696,7 @@ const ManageProjectPage = () => {
                   className="btn btn-outline-secondary px-4 py-2 rounded-lg"
                   onClick={() => setShowDetailModal(false)}
                 >
-                  ปิดหน้าต่าง
+                  {t("projectDetailsClose")}
                 </button>
                 <button
                   type="button"
@@ -706,7 +706,7 @@ const ManageProjectPage = () => {
                     handleOpenEdit(selectedProject);
                   }}
                 >
-                  ✏️ แก้ไขโปรเจกต์นี้
+                  ✏️ {t("projectDetailsEdit")}
                 </button>
               </div>
             </>
