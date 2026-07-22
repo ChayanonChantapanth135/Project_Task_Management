@@ -17,8 +17,6 @@
 
 ## 2. ระบบจัดการโครงการ (Project Management Flow)
 
-ตาม Flowchart ด้านล่างซ้าย:
-
 - [x] **สร้างตารางโครงการ (Create `projects` Table)**:
   - ฟิลด์ที่จำเป็น: `id`, `project_name`, `description`, `status` (เช่น Active, Completed, Cancelled), `created_at`
 - [x] **ระบบเพิ่มโครงการใหม่ (Create Project)**:
@@ -36,8 +34,6 @@
 
 ## 3. ระบบจัดการงาน (Task Management Flow)
 
-ตาม Flowchart ด้านขวา:
-
 - [ ] **สร้างตารางงาน (Create `tasks` Table)**:
   - ฟิลด์ที่จำเป็น: `id`, `project_id` (เชื่อมกับตารางโครงการ), `task_name`, `assigned_to` (เชื่อมกับ ID ผู้ใช้), `status` (ENUM: 'pending', 'in_progress', 'reviewing', 'completed'), `due_date`, `created_at`
 - [ ] **ระบบมอบหมายงาน (Create/Assign Task)**:
@@ -54,7 +50,6 @@
 
 ## 4. ระบบการรายงานและตรวจสอบ (Reports & Activity Logging)
 
-ตาม Flowchart ด้านขวาบนและล่างขวา:
 
 - [x] **ระบบประวัติกิจกรรม (Activity Logs)**:
   - บันทึกประวัติการทำงาน (เช่น ใครล็อกอิน, ใครสร้างโครงการใหม่, ใครอัปเดตงาน) ลงในฐานข้อมูล
