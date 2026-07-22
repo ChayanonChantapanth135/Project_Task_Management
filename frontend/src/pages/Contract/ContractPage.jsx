@@ -1,0 +1,144 @@
+import React, { useState, useRef } from "react";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
+import { useLanguage } from "../../lib/LanguageContext";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import ContactInfoCards from "./components/ContactInfoCards";
+import ContactForm from "./components/ContactForm";
+
+/**
+ * คอมโพเนนต์หน้าติดต่อเรา (ContractPage Component) - Clean Modular Architecture
+ */
+const ContractPage = () => {
+  const { t } = useLanguage();
+  const pageRef = useRef(null);
+  const blob1Ref = useRef(null);
+  const blob2Ref = useRef(null);
+  const blob3Ref = useRef(null);
+
+  useGSAP(() => {
+    gsap.to(blob1Ref.current, {
+      x: 60,
+      y: -40,
+      duration: 8,
+      repeat: -1,
+      yoyo: true,
+      ease: "sine.inOut",
+    });
+    gsap.to(blob2Ref.current, {
+      x: -50,
+      y: 50,
+      duration: 10,
+      repeat: -1,
+      yoyo: true,
+      ease: "sine.inOut",
+    });
+    gsap.to(blob3Ref.current, {
+      x: 40,
+      y: 30,
+      duration: 9,
+      repeat: -1,
+      yoyo: true,
+      ease: "sine.inOut",
+    });
+  }, { scope: pageRef });
+
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSubmitted(true);
+    setFormData({ fullName: "", email: "", subject: "", message: "" });
+    setTimeout(() => setSubmitted(false), 5000);
+  };
+
+  const contactInfos = [
+    {
+      icon: "📍",
+      titleKey: "contactAddressLabel",
+      valKey: "contactAddressVal",
+      gradient: "from-blue-500/20 to-teal-500/20",
+    },
+    {
+      icon: "📧",
+      titleKey: "contactEmailLabel",
+      val: "support@rnmtask.com / contact@rnmtask.com",
+      gradient: "from-indigo-500/20 to-purple-500/20",
+    },
+    {
+      icon: "📞",
+      titleKey: "contactPhoneLabel",
+      val: "+66 2 123 4567 / +66 81 234 5678",
+      gradient: "from-emerald-500/20 to-cyan-500/20",
+    },
+    {
+      icon: "⏰",
+      titleKey: "contactHoursLabel",
+      valKey: "contactHoursVal",
+      gradient: "from-amber-500/20 to-rose-500/20",
+    },
+  ];
+
+  return (
+    <div ref={pageRef} className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans selection:bg-teal-500 selection:text-white relative overflow-hidden">
+      <Header />
+
+      {/* GSAP Animated Ambient Orbs */}
+      <div ref={blob1Ref} className="absolute top-10 left-1/4 w-[450px] h-[450px] bg-cyan-500/15 rounded-full filter blur-[100px] pointer-events-none"></div>
+      <div ref={blob2Ref} className="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-indigo-600/20 rounded-full filter blur-[110px] pointer-events-none"></div>
+      <div ref={blob3Ref} className="absolute bottom-10 left-1/3 w-[500px] h-[500px] bg-teal-600/15 rounded-full filter blur-[120px] pointer-events-none"></div>
+
+      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-10 animate-fade-in-up relative z-10">
+        {/* Hero Header */}
+        <div className="glass-panel rounded-3xl p-8 md:p-12 mb-10 shadow-2xl relative overflow-hidden text-center flex flex-col items-center">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="relative z-10 max-w-3xl flex flex-col items-center">
+            <span className="inline-block px-3.5 py-1.5 rounded-full bg-cyan-500/20 text-cyan-300 text-xs font-extrabold tracking-wider mb-4 border border-cyan-500/30 uppercase">
+              📞 {t("contractTitle")}
+            </span>
+            <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4 tracking-tight">
+              {t("contractTitle")}
+            </h1>
+            <p className="text-sm md:text-base text-slate-300 leading-relaxed font-medium">
+              {t("contractSubtitle")}
+            </p>
+          </div>
+        </div>
+
+        {/* Success Alert Toast */}
+        {submitted && (
+          <div className="mb-8 w-full py-4 px-6 rounded-2xl bg-[#0e3b40] text-emerald-400 text-sm font-semibold flex items-center gap-3 shadow-xl border-0 animate-fade-in-down">
+            <span className="w-5 h-5 rounded bg-emerald-500 text-slate-950 flex items-center justify-center text-xs font-black">
+              ✓
+            </span>
+            <span>{t("sendMessageSuccess")}</span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left Column: Contact Cards */}
+          <ContactInfoCards contactInfos={contactInfos} t={t} />
+
+          {/* Right Column: Contact Form */}
+          <ContactForm
+            formData={formData}
+            setFormData={setFormData}
+            handleSubmit={handleSubmit}
+            t={t}
+          />
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default ContractPage;

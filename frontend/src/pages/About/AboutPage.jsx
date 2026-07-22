@@ -1,14 +1,16 @@
 import React, { useRef } from "react";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import { useLanguage } from "../lib/LanguageContext";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
+import { useLanguage } from "../../lib/LanguageContext";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import AboutFeatures from "./components/AboutFeatures";
+import TechStackGrid from "./components/TechStackGrid";
 
 /**
- * คอมโพเนนต์หน้าเกี่ยวกับเรา (About Page Component) - Redesigned Dark Luxe Glassmorphism Theme
+ * คอมโพเนนต์หน้าเกี่ยวกับเรา (AboutPage Component) - Clean Modular Architecture
  */
-const About = () => {
+const AboutPage = () => {
   const { t } = useLanguage();
   const pageRef = useRef(null);
   const blob1Ref = useRef(null);
@@ -120,53 +122,10 @@ const About = () => {
         </div>
 
         {/* Core Features Grid */}
-        <div className="mb-12">
-          <h2 className="text-xl md:text-2xl font-extrabold text-white mb-6 flex items-center gap-3">
-            <span>✨</span> Core Platform Features
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {features.map((f, idx) => (
-              <div
-                key={idx}
-                className={`glass-card rounded-2xl p-6 border border-white/10 hover:border-teal-400/40 transition-all duration-300 bg-gradient-to-br ${f.gradient} group hover:-translate-y-1`}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-3xl p-3 bg-slate-900/60 rounded-xl group-hover:scale-110 transition-transform">
-                    {f.icon}
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-white/10 text-slate-300 text-[11px] font-semibold">
-                    {f.badge}
-                  </span>
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">
-                  {t(f.titleKey)}
-                </h3>
-                <p className="text-slate-300 text-xs md:text-sm leading-relaxed">
-                  {t(f.descKey)}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
+        <AboutFeatures features={features} t={t} />
 
         {/* Tech Stack Grid */}
-        <div className="glass-panel rounded-3xl p-8 shadow-xl">
-          <h2 className="text-xl md:text-2xl font-extrabold text-white mb-6 flex items-center gap-3">
-            <span>💻</span> {t("techStackTitle")}
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-            {techStack.map((tech, idx) => (
-              <div
-                key={idx}
-                className="bg-slate-900/70 hover:bg-slate-800 rounded-2xl p-4 text-center border border-slate-700/50 transition-all hover:scale-105"
-              >
-                <div className="text-2xl mb-2">{tech.icon}</div>
-                <div className="text-sm font-bold text-white">{tech.name}</div>
-                <div className="text-[10px] text-slate-400 mt-1">{tech.category}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <TechStackGrid techStack={techStack} t={t} />
       </main>
 
       <Footer />
@@ -174,4 +133,4 @@ const About = () => {
   );
 };
 
-export default About;
+export default AboutPage;

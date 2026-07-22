@@ -1,0 +1,134 @@
+import React from "react";
+
+const ActivityTable = ({
+  loading,
+  currentEntries,
+  filteredLogs,
+  entriesPerPage,
+  setEntriesPerPage,
+  currentPage,
+  setCurrentPage,
+  totalPages,
+  indexOfFirstEntry,
+  indexOfLastEntry,
+  t,
+}) => {
+  return (
+    <div className="glass-panel rounded-3xl p-6 shadow-2xl overflow-hidden">
+      {/* Show entries row */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+        <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
+          <span>{t("showText") || "Show"}</span>
+          <select
+            className="bg-slate-900/80 rounded-xl px-3 py-1.5 text-white text-xs focus:outline-none cursor-pointer"
+            value={entriesPerPage}
+            onChange={(e) => {
+              setEntriesPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+          >
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
+          <span>{t("entriesPerPageText") || "Entries"}</span>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-16">
+          <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-slate-400 text-xs mt-3">{t("loadingActivities")}</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b border-white/5 text-xs uppercase tracking-wider text-slate-400 font-bold">
+                <th className="py-4 px-4 text-left">{t("colAction")}</th>
+                <th className="py-4 px-4 text-left">{t("colDetails")}</th>
+                <th className="py-4 px-4 text-center">{t("colUser")}</th>
+                <th className="py-4 px-4 text-center">{t("colTime")}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5 text-sm text-slate-200">
+              {currentEntries.length > 0 ? (
+                currentEntries.map((log, index) => {
+                  const act = log.action.toLowerCase();
+                  let badgeClass = "bg-slate-800 text-slate-300";
+                  if (act.includes("create"))
+                    badgeClass = "bg-emerald-500/20 text-emerald-300";
+                  else if (act.includes("edit") || act.includes("update"))
+                    badgeClass = "bg-amber-500/20 text-amber-300";
+                  else if (act.includes("delete"))
+                    badgeClass = "bg-rose-500/20 text-rose-300";
+                  else if (act.includes("login"))
+                    badgeClass = "bg-indigo-500/20 text-indigo-300";
+                  else if (act.includes("logout"))
+                    badgeClass = "bg-slate-700 text-slate-300";
+
+                  return (
+                    <tr key={index} className="hover:bg-white/5 transition-colors">
+                      <td className="py-4 px-4 text-left">
+                        <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${badgeClass}`}>
+                          {t(log.action)}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-white font-medium text-xs text-left">
+                        {log.details}
+                      </td>
+                      <td className="py-4 px-4 text-slate-300 text-xs font-semibold text-center">
+                        👤 {log.username || t("systemAdmin")}
+                      </td>
+                      <td className="py-4 px-4 text-center text-slate-400 text-xs">
+                        {new Date(log.created_at).toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan="4" className="text-center py-12 text-slate-500">
+                    <div className="text-4xl mb-2">📂</div>
+                    <p className="text-sm font-semibold">{t("noActivitiesFound")}</p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Pagination Footer */}
+      {!loading && totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-white/5 text-xs text-slate-400">
+          <span>
+            {t("showingText") || "แสดง"} {indexOfFirstEntry + 1} - {Math.min(indexOfLastEntry, filteredLogs.length)} {t("ofText") || "จาก"} {filteredLogs.length} {t("entriesText") || "รายการ"}
+          </span>
+
+          <div className="flex items-center gap-2">
+            <button
+              disabled={currentPage === 1}
+              className="px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 disabled:opacity-40 transition-colors"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            >
+              {t("prevText") || "ย้อนกลับ"}
+            </button>
+            <span className="px-3.5 py-1.5 font-bold text-white bg-indigo-600 rounded-full">
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              disabled={currentPage === totalPages}
+              className="px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 disabled:opacity-40 transition-colors"
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            >
+              {t("nextText") || "ถัดไป"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ActivityTable;

@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import Home from "./pages/Home";
+import Home from "./pages/Home/HomePage";
 import Dashboard from "./pages/Dashboard/DashboardPage";
-import Login from "./pages/Login";
+import Login from "./pages/Login/LoginPage";
 // import Register from './pages/Register'
 import { LanguageProvider } from "./lib/LanguageContext";
 import Profile from "./pages/Profile";
@@ -11,13 +11,13 @@ import ManageUsers from "./pages/ManageUser/ManageUserPage";
 import Projects from "./pages/ManageProject/ManageProjectPage";
 import AllTasks from "./pages/AllTasks";
 import Reports from "./pages/Reports";
-import About from "./pages/About";
-import Contract from "./pages/Contract";
-import Activity from "./pages/Activity";
+import About from "./pages/About/AboutPage";
+import Contract from "./pages/Contract/ContractPage";
+import Activity from "./pages/Activity/ActivityPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SessionTimeoutHandler from "./components/SessionTimeoutHandler";
-import ResetPassword from "./pages/ResetPassword";
-import ResetPasswordFirstTime from "./pages/ResetPasswordFirstTime";
+import ResetPassword from "./pages/ResetPassword/ResetPasswordPage";
+import ResetPasswordFirstTime from "./pages/ResetPasswordFirstTime/ResetPasswordFirstTimePage";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
