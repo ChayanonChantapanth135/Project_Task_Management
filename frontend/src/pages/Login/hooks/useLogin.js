@@ -38,7 +38,7 @@ export const useLogin = (t) => {
 
       await signIn({
         token,
-        expiresInSeconds: response.data.expiresInSeconds || 1200,
+        expiresInSeconds: response.data.expiresInSeconds || 2400,
         user: response.data.user || {
           email: values.email,
           name: values.email.split("@")[0],

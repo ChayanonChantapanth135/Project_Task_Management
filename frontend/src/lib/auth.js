@@ -35,7 +35,7 @@ export const getCurrentUser = async () => {
  * บันทึกข้อมูลการล็อกอินลงใน localStorage และแจ้งเตือนหน้าระบบว่าสถานะการเข้าสู่ระบบเปลี่ยนไป
  * @param {Object} params - ข้อมูล Token, ข้อมูลผู้ใช้งาน และวินาทีก่อนหมดอายุ
  */
-export const signIn = async ({ token, user, expiresInSeconds = 1200 }) => {
+export const signIn = async ({ token, user, expiresInSeconds = 2400 }) => {
     localStorage.setItem('userToken', token);
     localStorage.setItem('userData', JSON.stringify(user));
     localStorage.setItem('userTokenExpiresAt', String(Date.now() + expiresInSeconds * 1000));

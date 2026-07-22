@@ -58,7 +58,7 @@ export const useResetPasswordFirstTime = (t) => {
       const updatedUser = { ...currentUser, is_force_reset: 0 };
       const token = localStorage.getItem("userToken");
       const expiresAt = localStorage.getItem("userTokenExpiresAt");
-      const expiresInSeconds = expiresAt ? Math.round((Number(expiresAt) - Date.now()) / 1000) : 1200;
+      const expiresInSeconds = expiresAt ? Math.round((Number(expiresAt) - Date.now()) / 1000) : 2400;
 
       await signIn({
         token,
