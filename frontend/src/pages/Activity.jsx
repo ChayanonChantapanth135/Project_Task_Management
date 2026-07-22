@@ -5,9 +5,7 @@ import { useLanguage } from "../lib/LanguageContext";
 import axios from "axios";
 
 /**
- * คอมโพเนนต์หน้าบันทึกกิจกรรมย้อนหลัง (Activity Page Component)
- * - แสดงรายการบันทึกประวัติการทำรายการต่างๆ ของระบบ (Activity Logs) แบบแบ่งหน้า (Pagination)
- * - ค้นหาและกรองกิจกรรมตามประเภท (เกี่ยวกับระบบ, โปรเจกต์, ผู้ใช้งาน)
+ * คอมโพเนนต์หน้าบันทึกกิจกรรมย้อนหลัง (Activity Page Component) - Redesigned Dark Luxe Glassmorphism Theme
  */
 const Activity = () => {
   const { t } = useLanguage();
@@ -16,7 +14,7 @@ const Activity = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [actionFilter, setActionFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const entriesPerPage = 6;
+  const entriesPerPage = 10;
 
   /**
    * ดึงประวัติกิจกรรมการทำงานทั้งหมดจาก API หลังบ้าน
@@ -24,9 +22,7 @@ const Activity = () => {
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        "/auth/activity-logs",
-      );
+      const response = await axios.get("/auth/activity-logs");
       setLogs(response.data);
     } catch (error) {
       console.error("Error fetching logs:", error);
@@ -70,195 +66,163 @@ const Activity = () => {
   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
   const currentEntries = filteredLogs.slice(
     indexOfFirstEntry,
-    indexOfLastEntry,
+    indexOfLastEntry
   );
   const totalPages = Math.ceil(filteredLogs.length / entriesPerPage);
 
   return (
-    <div className="d-flex flex-column min-vh-100 bg-gray-100">
+    <div className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans selection:bg-teal-500 selection:text-white">
       <Header />
 
-      <main
-        className="flex-grow-1 container py-5"
-        style={{ maxWidth: "900px" }}
-      >
-        {/* Page Title */}
-        <div className="text-center mb-5">
-          <h1 className="h2 fw-bold text-dark mb-2">📋 {t("activityLogsTitle")}</h1>
-          <p className="text-muted mb-0">
-            {t("activityLogsSubtitle")}
-          </p>
+      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 animate-fade-in-up">
+        {/* Header Title Row */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-white flex items-center gap-3 tracking-tight">
+              <span>📋</span> {t("activityLogsTitle")}
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">{t("activityLogsSubtitle")}</p>
+          </div>
+          <button
+            className="px-5 py-2.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-2 transition-all"
+            onClick={fetchLogs}
+            title={t("refreshBtn")}
+          >
+            <span>⭮</span> {t("refreshBtn") || "รีเฟรชข้อมูล"}
+          </button>
         </div>
 
         {/* Filters and Search Toolbar */}
-        <div className="card shadow-sm border-0 rounded-lg overflow-hidden mb-4">
-          <div className="card-body bg-white p-3.5">
-            <div className="row g-3">
-              <div className="col-12 col-md-6">
-                <div className="input-group">
-                  <span className="input-group-text bg-light border-end-0">
-                    🔍
-                  </span>
-                  <input
-                    type="search"
-                    className="form-control bg-light border-start-0 ps-0 rounded-end-lg"
-                    placeholder={t("searchActivityPlaceholder")}
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                  />
-                </div>
-              </div>
-              <div className="col-12 col-md-6 d-flex gap-2">
-                <select
-                  className="form-select bg-light border-0 fw-medium rounded-lg"
-                  value={actionFilter}
-                  onChange={(e) => {
-                    setActionFilter(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                >
-                  <option value="all">{t("allActivities")}</option>
-                  <option value="project">{t("aboutProjects")}</option>
-                  <option value="user">{t("aboutUsers")}</option>
-                  <option value="system">{t("aboutSystem")}</option>
-                </select>
-                <button
-                  className="btn d-flex align-items-center gap-1.5 px-3 rounded-lg bg-dark text-white"
-                  onClick={fetchLogs}
-                  title={t("refreshBtn")}
-                >
-                  ⭮
-                </button>
-              </div>
+        <div className="glass-panel rounded-3xl p-5 mb-8 shadow-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2 relative">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none">
+                🔍
+              </span>
+              <input
+                type="search"
+                className="w-full bg-slate-800/60 hover:bg-slate-800/80 rounded-2xl py-3 pl-10 pr-4 text-white text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400"
+                placeholder={t("searchActivityPlaceholder")}
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+              />
+            </div>
+            <div>
+              <select
+                className="w-full bg-slate-800/60 hover:bg-slate-800/80 rounded-2xl py-3 px-4 text-white text-xs font-medium focus:outline-none border-0 transition-all cursor-pointer"
+                value={actionFilter}
+                onChange={(e) => {
+                  setActionFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="all" className="bg-slate-900">{t("allActivities")}</option>
+                <option value="project" className="bg-slate-900">{t("aboutProjects")}</option>
+                <option value="user" className="bg-slate-900">{t("aboutUsers")}</option>
+                <option value="system" className="bg-slate-900">{t("aboutSystem")}</option>
+              </select>
             </div>
           </div>
         </div>
 
         {/* Table View */}
-        <div className="card shadow-sm border-0 rounded-lg overflow-hidden">
+        <div className="glass-panel rounded-3xl p-6 shadow-2xl overflow-hidden">
           {loading ? (
-            <div className="text-center py-5">
-              <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">Loading...</span>
-              </div>
-              <p className="text-muted mt-2">{t("loadingActivities")}</p>
+            <div className="text-center py-16">
+              <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <p className="text-slate-400 text-xs mt-3">{t("loadingActivities")}</p>
             </div>
-          ) : currentEntries.length > 0 ? (
-            <div className="table-responsive">
-              <table className="table table-hover align-middle mb-0">
-                <thead className="table-light text-uppercase text-muted small">
-                  <tr>
-                    <th className="px-4 py-3" style={{ width: "160px" }}>
-                      {t("colAction")}
-                    </th>
-                    <th className="py-3">{t("colDetails")}</th>
-                    <th className="py-3" style={{ width: "160px" }}>
-                      {t("colUser")}
-                    </th>
-                    <th className="px-4 py-3" style={{ width: "220px" }}>
-                      {t("colTime")}
-                    </th>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-white/5 text-xs uppercase tracking-wider text-slate-400 font-bold">
+                    <th className="py-4 px-4">{t("colAction")}</th>
+                    <th className="py-4 px-4">{t("colDetails")}</th>
+                    <th className="py-4 px-4">{t("colUser")}</th>
+                    <th className="py-4 px-4 text-right">{t("colTime")}</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {currentEntries.map((log, index) => {
-                    // Badge styles
-                    const act = log.action.toLowerCase();
-                    let badgeClass = "bg-light text-dark";
-                    if (act.includes("create"))
-                      badgeClass = "bg-success-subtle text-success";
-                    else if (act.includes("edit") || act.includes("update"))
-                      badgeClass = "bg-warning-subtle text-warning";
-                    else if (act.includes("delete"))
-                      badgeClass = "bg-danger-subtle text-danger";
-                    else if (act.includes("login"))
-                      badgeClass = "bg-info-subtle text-info";
-                    else if (act.includes("logout"))
-                      badgeClass = "bg-secondary-subtle text-secondary";
+                <tbody className="divide-y divide-white/5 text-sm text-slate-200">
+                  {currentEntries.length > 0 ? (
+                    currentEntries.map((log, index) => {
+                      const act = log.action.toLowerCase();
+                      let badgeClass = "bg-slate-800 text-slate-300";
+                      if (act.includes("create"))
+                        badgeClass = "bg-emerald-500/20 text-emerald-300";
+                      else if (act.includes("edit") || act.includes("update"))
+                        badgeClass = "bg-amber-500/20 text-amber-300";
+                      else if (act.includes("delete"))
+                        badgeClass = "bg-rose-500/20 text-rose-300";
+                      else if (act.includes("login"))
+                        badgeClass = "bg-indigo-500/20 text-indigo-300";
+                      else if (act.includes("logout"))
+                        badgeClass = "bg-slate-700 text-slate-300";
 
-                    return (
-                      <tr key={index}>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`badge px-2.5 py-1.5 rounded text-xs fw-semibold ${badgeClass}`}
-                          >
-                            {t(log.action)}
-                          </span>
-                        </td>
-                        <td className="py-3 text-dark fw-medium">
-                          {log.details}
-                        </td>
-                        <td className="py-3 text-muted fw-semibold">
-                          👤 {log.username || t("systemAdmin")}
-                        </td>
-                        <td className="px-4 py-3 text-muted small">
-                          {new Date(log.created_at).toLocaleString()}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                      return (
+                        <tr key={index} className="hover:bg-white/5 transition-colors">
+                          <td className="py-4 px-4">
+                            <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${badgeClass}`}>
+                              {t(log.action)}
+                            </span>
+                          </td>
+                          <td className="py-4 px-4 text-white font-medium text-xs">
+                            {log.details}
+                          </td>
+                          <td className="py-4 px-4 text-slate-300 text-xs font-semibold">
+                            👤 {log.username || t("systemAdmin")}
+                          </td>
+                          <td className="py-4 px-4 text-right text-slate-400 text-xs">
+                            {new Date(log.created_at).toLocaleString()}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan="4" className="text-center py-12 text-slate-500">
+                        <div className="text-4xl mb-2">📂</div>
+                        <p className="text-sm font-semibold">{t("noActivitiesFound")}</p>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
-          ) : (
-            <div className="text-center py-5 text-muted bg-white">
-              <div className="fs-1 mb-2">📂</div>
-              <p className="mb-0 fw-medium">{t("noActivitiesFound")}</p>
+          )}
+
+          {/* Pagination Footer */}
+          {!loading && totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-white/5 text-xs text-slate-400">
+              <span>
+                {t("showingText") || "แสดง"} {indexOfFirstEntry + 1} - {Math.min(indexOfLastEntry, filteredLogs.length)} {t("ofText") || "จาก"} {filteredLogs.length} {t("entriesText") || "รายการ"}
+              </span>
+
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={currentPage === 1}
+                  className="px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 disabled:opacity-40 transition-colors"
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                >
+                  {t("prevText") || "ย้อนกลับ"}
+                </button>
+                <span className="px-3.5 py-1.5 font-bold text-white bg-indigo-600 rounded-full">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  disabled={currentPage === totalPages}
+                  className="px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 disabled:opacity-40 transition-colors"
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                >
+                  {t("nextText") || "ถัดไป"}
+                </button>
+              </div>
             </div>
           )}
         </div>
-
-        {/* Pagination Toolbar */}
-        {!loading && totalPages > 1 && (
-          <nav className="d-flex justify-content-center mt-5">
-            <ul className="pagination shadow-sm rounded-lg overflow-hidden">
-              <li
-                className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
-              >
-                <button
-                  className="page-link py-2 px-3.5 border-0 bg-white text-dark"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
-                >
-                  ย้อนกลับ
-                </button>
-              </li>
-              {[...Array(totalPages)].map((_, i) => (
-                <li
-                  key={i}
-                  className={`page-item ${currentPage === i + 1 ? "active" : ""}`}
-                >
-                  <button
-                    className={`page-link py-2 px-3.5 border-0 ${
-                      currentPage === i + 1
-                        ? "bg-primary text-white"
-                        : "bg-white text-dark"
-                    }`}
-                    onClick={() => setCurrentPage(i + 1)}
-                  >
-                    {i + 1}
-                  </button>
-                </li>
-              ))}
-              <li
-                className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}
-              >
-                <button
-                  className="page-link py-2 px-3.5 border-0 bg-white text-dark"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                  }
-                >
-                  ถัดไป
-                </button>
-              </li>
-            </ul>
-          </nav>
-        )}
       </main>
 
       <Footer />

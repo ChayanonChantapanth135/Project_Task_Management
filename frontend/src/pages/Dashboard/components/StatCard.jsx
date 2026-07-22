@@ -2,29 +2,32 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 /**
- * คอมโพเนนต์การ์ดสถิติ (StatCard Component)
- * - แสดงตัวเลขสถิติอย่างง่าย หัวข้อ และไอคอนประกอบ
- * - รองรับการใส่คำอธิบายเพิ่มเติม (subtitle) หรือ ลิงก์นำทางไปยังหน้ารายละเอียดหลัก
+ * คอมโพเนนต์การ์ดสถิติ (StatCard Component) - Redesigned Glassmorphic StatCard
  */
-const StatCard = ({ title, value, subtitle, link, path, bgColor, icon }) => {
+const StatCard = ({ title, value, subtitle, link, path, icon }) => {
   return (
-    <div className={`${bgColor} rounded-lg p-4 text-white shadow-lg hover:shadow-xl transition-shadow cursor-pointer`}>
+    <div className="glass-card rounded-2xl p-6 text-white relative overflow-hidden group">
+      <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-500/10 rounded-full filter blur-xl group-hover:bg-indigo-500/20 transition-all pointer-events-none"></div>
+      
       <div className="flex justify-between items-start">
         <div>
-          <p className="text-sm opacity-90">{title}</p>
-          <p className="text-4xl font-bold mt-1">{value}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">{title}</p>
+          <p className="text-4xl font-black gradient-text tracking-tight mt-1">{value}</p>
         </div>
-        <span className="text-3xl opacity-80">{icon}</span>
+        <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-2xl shadow-inner group-hover:scale-110 transition-transform">
+          {icon}
+        </div>
       </div>
-      <div className="mt-4 pt-3 border-t border-white/30">
+      
+      <div className="mt-5 pt-3 border-t border-white/5">
         {subtitle ? (
-          <p className="text-sm opacity-90">{subtitle}</p>
+          <p className="text-xs text-slate-400 font-medium">{subtitle}</p>
         ) : (
           <Link
             to={path}
-            className="text-sm opacity-90 hover:opacity-100 text-white text-decoration-none d-block"
+            className="text-xs text-indigo-400 hover:text-indigo-300 font-bold no-underline inline-flex items-center gap-1.5 transition-colors"
           >
-            {link}
+            <span>&rarr;</span> {typeof link === "string" ? link.replace(/^[←\->\s]+|[←\->\s]+$/g, "") : link}
           </Link>
         )}
       </div>

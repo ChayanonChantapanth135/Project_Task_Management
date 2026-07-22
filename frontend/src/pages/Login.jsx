@@ -1,41 +1,52 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { signIn } from "../lib/auth";
 import { useLanguage } from "../lib/LanguageContext";
 import LanguageSwitcher from "../components/LanguageSwitcher";
+import { motion } from "framer-motion";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 /**
- * คอมโพเนนต์หน้าล็อกอิน (Login Page Component)
- * - รับข้อมูล Email และ Password จากผู้ใช้
- * - ตรวจสอบความถูกต้องและส่งคำขอยืนยันตัวตนไปยังเซิร์ฟเวอร์
- * - จัดการบันทึกสถานะการล็อกอินและเปลี่ยนเส้นทางไปยังหน้า Dashboard
+ * คอมโพเนนต์หน้าล็อกอิน (Login Page Component) - Redesigned Ultra-Modern Glassmorphic Login
  */
 const Login = () => {
-  const { language, setLanguage, t } = useLanguage();
-  const [values, setValues] = React.useState({
-    email: "",
-    password: "",
-  });
+  const { language, t } = useLanguage();
+  const [values, setValues] = React.useState({ email: "", password: "" });
   const [message, setMessage] = React.useState("");
   const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
   const navigate = useNavigate();
 
-  /**
-   * ฟังก์ชันรับและอัปเดตข้อมูลการกรอกฟิลด์อินพุตในแบบฟอร์ม
-   */
+  const containerRef = useRef(null);
+  const orb1Ref = useRef(null);
+  const orb2Ref = useRef(null);
+
+  useGSAP(() => {
+    gsap.to(orb1Ref.current, {
+      x: 40,
+      y: -40,
+      duration: 6,
+      repeat: -1,
+      yoyo: true,
+      ease: "sine.inOut",
+    });
+    gsap.to(orb2Ref.current, {
+      x: -40,
+      y: 40,
+      duration: 8,
+      repeat: -1,
+      yoyo: true,
+      ease: "sine.inOut",
+    });
+  }, { scope: containerRef });
+
   const handleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
   };
 
-  /**
-   * ฟังก์ชันส่งแบบฟอร์มล็อกอิน (Submit handler)
-   * - ตรวจสอบความครบถ้วนของข้อมูล
-   * - ยิงคำขอ POST ไปหา /auth/login
-   * - บันทึกโทเค็นเข้าสู่ระบบ และนำทางผู้ใช้ไปยัง Dashboard
-   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
@@ -48,10 +59,7 @@ const Login = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post(
-        "/auth/login",
-        values,
-      );
+      const response = await axios.post("/auth/login", values);
       const token = response.data.token;
 
       if (!token) {
@@ -94,185 +102,66 @@ const Login = () => {
 
   return (
     <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background:
-          "linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%)",
-        padding: "1rem",
-        position: "relative",
-        fontFamily: "'Segoe UI', 'Inter', sans-serif",
-        overflow: "hidden",
-      }}
+      ref={containerRef}
+      className="min-h-screen flex items-center justify-center bg-[#153648] p-4 relative overflow-hidden font-sans selection:bg-teal-500 selection:text-white"
     >
-      {/* Background blobs */}
+      {/* Background Animated GSAP Glowing Orbs */}
       <div
-        style={{
-          position: "absolute",
-          top: "-10%",
-          left: "-10%",
-          width: "500px",
-          height: "500px",
-          background:
-            "radial-gradient(circle, rgba(255,193,7,0.15) 0%, transparent 70%)",
-          borderRadius: "50%",
-          filter: "blur(40px)",
-          pointerEvents: "none",
-        }}
+        ref={orb1Ref}
+        className="absolute -top-20 -left-20 w-[500px] h-[500px] bg-teal-500/25 rounded-full filter blur-[120px] pointer-events-none"
       />
       <div
-        style={{
-          position: "absolute",
-          bottom: "-10%",
-          right: "-10%",
-          width: "400px",
-          height: "400px",
-          background:
-            "radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%)",
-          borderRadius: "50%",
-          filter: "blur(40px)",
-          pointerEvents: "none",
-        }}
+        ref={orb2Ref}
+        className="absolute -bottom-20 -right-20 w-[500px] h-[500px] bg-cyan-500/20 rounded-full filter blur-[120px] pointer-events-none"
       />
 
-      {/* Language Switcher */}
-      <div
-        style={{
-          position: "absolute",
-          top: "1.5rem",
-          right: "1.5rem",
-          zIndex: 10,
-        }}
-      >
+      {/* Language Switcher Positioned Top-Right */}
+      <div className="absolute top-6 right-6 z-20">
         <LanguageSwitcher variant="dark" />
       </div>
 
-      {/* Card */}
-      <div
-        style={{
-          background: "rgba(255,255,255,0.05)",
-          backdropFilter: "blur(24px)",
-          WebkitBackdropFilter: "blur(24px)",
-          borderRadius: "2rem",
-          border: "1px solid rgba(255,255,255,0.12)",
-          boxShadow:
-            "0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05) inset",
-          padding: "2.5rem",
-          width: "100%",
-          maxWidth: "420px",
-          position: "relative",
-          zIndex: 1,
-        }}
+      {/* Main Glassmorphic Login Card */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.92, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 120, damping: 18 }}
+        className="glass-panel w-full max-w-md p-8 md:p-10 rounded-3xl z-10 shadow-2xl relative"
       >
-        {/* Logo / Icon */}
-        <div
-          style={{
-            width: "64px",
-            height: "64px",
-            borderRadius: "1.25rem",
-            background: "linear-gradient(135deg, #f59e0b, #fbbf24)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            margin: "0 auto 1.5rem auto",
-            boxShadow: "0 8px 24px rgba(251,191,36,0.4)",
-            fontSize: "1.75rem",
-          }}
-        >
-          🔐
+        {/* Icon Header */}
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-teal-500 to-cyan-500 p-0.5 mx-auto mb-6 shadow-lg shadow-teal-500/30">
+          <div className="w-full h-full bg-[#153648] rounded-[14px] flex items-center justify-center text-2xl">
+            🔐
+          </div>
         </div>
 
         {/* Title */}
-        <h1
-          style={{
-            textAlign: "center",
-            fontSize: "1.75rem",
-            fontWeight: "800",
-            color: "#ffffff",
-            marginBottom: "0.25rem",
-            letterSpacing: "-0.02em",
-          }}
-        >
+        <h1 className="text-2xl md:text-3xl font-black text-center text-white mb-2 tracking-tight">
           {t("loginTitle")}
         </h1>
-        <p
-          style={{
-            textAlign: "center",
-            color: "rgba(255,255,255,0.45)",
-            fontSize: "0.875rem",
-            marginBottom: "2rem",
-          }}
-        >
-          {language === "th" ? "ยินดีต้อนรับ" : "Welcome"}
+        <p className="text-center text-slate-400 text-sm mb-8 font-normal">
+          {language === "th" ? "ยินดีต้อนรับสู่ระบบบริหารงาน" : "Welcome back to the portal"}
         </p>
 
-        {/* Messages */}
+        {/* Feedback Messages */}
         {message && (
-          <div
-            style={{
-              marginBottom: "1rem",
-              padding: "0.75rem 1rem",
-              background: "rgba(16,185,129,0.15)",
-              border: "1px solid rgba(16,185,129,0.4)",
-              borderRadius: "0.875rem",
-              color: "#6ee7b7",
-              fontSize: "0.875rem",
-            }}
-          >
+          <div className="mb-5 p-3.5 rounded-xl bg-emerald-500/15 text-emerald-300 text-xs font-semibold flex items-center gap-2">
             ✅ {message}
           </div>
         )}
         {error && (
-          <div
-            style={{
-              marginBottom: "1rem",
-              padding: "0.75rem 1rem",
-              background: "rgba(239,68,68,0.15)",
-              border: "1px solid rgba(239,68,68,0.4)",
-              borderRadius: "0.875rem",
-              color: "#fca5a5",
-              fontSize: "0.875rem",
-            }}
-          >
+          <div className="mb-5 p-3.5 rounded-xl bg-rose-500/15 text-rose-300 text-xs font-semibold flex items-center gap-2">
             ⚠️ {error}
           </div>
         )}
 
         {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
-        >
-          {/* Email */}
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label
-              htmlFor="email"
-              style={{
-                display: "block",
-                marginBottom: "0.5rem",
-                fontSize: "0.8rem",
-                fontWeight: "600",
-                color: "rgba(255,255,255,0.65)",
-                letterSpacing: "0.04em",
-                textTransform: "uppercase",
-              }}
-            >
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
               {t("emailLabel")}
             </label>
-            <div style={{ position: "relative" }}>
-              <span
-                style={{
-                  position: "absolute",
-                  left: "1rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "rgba(255,255,255,0.35)",
-                  fontSize: "1rem",
-                  pointerEvents: "none",
-                }}
-              >
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none">
                 📩
               </span>
               <input
@@ -283,58 +172,17 @@ const Login = () => {
                 value={values.email}
                 onChange={handleChange}
                 required
-                style={{
-                  width: "100%",
-                  boxSizing: "border-box",
-                  padding: "0.75rem 1rem 0.75rem 2.75rem",
-                  borderRadius: "0.875rem",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  background: "rgba(255,255,255,0.07)",
-                  color: "#fff",
-                  fontSize: "0.95rem",
-                  outline: "none",
-                  transition: "border-color 0.2s, box-shadow 0.2s",
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = "rgba(251,191,36,0.6)";
-                  e.target.style.boxShadow = "0 0 0 3px rgba(251,191,36,0.15)";
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = "rgba(255,255,255,0.12)";
-                  e.target.style.boxShadow = "none";
-                }}
+                className="w-full bg-slate-900/60 rounded-2xl py-3 pl-11 pr-4 text-white text-sm focus:outline-none transition-all placeholder:text-slate-500"
               />
             </div>
           </div>
 
-          {/* Password */}
           <div>
-            <label
-              htmlFor="password"
-              style={{
-                display: "block",
-                marginBottom: "0.5rem",
-                fontSize: "0.8rem",
-                fontWeight: "600",
-                color: "rgba(255,255,255,0.65)",
-                letterSpacing: "0.04em",
-                textTransform: "uppercase",
-              }}
-            >
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
               {t("passwordLabel")}
             </label>
-            <div style={{ position: "relative" }}>
-              <span
-                style={{
-                  position: "absolute",
-                  left: "1rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "rgba(255,255,255,0.35)",
-                  fontSize: "1rem",
-                  pointerEvents: "none",
-                }}
-              >
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none">
                 🔑
               </span>
               <input
@@ -345,80 +193,22 @@ const Login = () => {
                 value={values.password}
                 onChange={handleChange}
                 required
-                style={{
-                  width: "100%",
-                  boxSizing: "border-box",
-                  padding: "0.75rem 3rem 0.75rem 2.75rem",
-                  borderRadius: "0.875rem",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  background: "rgba(255,255,255,0.07)",
-                  color: "#fff",
-                  fontSize: "0.95rem",
-                  outline: "none",
-                  transition: "border-color 0.2s, box-shadow 0.2s",
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = "rgba(251,191,36,0.6)";
-                  e.target.style.boxShadow = "0 0 0 3px rgba(251,191,36,0.15)";
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = "rgba(255,255,255,0.12)";
-                  e.target.style.boxShadow = "none";
-                }}
+                className="w-full bg-slate-900/60 rounded-2xl py-3 pl-11 pr-11 text-white text-sm focus:outline-none transition-all placeholder:text-slate-500"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: "absolute",
-                  right: "1rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "rgba(255,255,255,0.4)",
-                  fontSize: "0.9rem",
-                  padding: "0",
-                  lineHeight: "1",
-                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors text-sm"
               >
                 {showPassword ? "🙈" : "👁️"}
               </button>
             </div>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            style={{
-              width: "100%",
-              padding: "0.85rem",
-              borderRadius: "0.875rem",
-              border: "none",
-              background: loading
-                ? "rgba(251,191,36,0.5)"
-                : "linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)",
-              color: "#1a1a2e",
-              fontSize: "1rem",
-              fontWeight: "700",
-              cursor: loading ? "not-allowed" : "pointer",
-              transition: "all 0.2s ease",
-              boxShadow: loading ? "none" : "0 8px 24px rgba(251,191,36,0.35)",
-              letterSpacing: "0.02em",
-              marginTop: "0.25rem",
-            }}
-            onMouseOver={(e) => {
-              if (!loading) {
-                e.target.style.transform = "translateY(-1px)";
-                e.target.style.boxShadow = "0 12px 32px rgba(251,191,36,0.5)";
-              }
-            }}
-            onMouseOut={(e) => {
-              e.target.style.transform = "translateY(0)";
-              e.target.style.boxShadow = "0 8px 24px rgba(251,191,36,0.35)";
-            }}
+            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold text-base glow-button transition-all disabled:opacity-50 mt-2"
           >
             {loading
               ? language === "th"
@@ -427,25 +217,16 @@ const Login = () => {
               : t("loginTitle")}
           </button>
 
-          <div style={{ textAlign: "center", marginTop: "1.25rem" }}>
+          <div className="text-center pt-3">
             <Link
               to="/ResetPassword"
-              style={{
-                color: "rgba(255,255,255,0.5)",
-                fontSize: "0.875rem",
-                textDecoration: "none",
-                transition: "color 0.2s",
-              }}
-              onMouseOver={(e) => (e.target.style.color = "#fbbf24")}
-              onMouseOut={(e) =>
-                (e.target.style.color = "rgba(255,255,255,0.5)")
-              }
+              className="text-xs text-slate-400 hover:text-indigo-400 transition-colors no-underline font-medium"
             >
               {t("forgotPasswordLink")}
             </Link>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 };

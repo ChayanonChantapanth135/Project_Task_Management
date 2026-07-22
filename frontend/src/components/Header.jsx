@@ -1,38 +1,28 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Dropdown } from "react-bootstrap";
 import logoB from "../assets/LogoW.png";
 import { signOut, getCurrentUser } from "../lib/auth";
 import { useLanguage } from "../lib/LanguageContext";
 import axios from "axios";
 import LanguageSwitcher from "./LanguageSwitcher";
-// นำเข้า API_URL สำหรับแปลงลิงก์รูปประจำตัวของผู้ใช้งานแถบเมนูบนสุดแบบไดนามิก
 import { API_URL } from "../config";
 
 /**
- * คอมโพเนนต์แถบเมนูด้านบน (Header / Navigation Bar Component)
- * - แสดงโลโก้ของระบบ
- * - แสดงลิงก์นำทางไปยังเมนูต่างๆ (Dashboard, Manage Users, Projects, Tasks, Reports)
- * - จัดการโหลดข้อมูลโปรไฟล์และรูปภาพอัปเดตล่าสุดของผู้ใช้ผ่าน API
- * - ให้ผู้ใช้งานล็อกเอาต์และสลับภาษาได้ผ่านวิดเจ็ต
+ * คอมโพเนนต์แถบเมนูด้านบน (Header / Navigation Bar Component) - Redesigned Glassmorphic Floating Header
  */
 const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { language, setLanguage, t } = useLanguage();
+  const { t } = useLanguage();
 
   useEffect(() => {
-    /**
-     * ฟังก์ชันตรวจสอบสถานะล็อกอินของผู้ใช้งาน
-     * - เรียก getCurrentUser() เพื่อนำข้อมูลจาก localStorage มาตรวจสอบความถูกต้องและเช็กหมดอายุ
-     * - ยิง API ไปยังหลังบ้านเพื่อดึงข้อมูลอัปเดตล่าสุด (รูปภาพโปรไฟล์ล่าสุด)
-     */
     const checkUser = async () => {
       try {
         const currentUser = await getCurrentUser();
         if (currentUser) {
-          // Fetch fresh user data (including latest avatar) from DB
           try {
             const res = await axios.get(`/auth/users/${currentUser.id}`);
             setUser({
@@ -54,7 +44,6 @@ const Header = () => {
       }
     };
     checkUser();
-    // รับฟังเหตุการณ์เมื่อมีการเปลี่ยนแปลงข้อมูลล็อกอิน (เช่น เข้าสู่ระบบหรือออกจากระบบที่หน้าต่างอื่น)
     window.addEventListener("authChanged", checkUser);
     window.addEventListener("storage", checkUser);
     return () => {
@@ -63,11 +52,6 @@ const Header = () => {
     };
   }, []);
 
-  /**
-   * ฟังก์ชันจัดการออกจากระบบ (Sign Out)
-   * - เรียก signOut() เพื่อล้าง Token และแจ้งเตือนเซิร์ฟเวอร์
-   * - รีเซ็ต state ผู้ใช้งาน และนำทางไปยังหน้า Home
-   */
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -80,82 +64,100 @@ const Header = () => {
 
   const isLoggedIn = user !== null;
 
+  const isActive = (path) => location.pathname.toLowerCase() === path.toLowerCase();
+
   return (
-    <header className="p-3 mb-3 border-bottom bg-dark">
-      <div className="container">
-        {/* ✅ เปลี่ยนเป็น justify-content-between */}
-        <div className="d-flex flex-wrap align-items-center justify-content-between">
-          {/* Logo */}
-          <Link
-            to="/Home"
-            className="d-flex align-items-center text-white mb-2 mb-lg-0 text-decoration-none"
-          >
-            <img
-              src={logoB}
-              alt="Logo"
-              className="me-2"
-              width="40"
-              height="32"
-              style={{
-                mixBlendMode: "screen",
-                filter: "invert(1)",
-              }}
-            />
-          </Link>
+    <header className="sticky top-0 z-50 px-4 py-3 bg-[#153648]/90 backdrop-blur-2xl shadow-xl shadow-black/20 transition-all">
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
+        {/* Logo */}
+        <Link to="/Home" className="flex items-center gap-3 no-underline group">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 to-cyan-500 p-0.5 shadow-lg shadow-teal-500/20 group-hover:scale-105 transition-transform">
+            <div className="w-full h-full bg-[#153648] rounded-[10px] flex items-center justify-center">
+              <img
+                src={logoB}
+                alt="Logo"
+                className="w-6 h-6 filter invert mix-blend-screen"
+              />
+            </div>
+          </div>
+          <span className="text-lg font-black tracking-wider text-white">
+            RNM <span className="gradient-text">TASK</span>
+          </span>
+        </Link>
 
-          {/* Navigation Links - แสดงเฉพาะเมื่อ login */}
-          {isLoggedIn && (
-            <ul className="nav col-12 col-lg-auto mb-2 justify-content-center mb-md-0">
-              <li>
-                <Link to="/Dashboard" className="nav-link px-2 text-white">
-                  {t("dashboard")}
-                </Link>
-              </li>
-              {user?.role === "admin" && (
-                <li>
-                  <Link to="/ManageUsers" className="nav-link px-2 text-white">
-                    {t("manageUsers")}
-                  </Link>
-                </li>
-              )}
-              <li>
-                <Link to="/Projects" className="nav-link px-2 text-white">
-                  {t("projects")}
-                </Link>
-              </li>
-              <li>
-                <Link to="/AllTasks" className="nav-link px-2 text-white">
-                  {t("allTasks")}
-                </Link>
-              </li>
-              <li>
-                <Link to="/Reports" className="nav-link px-2 text-white">
-                  {t("reports")}
-                </Link>
-              </li>
-            </ul>
-          )}
+        {/* Navigation Links */}
+        {isLoggedIn && (
+          <nav className="hidden md:flex items-center gap-1 bg-slate-800/80 p-1.5 rounded-2xl backdrop-blur-md">
+            <Link
+              to="/Dashboard"
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all no-underline ${
+                isActive("/dashboard")
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/25"
+                  : "text-slate-300 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              {t("dashboard")}
+            </Link>
+            {user?.role === "admin" && (
+              <Link
+                to="/ManageUsers"
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all no-underline ${
+                  isActive("/manageusers")
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/25"
+                    : "text-slate-300 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                {t("manageUsers")}
+              </Link>
+            )}
+            <Link
+              to="/Projects"
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all no-underline ${
+                isActive("/projects")
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/25"
+                  : "text-slate-300 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              {t("projects")}
+            </Link>
+            <Link
+              to="/AllTasks"
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all no-underline ${
+                isActive("/alltasks")
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/25"
+                  : "text-slate-300 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              {t("allTasks")}
+            </Link>
+            <Link
+              to="/Reports"
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all no-underline ${
+                isActive("/reports")
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/25"
+                  : "text-slate-300 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              {t("reports")}
+            </Link>
+          </nav>
+        )}
 
-          {/* ✅ Language Switcher & Profile/Login - ชิดขวาเสมอ */}
-          <div className="ms-auto d-flex align-items-center gap-3">
-            {/* Language Toggle Buttons */}
-            <LanguageSwitcher variant="dark" />
+        {/* Right Section */}
+        <div className="flex items-center gap-4">
+          <LanguageSwitcher variant="dark" />
 
-            <div>
-              {loading ? (
-                <div
-                  className="spinner-border spinner-border-sm text-light"
-                  role="status"
+          <div>
+            {loading ? (
+              <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin"></div>
+            ) : isLoggedIn ? (
+              <Dropdown align="end">
+                <Dropdown.Toggle
+                  variant="link"
+                  className="p-0 border-0 flex items-center no-underline focus:ring-0 after:hidden shadow-none"
+                  id="dropdown-profile"
                 >
-                  <span className="visually-hidden">{t("loading")}</span>
-                </div>
-              ) : isLoggedIn ? (
-                <Dropdown align="end">
-                  <Dropdown.Toggle
-                    variant="link"
-                    className="p-0 border-0 d-flex align-items-center text-warning"
-                    id="dropdown-profile"
-                  >
+                  <div className="p-0.5 rounded-full bg-gradient-to-r from-indigo-500 to-pink-500 hover:scale-105 transition-transform">
                     {user?.avatar ? (
                       <img
                         src={
@@ -164,77 +166,57 @@ const Header = () => {
                             : `${API_URL}${user.avatar}`
                         }
                         alt="Profile"
-                        style={{
-                          width: "32px",
-                          height: "32px",
-                          borderRadius: "50%",
-                          objectFit: "cover",
-                          display: "block",
-                          flexShrink: 0,
-                        }}
+                        className="w-9 h-9 rounded-full object-cover border-2 border-[#153648]"
                       />
                     ) : (
-                      <div
-                        className="rounded-circle d-flex align-items-center justify-content-center text-white"
-                        style={{
-                          width: 32,
-                          height: 32,
-                          backgroundColor: "#f59e0b",
-                          fontSize: "0.8rem",
-                          fontWeight: "bold",
-                        }}
-                      >
+                      <div className="w-9 h-9 rounded-full bg-slate-800 border-2 border-[#153648] flex items-center justify-center text-teal-400 font-bold text-sm">
                         {user?.name?.[0]?.toUpperCase() || "U"}
                       </div>
                     )}
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu>
-                    <Dropdown.Header>
-                      <strong>{user?.name || "User"}</strong>
-                      <br />
-                      <small className="text-muted">{user?.email}</small>
-                      {user?.role && (
-                        <div
-                          style={{
-                            fontSize: "0.8rem",
-                            color: "#f59e0b",
-                            fontWeight: "600",
-                            marginTop: "2px",
-                            marginBottom: "2px",
-                          }}
-                        >
-                          {{
-                            admin: "Admin",
-                            manager: "Project Manager",
-                            team_leader: "Team Leader",
-                            video_editor: "Video Editor",
-                            translator: "Translator",
-                            user: "User",
-                          }[user.role.toLowerCase()] || user.role}
-                        </div>
-                      )}
-                    </Dropdown.Header>
-                    <Dropdown.Divider />
-                    <Dropdown.Item as={Link} to="/Profile">
-                      {t("profile")}
-                    </Dropdown.Item>
-                    <Dropdown.Item as={Link} to="/MyTasks">
-                      {t("myTask")}
-                    </Dropdown.Item>
-                    <Dropdown.Divider />
-                    <Dropdown.Item as="button" onClick={handleSignOut}>
-                      {t("signOut")}
-                    </Dropdown.Item>
-                  </Dropdown.Menu>
-                </Dropdown>
-              ) : (
-                <Link to="/login">
-                  <button type="button" className="btn btn-outline-light">
-                    {t("login")}
-                  </button>
-                </Link>
-              )}
-            </div>
+                  </div>
+                </Dropdown.Toggle>
+                <Dropdown.Menu className="bg-[#0f172a] shadow-2xl p-2 text-slate-200 mt-2 min-w-[200px] border-0">
+                  <Dropdown.Header className="px-3 py-2 bg-transparent">
+                    <strong className="text-white text-base block">{user?.name || "User"}</strong>
+                    <small className="text-slate-400 text-xs block truncate">{user?.email}</small>
+                    {user?.role && (
+                      <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-semibold">
+                        {user.role}
+                      </span>
+                    )}
+                  </Dropdown.Header>
+                  <Dropdown.Divider className="my-1 border-white/5" />
+                  <Dropdown.Item
+                    as={Link}
+                    to="/Profile"
+                    className="rounded-full px-3 py-2 text-slate-300 hover:text-white hover:bg-indigo-600/30 font-medium transition-colors bg-transparent"
+                  >
+                    👤 {t("profile")}
+                  </Dropdown.Item>
+                  <Dropdown.Item
+                    as={Link}
+                    to="/MyTasks"
+                    className="rounded-full px-3 py-2 text-slate-300 hover:text-white hover:bg-indigo-600/30 font-medium transition-colors bg-transparent"
+                  >
+                    📋 {t("myTask")}
+                  </Dropdown.Item>
+                  <Dropdown.Divider className="my-1 border-white/5" />
+                  <Dropdown.Item
+                    as="button"
+                    onClick={handleSignOut}
+                    className="rounded-full px-3 py-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 font-medium transition-colors w-full text-left bg-transparent"
+                  >
+                    🚪 {t("signOut")}
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            ) : (
+              <Link to="/login" className="no-underline">
+                <button type="button" className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-sm glow-button transition-all">
+                  {t("login")}
+                </button>
+              </Link>
+            )}
           </div>
         </div>
       </div>

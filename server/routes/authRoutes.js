@@ -231,6 +231,16 @@ router.post('/refresh', async (req, res) => {
     }
 })
 
+// Helper to format phone number (convert leading 0 to +66)
+function formatPhoneNumber(phone) {
+    if (!phone) return null;
+    let cleaned = String(phone).trim().replace(/[\s-]/g, '');
+    if (cleaned.startsWith('0')) {
+        return '+66' + cleaned.slice(1);
+    }
+    return cleaned;
+}
+
 /**
  * GET /users
  * - ดึงข้อมูลผู้ใช้งานทั้งหมดในระบบ (ยกเว้นรหัสผ่าน)
@@ -239,7 +249,7 @@ router.post('/refresh', async (req, res) => {
 router.get('/users', async (req, res) => {
     try {
         const db = await connectToDatabase();
-        const [rows] = await db.query('SELECT id, username, email, role, avatar, status, created_at FROM users');
+        const [rows] = await db.query('SELECT id, username, email, phone, role, avatar, status, created_at FROM users');
         res.status(200).json(rows);
     } catch (error) {
         console.error('Error fetching users:', error.message);
@@ -255,7 +265,7 @@ router.get('/users/:id', async (req, res) => {
     const { id } = req.params;
     try {
         const db = await connectToDatabase();
-        const [rows] = await db.query('SELECT id, username, email, role, avatar, status, created_at FROM users WHERE id = ?', [id]);
+        const [rows] = await db.query('SELECT id, username, email, phone, role, avatar, status, created_at FROM users WHERE id = ?', [id]);
         if (rows.length === 0) return res.status(404).json({ message: 'User not found' });
         res.status(200).json(rows[0]);
     } catch (error) {
@@ -272,7 +282,7 @@ router.get('/users/:id', async (req, res) => {
  * - แปลงบทบาท (Role) จากหน้าบ้าน (เช่น Admin, Project Manager) ให้เป็นค่าระดับฐานข้อมูล (เช่น admin, manager)
  */
 router.post('/users', upload.single('avatar'), async (req, res) => {
-    const { username, email, password, role, status } = req.body;
+    const { username, email, password, phone, role, status } = req.body;
     try {
         const db = await connectToDatabase();
         const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
@@ -281,6 +291,7 @@ router.post('/users', upload.single('avatar'), async (req, res) => {
         }
 
         const hashPassword = await bcrypt.hash(password, 10);
+        const formattedPhone = formatPhoneNumber(phone);
         
         let sqlRole = 'user';
         const normRole = (role || '').trim().toLowerCase();
@@ -298,8 +309,8 @@ router.post('/users', upload.single('avatar'), async (req, res) => {
         }
 
         const [result] = await db.query(
-            'INSERT INTO users (username, email, password, role, status, avatar) VALUES (?, ?, ?, ?, ?, ?)',
-            [username, email, hashPassword, sqlRole, sqlStatus, avatarUrl]
+            'INSERT INTO users (username, email, password, phone, role, status, avatar) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [username, email, hashPassword, formattedPhone, sqlRole, sqlStatus, avatarUrl]
         );
 
         // 4. ส่งรหัสผ่านชั่วคราวให้ผู้ใช้ทางอีเมลผ่าน nodemailer
@@ -345,6 +356,9 @@ router.post('/users', upload.single('avatar'), async (req, res) => {
             console.warn('[Warning] EMAIL_PASS is not configured in .env. Skipping welcome email delivery.');
         }
 
+        const { creatorId } = req.body;
+        await logActivity(db, creatorId ? Number(creatorId) : null, 'Create User', `Created user: ${username} (${email})`);
+
         res.status(201).json({ message: 'User created successfully', id: result.insertId });
     } catch (error) {
         console.error('Error creating user:', error.message);
@@ -359,12 +373,17 @@ router.post('/users', upload.single('avatar'), async (req, res) => {
  */
 router.put('/users/:id', upload.single('avatar'), async (req, res) => {
     const { id } = req.params;
-    const { username, email, password, role, status } = req.body;
+    const { username, email, password, phone, role, status, creatorId } = req.body;
     try {
         const db = await connectToDatabase();
         
-        let query = 'UPDATE users SET username = ?, email = ?, role = ?, status = ?';
-        let params = [username, email, role, status || 'active'];
+        const [oldUserRows] = await db.query('SELECT status FROM users WHERE id = ?', [id]);
+        const oldStatus = oldUserRows[0]?.status;
+
+        const formattedPhone = formatPhoneNumber(phone);
+
+        let query = 'UPDATE users SET username = ?, email = ?, phone = ?, role = ?, status = ?';
+        let params = [username, email, formattedPhone, role, status || 'active'];
         
         let sqlRole = 'user';
         const normRole = (role || '').trim().toLowerCase();
@@ -374,7 +393,7 @@ router.put('/users/:id', upload.single('avatar'), async (req, res) => {
         else if (normRole === 'video editor' || normRole === 'video_editor') sqlRole = 'video_editor';
         else if (normRole === 'translator') sqlRole = 'translator';
         
-        params[2] = sqlRole;
+        params[3] = sqlRole;
 
         if (password) {
             const hashPassword = await bcrypt.hash(password, 10);
@@ -397,6 +416,18 @@ router.put('/users/:id', upload.single('avatar'), async (req, res) => {
         params.push(id);
 
         await db.query(query, params);
+        const targetStatus = status || 'active';
+        if (targetStatus !== oldStatus) {
+            if (targetStatus === 'suspended') {
+                await logActivity(db, creatorId ? Number(creatorId) : null, 'Suspend User', `Suspended user: ${username} (${email})`);
+            } else if (targetStatus === 'active') {
+                await logActivity(db, creatorId ? Number(creatorId) : null, 'Activate User', `Activated user: ${username} (${email})`);
+            } else {
+                await logActivity(db, creatorId ? Number(creatorId) : null, 'Edit User', `Edited user ID: ${id} (${username})`);
+            }
+        } else {
+            await logActivity(db, creatorId ? Number(creatorId) : null, 'Edit User', `Edited user ID: ${id} (${username})`);
+        }
         res.status(200).json({ message: 'User updated successfully' });
     } catch (error) {
         console.error('Error updating user:', error.message);
@@ -410,14 +441,20 @@ router.put('/users/:id', upload.single('avatar'), async (req, res) => {
  */
 router.delete('/users/:id', async (req, res) => {
     const { id } = req.params;
+    const { creatorId } = req.query;
     try {
         const db = await connectToDatabase();
         // ดึงข้อมูลรูปโปรไฟล์และลบออกจากโฟลเดอร์เซิร์ฟเวอร์ก่อนที่จะทำการลบแถวข้อมูลผู้ใช้งานในฐานข้อมูล
-        const [userRows] = await db.query('SELECT avatar FROM users WHERE id = ?', [id]);
-        if (userRows.length > 0 && userRows[0].avatar) {
-            deleteOldAvatar(userRows[0].avatar);
+        const [userRows] = await db.query('SELECT username, email, avatar FROM users WHERE id = ?', [id]);
+        if (userRows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        const { username, email, avatar } = userRows[0];
+        if (avatar) {
+            deleteOldAvatar(avatar);
         }
         await db.query('DELETE FROM users WHERE id = ?', [id]);
+        await logActivity(db, creatorId ? Number(creatorId) : null, 'Delete User', `Deleted user: ${username} (${email})`);
         res.status(200).json({ message: 'User deleted successfully' });
     } catch (error) {
         console.error('Error deleting user:', error.message);

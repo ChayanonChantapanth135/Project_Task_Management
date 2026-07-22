@@ -62,9 +62,11 @@ const translations = {
     viewAll: "View All",
 
     // Dashboard Cards
-    "-> Manage-Users": "→ Manage Users",
-    "-> Projects": "→ Projects",
-    "-> Reports": "→ Reports",
+    manageUsersBtn: "Manage Users",
+    projectsTitle: "Projects",
+    reportsTitle: "Reports",
+    "Project Calendar Title": "Project Calendar",
+    projectCalendarDesc: "Track project deadlines and statuses systematically",
 
     // ManageUsers Page
     manageUsersTitle: "Manage Users",
@@ -159,13 +161,14 @@ const translations = {
     modalSaveProject: "Save Changes",
     projectDetailsTitle: "Project Details",
     projectDetailsName: "Project Name",
-    projectDetailsDueDate: "Due Date (End Date)",
-    projectDetailsLeader: "Responsible Team Leader",
+    projectDetailsDueDate: "Due Date",
+    projectDetailsLeader: "Team Leader",
     projectDetailsProgress: "Overall Progress",
     projectDetailsTaskList: "Project Tasks List",
     projectDetailsNoTasks: "No tasks in this project",
     projectDetailsClose: "Close Window",
     projectDetailsEdit: "Edit This Project",
+    "Add Task": "Add Task",
 
     // Projects Page
     projectManagementTitle: "Project Management",
@@ -205,6 +208,8 @@ const translations = {
       "Your login session is about to expire in {seconds} seconds. Would you like to continue using the web or exit?",
     sessionTimeoutStayBtn: "Stay / Use Web",
     sessionTimeoutExitBtn: "Exit / Logout",
+    CreateTask: "Create Task",
+    "Create Task": "Create Task",
 
     // Activity Page
     activityLogsTitle: "System Activity Logs",
@@ -238,6 +243,11 @@ const translations = {
     "Reset Password": "Reset Password",
     "Reset Password First Time": "Reset Password First Time",
     "Import Users": "Imported Users",
+    "Create User": "Created User",
+    "Edit User": "Edited User Details",
+    "Delete User": "Deleted User",
+    "Suspend User": "Suspended User",
+    "Activate User": "Activated User",
     taskDetailsTitle: "Task Details",
     taskProjectLabel: "Project",
     taskNameLabel: "Task Name",
@@ -253,6 +263,39 @@ const translations = {
     taskStatusInProgress: "In Progress",
     taskStatusReviewing: "Reviewing",
     taskStatusCompleted: "Completed",
+    colDetails: "Details",
+    colAction: "Action",
+    colTime: "Date/Time",
+    landingBadge:
+      "🚀 Next-generation project and task management platform for teams",
+    landingHeroTitle: "Manage projects and tasks in your team",
+    landingHeroTitleAccent: "Easily, systematically, all-in-one place",
+    landingHeroDesc:
+      "Help your team work together smoothly, track deadlines via calendar, update task statuses in real-time, and systematically record activity logs.",
+    goToDashboard: "Go to Dashboard 📊",
+    getStartedBtn: "Get Started Free ✨",
+    learnMoreBtn: "Learn More",
+    statProductivity: "Increase productivity",
+    statAlignment: "100% Team alignment",
+    statMissedDeadlines: "Reduce missed deadlines",
+    landingFeaturesTitle: "Key features to make your work seamless",
+    landingFeaturesDesc:
+      "Our system is carefully designed to answer every step of project and task management.",
+    featureProjTitle: "Manage Projects",
+    featureProjDesc:
+      "Create main projects, assign Team Leaders, and track overall progress automatically.",
+    featureTaskTitle: "Track Tasks",
+    featureTaskDesc:
+      "Control task status in detail: Pending, In Progress, Reviewing, or Completed.",
+    featureCalTitle: "Project Calendar",
+    featureCalDesc:
+      "View due dates of all projects on an interactive calendar to prevent missing deadlines.",
+    featureTeamTitle: "Activity Logs",
+    featureTeamDesc:
+      "Track chronological actions of everyone in the system transparently, knowing every update.",
+    landingCtaTitle: "Ready to elevate your team's workflow?",
+    landingCtaDesc:
+      "Start organizing your projects systematically today, for free!",
   },
 
   th: {
@@ -314,9 +357,16 @@ const translations = {
     viewAll: "ดูทั้งหมด",
 
     // Dashboard Cards
-    "-> Manage-Users": "→ จัดการผู้ใช้งาน",
-    "-> Projects": "→ โปรเจกต์",
-    "-> Reports": "→ รายงาน",
+    manageUsersBtn: "จัดการผู้ใช้งาน",
+    projectsTitle: "โปรเจกต์",
+    reportsTitle: "รายงาน",
+    "Project Calendar Title": "ปฏิทินกำหนดส่งงานโปรเจกต์",
+    "Create New Project": "สร้างโปรเจกต์ใหม่",
+    "Edit Project": "แก้ไขโปรเจกต์",
+    "Create Task": "สร้างงานใหม่",
+    "Edit Task": "แก้ไขงาน",
+    projectCalendarDesc:
+      "ติดตามกำหนดส่งงานและสถานะของแต่ละโครงการอย่างเป็นระบบ",
 
     // ManageUsers Page
     manageUsersTitle: "จัดการผู้ใช้งาน",
@@ -411,13 +461,14 @@ const translations = {
     modalSaveProject: "บันทึกการแก้ไข",
     projectDetailsTitle: "รายละเอียดโปรเจกต์",
     projectDetailsName: "ชื่อโปรเจกต์",
-    projectDetailsDueDate: "กำหนดส่ง (End Date)",
-    projectDetailsLeader: "Team Leader ผู้รับผิดชอบ",
+    projectDetailsDueDate: "กำหนดส่ง",
+    projectDetailsLeader: "หัวหน้าทีมผู้รับผิดชอบ",
     projectDetailsProgress: "ความคืบหน้าโดยรวม",
-    projectDetailsTaskList: "รายการงานในโปรเจกต์ (Tasks)",
+    projectDetailsTaskList: "รายการงานในโปรเจกต์",
     projectDetailsNoTasks: "ไม่มีงานที่ต้องทำในโปรเจกต์นี้",
     projectDetailsClose: "ปิดหน้าต่าง",
     projectDetailsEdit: "แก้ไขโปรเจกต์นี้",
+    "Add Task": "เพิ่มงาน",
 
     // Projects Page
     projectManagementTitle: "จัดการโปรเจกต์",
@@ -457,9 +508,10 @@ const translations = {
       "เซสชันการเข้าใช้งานของคุณจะหมดอายุในอีก {seconds} วินาที คุณต้องการใช้เว็บไซต์ต่อหรือจะออกจากระบบ?",
     sessionTimeoutStayBtn: "อยู่ต่อ / ใช้เว็บต่อ",
     sessionTimeoutExitBtn: "ออกจากระบบ",
+    "Create Task": "สร้างงาน",
 
     // Activity Page
-    activityLogsTitle: "System Activity Logs",
+    activityLogsTitle: "บันทึกกิจกรรมของระบบ",
     activityLogsSubtitle:
       "ตรวจสอบและติดตามประวัติการทำรายการกิจกรรมทั้งหมดของระบบ",
     searchActivityPlaceholder: "ค้นหาชื่อผู้ใช้หรือรายละเอียด...",
@@ -491,6 +543,11 @@ const translations = {
     "Reset Password": "รีเซ็ตรหัสผ่าน",
     "Reset Password First Time": "รีเซ็ตรหัสผ่านครั้งแรก",
     "Import Users": "นำเข้าข้อมูลผู้ใช้งาน",
+    "Create User": "สร้างบัญชีผู้ใช้งานใหม่",
+    "Edit User": "แก้ไขข้อมูลผู้ใช้งาน",
+    "Delete User": "ลบผู้ใช้งาน",
+    "Suspend User": "ระงับการใช้งานผู้ใช้",
+    "Activate User": "เปิดใช้งานผู้ใช้",
     taskDetailsTitle: "รายละเอียดงาน",
     taskProjectLabel: "โปรเจกต์",
     taskNameLabel: "ชื่องาน",
@@ -506,6 +563,38 @@ const translations = {
     taskStatusInProgress: "In Progress (กำลังดำเนินการ)",
     taskStatusReviewing: "Reviewing (กำลังตรวจสอบ)",
     taskStatusCompleted: "Completed (เสร็จสมบูรณ์)",
+    colDetails: "รายละเอียด",
+    colAction: "การจัดการ",
+    colTime: "เวลา",
+    landingBadge: "🚀 แพลตฟอร์มจัดการโปรเจกต์และงานสำหรับทีมยุคใหม่",
+    landingHeroTitle: "บริหารจัดการโปรเจกต์และงานในทีม",
+    landingHeroTitleAccent: "ง่าย ครบจบในที่เดียว และเป็นระบบ",
+    landingHeroDesc:
+      "ช่วยให้ทีมของคุณทำงานร่วมกันได้อย่างราบรื่น ติดตามกำหนดส่งงานผ่านปฏิทิน อัปเดตสถานะงานได้แบบเรียลไทม์ พร้อมบันทึกประวัติการทำงานของระบบอย่างเป็นระเบียบ",
+    goToDashboard: "เข้าสู่หน้าแดชบอร์ด 📊",
+    getStartedBtn: "เริ่มต้นใช้งานฟรี ✨",
+    learnMoreBtn: "เรียนรู้เพิ่มเติม",
+    statProductivity: "เพิ่มประสิทธิภาพการทำงาน",
+    statAlignment: "ทีมทำงานสอดคล้องกัน 100%",
+    statMissedDeadlines: "ลดการส่งงานล่าช้ากว่ากำหนด",
+    landingFeaturesTitle: "ฟีเจอร์เด่นที่จะช่วยให้งานคุณราบรื่น",
+    landingFeaturesDesc:
+      "ระบบของเราออกแบบมาอย่างพิถีพิถันเพื่อตอบโจทย์ทุกขั้นตอนในการบริหารจัดการงานและโครงการ",
+    featureProjTitle: "จัดการโปรเจกต์",
+    featureProjDesc:
+      "สร้างโปรเจกต์หลัก กำหนดหัวหน้าทีม และติดตามความคืบหน้าของโปรเจกต์ได้โดยอัตโนมัติ",
+    featureTaskTitle: "ติดตามสถานะงาน",
+    featureTaskDesc:
+      "ควบคุมสถานะของงานย่อยได้อย่างละเอียด ไม่ว่าจะเป็นงานที่รอดำเนินการ, กำลังทำ, อยู่ระหว่างตรวจสอบ หรือเสร็จสิ้นแล้ว",
+    featureCalTitle: "ปฏิทินส่งงาน",
+    featureCalDesc:
+      "ดูวันส่งงานของทุกโปรเจกต์ได้บนปฏิทินแบบ Interactive ป้องกันการลืมวันส่งงานสำคัญ",
+    featureTeamTitle: "บันทึกประวัติกิจกรรม",
+    featureTeamDesc:
+      "ตรวจสอบประวัติการทำงานย้อนหลังของทุกคนในระบบได้อย่างโปร่งใส รู้ทุกการอัปเดตและการเปลี่ยนแปลง",
+    landingCtaTitle: "พร้อมที่จะยกระดับการทำงานของทีมคุณแล้วหรือยัง?",
+    landingCtaDesc:
+      "เริ่มต้นจัดการโปรเจกต์ของคุณอย่างเป็นระบบตั้งแต่วันนี้ ใช้งานได้ฟรี!",
   },
 };
 

@@ -71,6 +71,7 @@ export const useUserManagement = (t) => {
           id: u.id,
           name: name,
           email: u.email,
+          phone: u.phone || "-",
           role: displayRole,
           status: u.status || "active",
           avatar: u.avatar || null,
@@ -151,7 +152,7 @@ export const useUserManagement = (t) => {
       password: "", // blank password means unchanged
       firstName: firstName,
       lastName: lastName,
-      phone: "", // phone number mapping if exists
+      phone: user.phone && user.phone !== "-" ? user.phone : "",
       role: dbRole,
       isActive: user.status === "active",
     });
@@ -173,11 +174,13 @@ export const useUserManagement = (t) => {
     if (formData.password) {
       data.append("password", formData.password);
     }
+    data.append("phone", formData.phone || "");
     data.append("role", formData.role);
     data.append("status", formData.isActive ? "active" : "suspended");
     if (avatarFile) {
       data.append("avatar", avatarFile);
     }
+    data.append("creatorId", currentUser?.id || "");
 
     try {
       if (isEditMode) {
@@ -214,6 +217,7 @@ export const useUserManagement = (t) => {
         email: selectedUserForStatus.email,
         role: selectedUserForStatus.role,
         status: nextStatus,
+        creatorId: currentUser?.id || "",
       });
       fetchUsers();
       setShowStatusModal(false);
@@ -230,7 +234,9 @@ export const useUserManagement = (t) => {
   const handleDeleteConfirm = async () => {
     if (!selectedUserForDelete) return;
     try {
-      await axios.delete(`/auth/users/${selectedUserForDelete.id}`);
+      await axios.delete(`/auth/users/${selectedUserForDelete.id}`, {
+        params: { creatorId: currentUser?.id || "" }
+      });
       fetchUsers();
       setShowDeleteModal(false);
     } catch (err) {

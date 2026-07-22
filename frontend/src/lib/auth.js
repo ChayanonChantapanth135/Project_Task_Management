@@ -1,4 +1,5 @@
 // lib/auth.js
+import { API_URL } from '../config';
 
 /**
  * ดึงข้อมูลผู้ใช้งานปัจจุบันที่ล็อกอินอยู่
@@ -50,7 +51,7 @@ export const renewToken = async () => {
     if (!token) return false;
     try {
         const axios = (await import('axios')).default;
-        const response = await axios.post('/auth/refresh', { token });
+        const response = await axios.post(`${API_URL}/auth/refresh`, { token });
         const { token: newToken, user, expiresInSeconds } = response.data;
         await signIn({ token: newToken, user, expiresInSeconds });
         return true;
@@ -72,7 +73,7 @@ export const signOut = async () => {
         if (userData) {
             const user = JSON.parse(userData);
             const axios = (await import('axios')).default;
-            await axios.post('/auth/logout', { userId: user.id });
+            await axios.post(`${API_URL}/auth/logout`, { userId: user.id });
         }
     } catch (e) {
         console.error("Logout log failed:", e);

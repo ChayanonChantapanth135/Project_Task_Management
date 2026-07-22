@@ -9,17 +9,13 @@ import UserTable from "./components/UserTable";
 import UserModal from "./components/UserModal";
 
 /**
- * คอมโพเนนต์หน้าจัดการผู้ใช้ของระบบ (ManageUserPage Component)
- * - แสดงตารางรายชื่อผู้ใช้ที่ผ่านตัวกรองบทบาท (Role) สถานะ (Status) และแถบค้นหา (Search)
- * - เรียกใช้งาน useUserManagement Custom Hook สำหรับดำเนินตรรกะเบื้องหลัง
- * - แสดงและควบคุมการทำงานร่วมกับ Modals สำหรับเพิ่ม/แก้ไขผู้ใช้งาน ยืนยันการระงับ หรือยืนยันการลบผู้ใช้
+ * คอมโพเนนต์หน้าจัดการผู้ใช้ของระบบ (ManageUserPage Component) - Redesigned Dark Luxe Glassmorphism Theme
  */
 const ManageUserPage = () => {
   const { t } = useLanguage();
   const userHook = useUserManagement(t);
   const fileInputRef = useRef(null);
 
-  // โหลดโปรไฟล์ผู้ใช้ปัจจุบันเพื่อนำมาเปรียบเทียบสิทธิ์และไม่ให้ลบบัญชีตัวเองโดยไม่ได้ตั้งใจ
   useEffect(() => {
     const fetchUser = async () => {
       const user = await getCurrentUser();
@@ -29,44 +25,43 @@ const ManageUserPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans selection:bg-teal-500 selection:text-white">
       <Header />
 
-      <main className="container my-4" style={{ maxWidth: "1200px" }}>
+      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 animate-fade-in-up">
         {/* Header Title Row */}
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2 className="fw-bold text-dark d-flex align-items-center gap-2 mb-0">
-            <span>👥</span> {t("manageUsersTitle")}
-          </h2>
-          <div className="d-flex gap-2">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-white flex items-center gap-3 tracking-tight">
+              <span>👥</span> {t("manageUsersTitle")}
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">จัดการผู้ใช้งานและสิทธิ์การเข้าถึงระบบ</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
             <a
               href="/FormatForm.csv"
               download
-              className="btn btn-secondary d-flex align-items-center gap-2 px-3 py-2 rounded-lg"
-              style={{ fontSize: "0.9rem" }}
+              className="px-4 py-2.5 rounded-xl glass-card text-slate-300 hover:text-white text-xs font-semibold no-underline"
             >
-              {t("downloadTemplateBtn")}
+              📥 {t("downloadTemplateBtn")}
             </a>
             <button
-              className="btn btn-primary d-flex align-items-center gap-2 px-3 py-2 rounded-lg"
-              style={{ fontSize: "0.9rem" }}
+              className="px-4 py-2.5 rounded-xl glass-card text-slate-300 hover:text-white text-xs font-semibold"
               onClick={() => fileInputRef.current?.click()}
             >
-              {t("importUsersBtn")}
+              📤 {t("importUsersBtn")}
             </button>
             <button
-              className="btn btn-success d-flex align-items-center gap-2 px-3 py-2 rounded-lg"
-              style={{ fontSize: "0.9rem" }}
+              className="px-4 py-2.5 rounded-xl glass-card text-emerald-400 hover:text-emerald-300 text-xs font-semibold"
               onClick={userHook.handleExportCSV}
             >
-              {t("exportUsersBtn")}
+              📊 {t("exportUsersBtn")}
             </button>
             <button
-              className="btn btn-primary d-flex align-items-center gap-2 px-3 py-2 rounded-lg"
-              style={{ fontSize: "0.9rem" }}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-xs glow-button"
               onClick={userHook.handleOpenAdd}
             >
-              <span>+</span> {t("addUserBtn")}
+              + {t("addUserBtn")}
             </button>
             <input
               type="file"
@@ -79,63 +74,57 @@ const ManageUserPage = () => {
                 }
               }}
               accept=".csv"
-              style={{ display: "none" }}
+              className="hidden"
             />
           </div>
         </div>
 
         {/* Top Filters Block */}
-        <div className="card border-0 shadow-sm mb-4 rounded-lg">
-          <div className="card-body p-3">
-            <div className="row g-2">
-              <div className="col-md-3">
-                <select
-                  className="form-select rounded-lg"
-                  value={userHook.roleFilter}
-                  onChange={(e) => userHook.setRoleFilter(e.target.value)}
-                >
-                  <option value="all">{t("roleFilterAll")}</option>
-                  <option value="Admin">Admin</option>
-                  <option value="Project Manager">Project Manager</option>
-                  <option value="Team Leader">Team Leader</option>
-                  <option value="Video Editor">Video Editor</option>
-                  <option value="Translator">Translator</option>
-                </select>
-              </div>
-              <div className="col-md-3">
-                <select
-                  className="form-select rounded-lg"
-                  value={userHook.statusFilter}
-                  onChange={(e) => userHook.setStatusFilter(e.target.value)}
-                >
-                  <option value="all">{t("statusFilterAll")}</option>
-                  <option value="active">{t("activeLabel")}</option>
-                  <option value="suspended">{t("suspendedLabel")}</option>
-                </select>
-              </div>
-              <div className="col-md-4">
+        <div className="glass-panel rounded-3xl p-5 mb-8 shadow-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <select
+                className="w-full bg-slate-800/60 hover:bg-slate-800/80 rounded-2xl py-3 px-4 text-white text-xs font-medium focus:outline-none border-0 transition-all cursor-pointer"
+                value={userHook.roleFilter}
+                onChange={(e) => userHook.setRoleFilter(e.target.value)}
+              >
+                <option value="all" className="bg-slate-900">{t("roleFilterAll")}</option>
+                <option value="Admin" className="bg-slate-900">Admin</option>
+                <option value="Project Manager" className="bg-slate-900">Project Manager</option>
+                <option value="Team Leader" className="bg-slate-900">Team Leader</option>
+                <option value="Video Editor" className="bg-slate-900">Video Editor</option>
+                <option value="Translator" className="bg-slate-900">Translator</option>
+              </select>
+            </div>
+            <div>
+              <select
+                className="w-full bg-slate-800/60 hover:bg-slate-800/80 rounded-2xl py-3 px-4 text-white text-xs font-medium focus:outline-none border-0 transition-all cursor-pointer"
+                value={userHook.statusFilter}
+                onChange={(e) => userHook.setStatusFilter(e.target.value)}
+              >
+                <option value="all" className="bg-slate-900">{t("statusFilterAll")}</option>
+                <option value="active" className="bg-slate-900">{t("activeLabel")}</option>
+                <option value="suspended" className="bg-slate-900">{t("suspendedLabel")}</option>
+              </select>
+            </div>
+            <div className="md:col-span-2">
+              <div className="relative">
                 <input
                   type="text"
-                  className="form-control rounded-lg"
+                  className="w-full bg-slate-800/60 hover:bg-slate-800/80 rounded-2xl py-3 pl-10 pr-4 text-white text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400"
                   placeholder={t("searchPlaceholder")}
                   value={userHook.searchQuery}
                   onChange={(e) => userHook.setSearchQuery(e.target.value)}
                 />
-              </div>
-              <div className="col-md-2">
-                <button className="btn btn-primary w-100 rounded-lg d-flex align-items-center justify-content-center gap-2">
-                  🔍 {t("searchBtn")}
-                </button>
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs">🔍</span>
               </div>
             </div>
           </div>
         </div>
 
         {userHook.loading ? (
-          <div className="text-center py-5">
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </div>
+          <div className="text-center py-16">
+            <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
           </div>
         ) : (
           <UserTable

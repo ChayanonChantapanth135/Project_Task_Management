@@ -3,41 +3,99 @@ import { Link } from "react-router-dom";
 
 /**
  * คอมโพเนนต์แถบส่วนท้ายของหน้าเว็บ (Footer Component)
- * - แสดงลิขสิทธิ์ © 2026 Company, Inc
- * - แสดงลิงก์นำทางเพิ่มเติมของหน้าสาธารณะ (Home, Contract, About)
  */
 const Footer = () => {
   return (
-    <div className="container">
-      <footer className="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
-        <p className="col-md-4 mb-0 text-body-secondary">© 2026 Company, Inc</p>
-        <a
-          className="col-md-4 d-flex align-items-center justify-content-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none"
-          aria-label="Bootstrap"
+    <>
+      <style>{`
+        #site-footer,
+        #site-footer p,
+        #site-footer a,
+        #site-footer li,
+        #site-footer span {
+          color: #cbd5e1 !important;
+        }
+        #site-footer a:hover {
+          color: #2dd4bf !important;
+        }
+      `}</style>
+      <footer
+        id="site-footer"
+        className="w-full transition-all"
+        style={{
+          marginTop: "auto",
+          padding: "2rem 0",
+          fontFamily: "sans-serif",
+          fontSize: "0.875rem",
+          backgroundColor: "transparent",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "80rem",
+            margin: "0 auto",
+            padding: "0 1.5rem",
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "1rem",
+          }}
         >
-          <svg className="bi me-2" width={40} height={32} aria-hidden="true">
-            <use xlinkHref="#bootstrap" />
-          </svg>
-        </a>
-        <ul className="nav col-md-4 justify-content-end">
-          <li className="nav-item">
-            <Link to="/Home" className="nav-link px-2 text-body-secondary">
-              Home
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/Contract" className="nav-link px-2 text-body-secondary">
-              Contract
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/About" className="nav-link px-2 text-body-secondary">
-              About
-            </Link>
-          </li>
-        </ul>
+          <p style={{ margin: 0, fontWeight: 600, color: "#f8fafc" }}>
+            © 2026 RNM Task Management. All rights reserved.
+          </p>
+
+          <ul
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "1.5rem",
+              margin: 0,
+              padding: 0,
+              listStyle: "none",
+            }}
+          >
+            <li>
+              <Link
+                to="/Home"
+                style={{
+                  color: "#e2e8f0",
+                  textDecoration: "none",
+                  fontWeight: 600,
+                }}
+              >
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/Contract"
+                style={{
+                  color: "#e2e8f0",
+                  textDecoration: "none",
+                  fontWeight: 600,
+                }}
+              >
+                Contract
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/About"
+                style={{
+                  color: "#e2e8f0",
+                  textDecoration: "none",
+                  fontWeight: 600,
+                }}
+              >
+                About
+              </Link>
+            </li>
+          </ul>
+        </div>
       </footer>
-    </div>
+    </>
   );
 };
 
