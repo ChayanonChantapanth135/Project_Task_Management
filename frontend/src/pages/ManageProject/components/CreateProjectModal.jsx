@@ -7,9 +7,12 @@ const CreateProjectModal = ({
   handleCreateSubmit,
   formData,
   setFormData,
-  teamLeaders,
+  teamLeaders = [],
+  users = [],
   t,
 }) => {
+  const userList = users && users.length > 0 ? users : teamLeaders;
+
   return (
     <Modal
       show={showCreateModal}
@@ -85,11 +88,37 @@ const CreateProjectModal = ({
               required
             >
               <option value="">-- {t("modalProjectTeamLeader")} --</option>
-              {teamLeaders.map((leader) => (
-                <option key={leader.id} value={leader.id}>
-                  {leader.username}
-                </option>
-              ))}
+              <optgroup label="👑 Team Leader">
+                {userList
+                  .filter((u) => u.role === "team_leader" || (!u.role && teamLeaders.some((tl) => tl.id === u.id)))
+                  .map((leader) => (
+                    <option key={leader.id} value={leader.id}>
+                      {leader.username}
+                    </option>
+                  ))}
+              </optgroup>
+              {userList.some((u) => u.role === "translator") && (
+                <optgroup label="🗣️ Translator">
+                  {userList
+                    .filter((u) => u.role === "translator")
+                    .map((leader) => (
+                      <option key={leader.id} value={leader.id}>
+                        {leader.username}
+                      </option>
+                    ))}
+                </optgroup>
+              )}
+              {userList.some((u) => u.role === "video_editor") && (
+                <optgroup label="🎬 Video Editor">
+                  {userList
+                    .filter((u) => u.role === "video_editor")
+                    .map((leader) => (
+                      <option key={leader.id} value={leader.id}>
+                        {leader.username}
+                      </option>
+                    ))}
+                </optgroup>
+              )}
             </select>
           </div>
           <div className="d-flex justify-content-end gap-2 pt-3 border-top mt-4">

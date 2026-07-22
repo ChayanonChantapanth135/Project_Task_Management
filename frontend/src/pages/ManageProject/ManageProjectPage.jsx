@@ -1,24 +1,36 @@
-import React from "react";
+import React, { useRef } from "react";
 import Header from "../../components/Header";
-import Footer from "../../components/footer";
+import Footer from "../../components/Footer";
 import { useLanguage } from "../../lib/LanguageContext";
 import ConfirmModal from "../../components/ConfirmModal";
 import ProjectCard from "./components/ProjectCard";
 import ProjectFilter from "./components/ProjectFilter";
 import ProjectTable from "./components/ProjectTable";
-
 import { useProjectManagement } from "./hooks/useProjectManagement";
 import CreateProjectModal from "./components/CreateProjectModal";
 import EditProjectModal from "./components/EditProjectModal";
 import ProjectDetailModal from "./components/ProjectDetailModal";
 import AddTaskModal from "./components/AddTaskModal";
 import ViewTaskModal from "./components/ViewTaskModal";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 /**
  * คอมโพเนนต์หน้าจัดการโครงการ (ManageProjectPage Component) - Redesigned Dark Luxe Glassmorphism Theme
  */
 const ManageProjectPage = () => {
   const { t } = useLanguage();
+  const pageRef = useRef(null);
+  const blob1Ref = useRef(null);
+  const blob2Ref = useRef(null);
+  const blob3Ref = useRef(null);
+
+  useGSAP(() => {
+    gsap.to(blob1Ref.current, { x: 60, y: -40, duration: 8, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    gsap.to(blob2Ref.current, { x: -50, y: 50, duration: 10, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    gsap.to(blob3Ref.current, { x: 40, y: 30, duration: 9, repeat: -1, yoyo: true, ease: "sine.inOut" });
+  }, { scope: pageRef });
+
   const {
     currentUser,
     viewMode,
@@ -69,17 +81,22 @@ const ManageProjectPage = () => {
   } = useProjectManagement(t);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans selection:bg-teal-500 selection:text-white">
+    <div ref={pageRef} className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans selection:bg-teal-500 selection:text-white relative overflow-hidden">
+      {/* GSAP Animated Ambient Orbs */}
+      <div ref={blob1Ref} className="absolute top-10 left-1/4 w-[450px] h-[450px] bg-teal-500/15 rounded-full filter blur-[100px] pointer-events-none"></div>
+      <div ref={blob2Ref} className="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-indigo-600/20 rounded-full filter blur-[110px] pointer-events-none"></div>
+      <div ref={blob3Ref} className="absolute bottom-10 left-1/3 w-[500px] h-[500px] bg-cyan-600/15 rounded-full filter blur-[120px] pointer-events-none"></div>
+
       <Header />
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 animate-fade-in-up">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 animate-fade-in-up relative z-10">
         {/* Header and Title */}
         <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h2 className="text-2xl md:text-3xl font-extrabold text-white flex items-center gap-3 tracking-tight">
               <span>📂</span> {t("projectManagementTitle")}
             </h2>
-            <p className="text-xs text-slate-400 mt-1">บริหารจัดการโครงการและทีมงานที่รับผิดชอบ</p>
+            <p className="text-xs text-slate-400 mt-1">{t("projectManagementDesc")}</p>
           </div>
         </div>
 
@@ -154,6 +171,7 @@ const ManageProjectPage = () => {
         formData={formData}
         setFormData={setFormData}
         teamLeaders={teamLeaders}
+        users={users}
         t={t}
       />
 
@@ -165,6 +183,7 @@ const ManageProjectPage = () => {
         editFormData={editFormData}
         setEditFormData={setEditFormData}
         teamLeaders={teamLeaders}
+        users={users}
         t={t}
       />
 

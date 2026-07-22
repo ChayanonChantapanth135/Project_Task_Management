@@ -20,7 +20,7 @@ const AddTaskModal = ({
       <Modal.Body className="p-4" style={{ borderRadius: "1rem" }}>
         <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
           <h5 className="fw-bold mb-0">
-            📝 {t("Create Task Success") || "สร้างงานใหม่ (Add Task)"}
+            📝 {t("createTaskTitle")}
           </h5>
           <button
             className="btn-close"
@@ -49,7 +49,7 @@ const AddTaskModal = ({
             <input
               type="text"
               className="form-control rounded-lg"
-              placeholder="กรอกชื่อกิจกรรม/งาน"
+              placeholder={t("taskNamePlaceholder")}
               value={taskFormData.title}
               onChange={(e) =>
                 setTaskFormData((prev) => ({
@@ -76,9 +76,9 @@ const AddTaskModal = ({
                 }))
               }
             >
-              <option value="แปล">แปล (Translate)</option>
-              <option value="ตัดต่อ">ตัดต่อ (Video Edit)</option>
-              <option value="อื่นๆ">อื่นๆ (Others)</option>
+              <option value="แปล">{t("taskTypeTranslate")}</option>
+              <option value="ตัดต่อ">{t("taskTypeVideoEdit")}</option>
+              <option value="อื่นๆ">{t("taskTypeOthers")}</option>
             </select>
           </div>
 
@@ -86,12 +86,12 @@ const AddTaskModal = ({
           {taskFormData.taskType === "อื่นๆ" && (
             <div className="mb-3">
               <label className="form-label small fw-bold">
-                ระบุประเภทงานเพิ่มเติม *
+                {t("customTaskTypeLabel")}
               </label>
               <input
                 type="text"
                 className="form-control rounded-lg"
-                placeholder="ระบุประเภทงานเพิ่มเติมของคุณ"
+                placeholder={t("customTaskTypePlaceholder")}
                 value={taskFormData.customTaskType}
                 onChange={(e) =>
                   setTaskFormData((prev) => ({
@@ -112,7 +112,7 @@ const AddTaskModal = ({
             <textarea
               className="form-control rounded-lg"
               rows="2"
-              placeholder="กรอกรายละเอียดงาน"
+              placeholder={t("taskDescPlaceholder")}
               value={taskFormData.description}
               onChange={(e) =>
                 setTaskFormData((prev) => ({
@@ -138,9 +138,9 @@ const AddTaskModal = ({
                 }))
               }
             >
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
+              <option value="High">{t("priorityHigh")}</option>
+              <option value="Medium">{t("priorityMedium")}</option>
+              <option value="Low">{t("priorityLow")}</option>
             </select>
           </div>
 
@@ -165,7 +165,7 @@ const AddTaskModal = ({
           {/* Assignee */}
           <div className="mb-3">
             <label className="form-label small fw-bold">
-              {t("taskAssigneeLabel")} - Optional
+              {t("taskAssigneeLabel")} *
             </label>
             <select
               className="form-select rounded-lg"
@@ -176,8 +176,9 @@ const AddTaskModal = ({
                   assignedTo: e.target.value,
                 }))
               }
+              required
             >
-              <option value="">-- {t("noAssignee")} --</option>
+              <option value="">-- {t("selectAssignee")} --</option>
               <optgroup label="👑 Team Leader">
                 {users
                   .filter((u) => u.role === "team_leader")
@@ -220,7 +221,7 @@ const AddTaskModal = ({
               type="submit"
               className="btn btn-primary px-4 py-2 rounded-lg"
             >
-              + {t("Create Task")}
+              + {t("createTaskBtn")}
             </button>
           </div>
         </form>

@@ -209,7 +209,7 @@ const ResetPasswordFirstTime = () => {
               </span>
               <input
                 id="confirmPassword"
-                type={showPassword ? "text" : "password"}
+                type="password"
                 name="confirmPassword"
                 placeholder={t("passwordPlaceholder")}
                 value={values.confirmPassword}

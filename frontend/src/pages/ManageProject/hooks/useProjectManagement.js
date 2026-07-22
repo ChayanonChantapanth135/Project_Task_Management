@@ -260,6 +260,7 @@ export const useProjectManagement = (t) => {
       });
 
       setShowDeleteModal(false);
+      alert(t("projectDeletedSuccess") || "ลบโปรเจกต์เรียบร้อยแล้ว!");
       setSuccessMessage(t("projectDeletedSuccess"));
       setTimeout(() => setSuccessMessage(""), 5000);
       fetchProjects();

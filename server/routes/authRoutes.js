@@ -135,7 +135,7 @@ router.post('/login', async (req, res) => {
     // await new Promise(resolve => setTimeout(resolve, 3000));
     try {
         const db = await connectToDatabase()
-        const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]) 
+        const [rows] = await db.query('SELECT * FROM users WHERE email = ? AND deleted_at IS NULL', [email]) 
         if (rows.length === 0) {
             return res.status(404).json({ message: 'User not existed' })
         }
@@ -204,7 +204,7 @@ router.post('/refresh', async (req, res) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_KEY, { ignoreExpiration: true })
         const db = await connectToDatabase()
-        const [rows] = await db.query('SELECT * FROM users WHERE id = ?', [decoded.id])
+        const [rows] = await db.query('SELECT * FROM users WHERE id = ? AND deleted_at IS NULL', [decoded.id])
         if (rows.length === 0) {
             return res.status(404).json({ message: 'User not found' })
         }
@@ -244,12 +244,17 @@ function formatPhoneNumber(phone) {
 /**
  * GET /users
  * - ดึงข้อมูลผู้ใช้งานทั้งหมดในระบบ (ยกเว้นรหัสผ่าน)
- * - ใช้แสดงผลในหน้ารายการผู้ใช้งาน (Manage Users)
+ * - รองรับ ?includeDeleted=true เพื่อดึงรายการรวมทั้งรายการที่ Soft Delete ไปแล้ว
  */
 router.get('/users', async (req, res) => {
+    const { includeDeleted } = req.query;
     try {
         const db = await connectToDatabase();
-        const [rows] = await db.query('SELECT id, username, email, phone, role, avatar, status, created_at FROM users');
+        let query = 'SELECT id, username, email, phone, role, avatar, status, created_at, deleted_at FROM users WHERE deleted_at IS NULL';
+        if (includeDeleted === 'true') {
+            query = 'SELECT id, username, email, phone, role, avatar, status, created_at, deleted_at FROM users';
+        }
+        const [rows] = await db.query(query);
         res.status(200).json(rows);
     } catch (error) {
         console.error('Error fetching users:', error.message);
@@ -265,7 +270,7 @@ router.get('/users/:id', async (req, res) => {
     const { id } = req.params;
     try {
         const db = await connectToDatabase();
-        const [rows] = await db.query('SELECT id, username, email, phone, role, avatar, status, created_at FROM users WHERE id = ?', [id]);
+        const [rows] = await db.query('SELECT id, username, email, phone, role, avatar, status, created_at, deleted_at FROM users WHERE id = ? AND deleted_at IS NULL', [id]);
         if (rows.length === 0) return res.status(404).json({ message: 'User not found' });
         res.status(200).json(rows[0]);
     } catch (error) {
@@ -437,14 +442,59 @@ router.put('/users/:id', upload.single('avatar'), async (req, res) => {
 
 /**
  * DELETE /users/:id
- * - ลบบัญชีผู้ใช้งานออกจากระบบตาม ID ที่ระบุ
+ * - ทำการ Soft Delete บัญชีผู้ใช้งานโดยใส่เวลาใน deleted_at
  */
 router.delete('/users/:id', async (req, res) => {
     const { id } = req.params;
     const { creatorId } = req.query;
     try {
         const db = await connectToDatabase();
-        // ดึงข้อมูลรูปโปรไฟล์และลบออกจากโฟลเดอร์เซิร์ฟเวอร์ก่อนที่จะทำการลบแถวข้อมูลผู้ใช้งานในฐานข้อมูล
+        const [userRows] = await db.query('SELECT username, email FROM users WHERE id = ? AND deleted_at IS NULL', [id]);
+        if (userRows.length === 0) {
+            return res.status(404).json({ message: 'User not found or already deleted' });
+        }
+        const { username, email } = userRows[0];
+        await db.query('UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?', [id]);
+        await logActivity(db, creatorId ? Number(creatorId) : null, 'Soft Delete User', `Soft deleted user: ${username} (${email})`);
+        res.status(200).json({ message: 'User soft-deleted successfully' });
+    } catch (error) {
+        console.error('Error soft deleting user:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+})
+
+/**
+ * POST /users/:id/restore
+ * - กู้คืนผู้ใช้งานที่ถูก Soft Delete
+ */
+router.post('/users/:id/restore', async (req, res) => {
+    const { id } = req.params;
+    const { creatorId } = req.body;
+    try {
+        const db = await connectToDatabase();
+        const [userRows] = await db.query('SELECT username, email FROM users WHERE id = ?', [id]);
+        if (userRows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        const { username, email } = userRows[0];
+        await db.query('UPDATE users SET deleted_at = NULL WHERE id = ?', [id]);
+        await logActivity(db, creatorId ? Number(creatorId) : null, 'Restore User', `Restored user: ${username} (${email})`);
+        res.status(200).json({ message: 'User restored successfully' });
+    } catch (error) {
+        console.error('Error restoring user:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+})
+
+/**
+ * DELETE /users/:id/permanent
+ * - ลบบัญชีผู้ใช้งานออกจากระบบอย่างถาวร (Permanent/Hard Delete)
+ */
+router.delete('/users/:id/permanent', async (req, res) => {
+    const { id } = req.params;
+    const { creatorId } = req.query;
+    try {
+        const db = await connectToDatabase();
         const [userRows] = await db.query('SELECT username, email, avatar FROM users WHERE id = ?', [id]);
         if (userRows.length === 0) {
             return res.status(404).json({ message: 'User not found' });
@@ -454,10 +504,10 @@ router.delete('/users/:id', async (req, res) => {
             deleteOldAvatar(avatar);
         }
         await db.query('DELETE FROM users WHERE id = ?', [id]);
-        await logActivity(db, creatorId ? Number(creatorId) : null, 'Delete User', `Deleted user: ${username} (${email})`);
-        res.status(200).json({ message: 'User deleted successfully' });
+        await logActivity(db, creatorId ? Number(creatorId) : null, 'Permanent Delete User', `Permanently deleted user: ${username} (${email})`);
+        res.status(200).json({ message: 'User permanently deleted successfully' });
     } catch (error) {
-        console.error('Error deleting user:', error.message);
+        console.error('Error permanently deleting user:', error.message);
         res.status(500).json({ message: error.message });
     }
 })
@@ -497,18 +547,16 @@ router.post('/upload-avatar/:id', upload.single('avatar'), async (req, res) => {
 
 /**
  * GET /dashboard-stats
- * - ดึงข้อมูลสถิติรวมสำหรับหน้า Dashboard
- * - นับจำนวนผู้ใช้งานทั้งหมด, โครงการทั้งหมด, และงานทั้งหมด (แยกสถานะ และงานที่เกินกำหนด)
+ * - ดึงข้อมูลสถิติรวมสำหรับหน้า Dashboard (นับเฉพาะข้อมูลที่ยังไม่ถูกลบ)
  */
 router.get('/dashboard-stats', async (req, res) => {
     try {
         const db = await connectToDatabase();
         
-        // Count total users
-        const [userRows] = await db.query('SELECT COUNT(*) as count FROM users');
+        // Count total active users
+        const [userRows] = await db.query('SELECT COUNT(*) as count FROM users WHERE deleted_at IS NULL');
         const userCount = userRows[0].count;
 
-        // Since projects and tasks tables might not exist yet, we query gracefully
         let projectCount = 0;
         let pendingProjects = 0;
         let inProgressProjects = 0;
@@ -523,41 +571,39 @@ router.get('/dashboard-stats', async (req, res) => {
         let completedTasks = 0;
 
         try {
-            const [pRows] = await db.query('SELECT COUNT(*) as count FROM projects');
+            const [pRows] = await db.query('SELECT COUNT(*) as count FROM projects WHERE deleted_at IS NULL');
             projectCount = pRows[0].count;
 
-            const [pendingProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'pending'");
+            const [pendingProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'pending' AND deleted_at IS NULL");
             pendingProjects = pendingProjRows[0].count;
 
-            const [inProgressProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'in_progress'");
+            const [inProgressProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'in_progress' AND deleted_at IS NULL");
             inProgressProjects = inProgressProjRows[0].count;
 
-            const [reviewProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'review'");
+            const [reviewProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'review' AND deleted_at IS NULL");
             reviewProjects = reviewProjRows[0].count;
 
-            const [completedProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'completed'");
+            const [completedProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'completed' AND deleted_at IS NULL");
             completedProjects = completedProjRows[0].count;
         } catch (e) { /* ignore if projects table doesn't exist */ }
 
         try {
-            const [tRows] = await db.query('SELECT COUNT(*) as count FROM tasks');
+            const [tRows] = await db.query('SELECT COUNT(*) as count FROM tasks WHERE deleted_at IS NULL');
             taskCount = tRows[0].count;
             
-            // Query counts by status/overdue if columns exist
-            const [pendingRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'Pending'");
+            const [pendingRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'Pending' AND deleted_at IS NULL");
             pendingTasks = pendingRows[0].count;
 
-            const [progressRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'In Progress'");
+            const [progressRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'In Progress' AND deleted_at IS NULL");
             inProgressTasks = progressRows[0].count;
 
-            const [reviewRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'Reviewing'");
+            const [reviewRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'Reviewing' AND deleted_at IS NULL");
             reviewingTasks = reviewRows[0].count;
 
-            const [completedRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'Completed'");
+            const [completedRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'Completed' AND deleted_at IS NULL");
             completedTasks = completedRows[0].count;
 
-            // Simple overdue query if due_date column exists
-            const [overdueRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE due_date < NOW() AND status != 'Completed'");
+            const [overdueRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE due_date < NOW() AND status != 'Completed' AND deleted_at IS NULL");
             overdueTaskCount = overdueRows[0].count;
         } catch (e) { /* ignore if tasks table doesn't exist */ }
 
@@ -596,10 +642,10 @@ router.get('/dashboard-stats', async (req, res) => {
 router.get('/team-leaders', async (req, res) => {
     try {
         const db = await connectToDatabase()
-        let [rows] = await db.query("SELECT id, username, email FROM users WHERE role = 'team_leader'")
+        let [rows] = await db.query("SELECT id, username, email FROM users WHERE role = 'team_leader' AND deleted_at IS NULL")
         if (rows.length === 0) {
             // Fallback 1: Try to fetch all users in the system
-            [rows] = await db.query("SELECT id, username, email FROM users")
+            [rows] = await db.query("SELECT id, username, email FROM users WHERE deleted_at IS NULL")
         }
         if (rows.length === 0) {
             // Fallback 2: If the system has no users yet, return simulated fallback team leaders
@@ -619,62 +665,19 @@ router.get('/team-leaders', async (req, res) => {
 // Fetch projects (and auto-seed if none exist)
 /**
  * GET /projects
- * - ดึงรายชื่อโครงการทั้งหมดพร้อมกับข้อมูลหัวหน้าทีม (Team Leader) 
- * - คำนวณความคืบหน้า (Progress) เป็นเปอร์เซ็นต์ตามจำนวนงาน (Tasks) ที่เสร็จสิ้น
- * - หากระบบยังไม่มีโครงการใดๆ จะสร้างข้อมูลโครงการและงานจำลองขึ้นมาโดยอัตโนมัติ (Auto-seeding)
+ * - ดึงรายชื่อโครงการทั้งหมดพร้อมกับข้อมูลหัวหน้าทีม (Team Leader)
  */
 router.get('/projects', async (req, res) => {
     try {
         const db = await connectToDatabase()
         
-        // Check if projects table is empty
-        const [rowsCount] = await db.query('SELECT COUNT(*) as count FROM projects')
-        if (rowsCount[0].count === 0) {
-            // Get some users to associate as creators/leaders to avoid foreign key violations
-            const [users] = await db.query('SELECT id FROM users LIMIT 3')
-            const adminId = users[0]?.id || 1
-            const leader1 = users[1]?.id || adminId
-            const leader2 = users[2]?.id || adminId
-
-            // Insert mock projects
-            const proj1 = await db.query(
-                "INSERT INTO projects (name, description, status, priority, end_date, created_by) VALUES (?, ?, ?, ?, ?, ?)",
-                ["Website Redesign", "Figma design and React implementation", "In Progress", "High", "2026-08-30", adminId]
-            )
-            const proj2 = await db.query(
-                "INSERT INTO projects (name, description, status, priority, end_date, created_by) VALUES (?, ?, ?, ?, ?, ?)",
-                ["Mobile App Development", "Flutter-based mobile app creation", "Pending", "High", "2026-12-15", adminId]
-            )
-            const proj3 = await db.query(
-                "INSERT INTO projects (name, description, status, priority, end_date, created_by) VALUES (?, ?, ?, ?, ?, ?)",
-                ["Data Analytics Dashboard", "Dashboard for KPI representation", "Completed", "Medium", "2026-07-01", adminId]
-            )
-
-            // Associate team leaders
-            if (proj1[0].insertId) await db.query("INSERT INTO project_team_leaders (project_id, user_id) VALUES (?, ?)", [proj1[0].insertId, leader1])
-            if (proj2[0].insertId) await db.query("INSERT INTO project_team_leaders (project_id, user_id) VALUES (?, ?)", [proj2[0].insertId, leader2])
-            if (proj3[0].insertId) await db.query("INSERT INTO project_team_leaders (project_id, user_id) VALUES (?, ?)", [proj3[0].insertId, leader1])
-
-            // Seed some default tasks too
-            if (proj1[0].insertId) {
-                await db.query("INSERT INTO tasks (project_id, title, status) VALUES (?, 'Design Figma mockup', 'Completed')", [proj1[0].insertId])
-                await db.query("INSERT INTO tasks (project_id, title, status) VALUES (?, 'Setup frontend routing', 'In Progress')", [proj1[0].insertId])
-                await db.query("INSERT INTO tasks (project_id, title, status) VALUES (?, 'Integrate database schema', 'Pending')", [proj1[0].insertId])
-            }
-            if (proj2[0].insertId) {
-                await db.query("INSERT INTO tasks (project_id, title, status) VALUES (?, 'Define API contracts', 'In Progress')", [proj2[0].insertId])
-            }
-            if (proj3[0].insertId) {
-                await db.query("INSERT INTO tasks (project_id, title, status) VALUES (?, 'Export CSV files', 'Completed')", [proj3[0].insertId])
-            }
-        }
-
-        // Fetch all projects along with team leaders and tasks
+        // Fetch all non-deleted projects along with team leaders and tasks
         const [projects] = await db.query(`
             SELECT p.*, u.id AS teamLeaderId, u.username AS teamLeaderName
             FROM projects p
             LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id
             LEFT JOIN users u ON ptl.user_id = u.id
+            WHERE p.deleted_at IS NULL
             ORDER BY p.created_at DESC
         `)
 
@@ -684,7 +687,7 @@ router.get('/projects', async (req, res) => {
                 SELECT t.id, t.title, t.status, t.due_date, t.assigned_to, t.description, t.task_type, t.priority, u.username AS assigned_to_name
                 FROM tasks t
                 LEFT JOIN users u ON t.assigned_to = u.id
-                WHERE t.project_id = ?
+                WHERE t.project_id = ? AND t.deleted_at IS NULL
             `, [p.id])
             p.tasks = tasks
             // Calculate progress based on tasks
@@ -785,14 +788,15 @@ router.delete('/projects/:id', async (req, res) => {
         const db = await connectToDatabase()
         
         // Get name for logging
-        const [projRows] = await db.query('SELECT name FROM projects WHERE id = ?', [id])
+        const [projRows] = await db.query('SELECT name FROM projects WHERE id = ? AND deleted_at IS NULL', [id])
         const projName = projRows[0]?.name || id
 
-        // Delete project (cascade delete handles tasks, comments, project_team_leaders, files)
-        await db.query("DELETE FROM projects WHERE id = ?", [id])
+        // Soft Delete project and its tasks
+        await db.query("UPDATE projects SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?", [id])
+        await db.query("UPDATE tasks SET deleted_at = CURRENT_TIMESTAMP WHERE project_id = ?", [id])
 
         // Log Activity
-        await logActivity(db, userId, 'Delete Project', `Deleted project: ${projName}`);
+        await logActivity(db, userId, 'Delete Project', `Soft deleted project: ${projName}`);
 
         res.status(200).json({ message: 'Project deleted successfully' })
     } catch (error) {

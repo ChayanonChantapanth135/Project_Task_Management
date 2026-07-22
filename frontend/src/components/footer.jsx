@@ -59,6 +59,7 @@ const Footer = () => {
             <li>
               <Link
                 to="/Home"
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                 style={{
                   color: "#e2e8f0",
                   textDecoration: "none",
@@ -71,6 +72,7 @@ const Footer = () => {
             <li>
               <Link
                 to="/Contract"
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                 style={{
                   color: "#e2e8f0",
                   textDecoration: "none",
@@ -83,6 +85,7 @@ const Footer = () => {
             <li>
               <Link
                 to="/About"
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                 style={{
                   color: "#e2e8f0",
                   textDecoration: "none",

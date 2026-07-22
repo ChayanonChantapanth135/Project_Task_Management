@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard/DashboardPage";
 import Login from "./pages/Login";
@@ -18,17 +19,22 @@ import SessionTimeoutHandler from "./components/SessionTimeoutHandler";
 import ResetPassword from "./pages/ResetPassword";
 import ResetPasswordFirstTime from "./pages/ResetPasswordFirstTime";
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
 /**
  * คอมโพเนนต์หลักของระบบ (App Component)
- * - ห่อหุ้มแอปพลิเคชันด้วย LanguageProvider สำหรับจัดการเปลี่ยนภาษา (ไทย/อังกฤษ/ญี่ปุ่น/จีน)
- * - ใช้ React Router เพื่อกำหนดเส้นทาง URL ในระบบ (Routing)
- * - กำหนด ProtectedRoute สำหรับหน้าที่ต้องการล็อกอินก่อนเข้าถึง
- * - โหลด SessionTimeoutHandler เพื่อตรวจสอบและแจ้งเตือนเซสชันหมดอายุ
  */
 function App() {
   return (
     <LanguageProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <SessionTimeoutHandler />
         <Routes>
           {/* Public Routes */}

@@ -33,6 +33,7 @@ export const useUserManagement = (t) => {
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [modalError, setModalError] = useState("");
   const [modalSuccess, setModalSuccess] = useState("");
+  const [pageSuccessMessage, setPageSuccessMessage] = useState("");
 
   // Delete & Status confirm modals
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -239,8 +240,10 @@ export const useUserManagement = (t) => {
       });
       fetchUsers();
       setShowDeleteModal(false);
+      setPageSuccessMessage(t("deleteUserSuccess") || "Delete Success");
+      setTimeout(() => setPageSuccessMessage(""), 4000);
     } catch (err) {
-      alert(t("deleteFailed"));
+      alert(t("deleteFailed") || "การลบข้อมูลล้มเหลว กรุณาลองใหม่อีกครั้ง");
     }
   };
 
@@ -392,6 +395,8 @@ export const useUserManagement = (t) => {
     avatarPreview,
     modalError,
     modalSuccess,
+    pageSuccessMessage,
+    setPageSuccessMessage,
     showDeleteModal,
     setShowDeleteModal,
     selectedUserForDelete,

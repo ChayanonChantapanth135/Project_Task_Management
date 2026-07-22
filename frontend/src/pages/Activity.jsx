@@ -1,20 +1,32 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Header from "../components/Header";
-import Footer from "../components/footer";
+import Footer from "../components/Footer";
 import { useLanguage } from "../lib/LanguageContext";
 import axios from "axios";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 /**
  * คอมโพเนนต์หน้าบันทึกกิจกรรมย้อนหลัง (Activity Page Component) - Redesigned Dark Luxe Glassmorphism Theme
  */
 const Activity = () => {
   const { t } = useLanguage();
+  const pageRef = useRef(null);
+  const blob1Ref = useRef(null);
+  const blob2Ref = useRef(null);
+  const blob3Ref = useRef(null);
+
+  useGSAP(() => {
+    gsap.to(blob1Ref.current, { x: 60, y: -40, duration: 8, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    gsap.to(blob2Ref.current, { x: -50, y: 50, duration: 10, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    gsap.to(blob3Ref.current, { x: 40, y: 30, duration: 9, repeat: -1, yoyo: true, ease: "sine.inOut" });
+  }, { scope: pageRef });
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [actionFilter, setActionFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const entriesPerPage = 10;
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
 
   /**
    * ดึงประวัติกิจกรรมการทำงานทั้งหมดจาก API หลังบ้าน
@@ -71,10 +83,15 @@ const Activity = () => {
   const totalPages = Math.ceil(filteredLogs.length / entriesPerPage);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans selection:bg-teal-500 selection:text-white">
+    <div ref={pageRef} className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans selection:bg-teal-500 selection:text-white relative overflow-hidden">
       <Header />
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 animate-fade-in-up">
+      {/* GSAP Animated Ambient Orbs */}
+      <div ref={blob1Ref} className="absolute top-10 left-1/4 w-[450px] h-[450px] bg-teal-500/15 rounded-full filter blur-[100px] pointer-events-none"></div>
+      <div ref={blob2Ref} className="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-indigo-600/20 rounded-full filter blur-[110px] pointer-events-none"></div>
+      <div ref={blob3Ref} className="absolute bottom-10 left-1/3 w-[500px] h-[500px] bg-cyan-600/15 rounded-full filter blur-[120px] pointer-events-none"></div>
+
+      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 animate-fade-in-up relative z-10">
         {/* Header Title Row */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
@@ -130,6 +147,26 @@ const Activity = () => {
 
         {/* Table View */}
         <div className="glass-panel rounded-3xl p-6 shadow-2xl overflow-hidden">
+          {/* Show entries row */}
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+            <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
+              <span>{t("showText") || "Show"}</span>
+              <select
+                className="bg-slate-900/80 rounded-xl px-3 py-1.5 text-white text-xs focus:outline-none cursor-pointer"
+                value={entriesPerPage}
+                onChange={(e) => {
+                  setEntriesPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+              <span>{t("entriesPerPageText") || "Entries"}</span>
+            </div>
+          </div>
+
           {loading ? (
             <div className="text-center py-16">
               <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
@@ -137,13 +174,13 @@ const Activity = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b border-white/5 text-xs uppercase tracking-wider text-slate-400 font-bold">
-                    <th className="py-4 px-4">{t("colAction")}</th>
-                    <th className="py-4 px-4">{t("colDetails")}</th>
-                    <th className="py-4 px-4">{t("colUser")}</th>
-                    <th className="py-4 px-4 text-right">{t("colTime")}</th>
+                    <th className="py-4 px-4 text-left">{t("colAction")}</th>
+                    <th className="py-4 px-4 text-left">{t("colDetails")}</th>
+                    <th className="py-4 px-4 text-center">{t("colUser")}</th>
+                    <th className="py-4 px-4 text-center">{t("colTime")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5 text-sm text-slate-200">
@@ -164,18 +201,18 @@ const Activity = () => {
 
                       return (
                         <tr key={index} className="hover:bg-white/5 transition-colors">
-                          <td className="py-4 px-4">
+                          <td className="py-4 px-4 text-left">
                             <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${badgeClass}`}>
                               {t(log.action)}
                             </span>
                           </td>
-                          <td className="py-4 px-4 text-white font-medium text-xs">
+                          <td className="py-4 px-4 text-white font-medium text-xs text-left">
                             {log.details}
                           </td>
-                          <td className="py-4 px-4 text-slate-300 text-xs font-semibold">
+                          <td className="py-4 px-4 text-slate-300 text-xs font-semibold text-center">
                             👤 {log.username || t("systemAdmin")}
                           </td>
-                          <td className="py-4 px-4 text-right text-slate-400 text-xs">
+                          <td className="py-4 px-4 text-center text-slate-400 text-xs">
                             {new Date(log.created_at).toLocaleString()}
                           </td>
                         </tr>

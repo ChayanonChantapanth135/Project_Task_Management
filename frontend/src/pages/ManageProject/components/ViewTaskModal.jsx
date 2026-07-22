@@ -16,6 +16,23 @@ const ViewTaskModal = ({
   fetchProjects,
   t,
 }) => {
+  const formatTaskType = (type) => {
+    if (!type) return "";
+    if (type === "แปล") return t("taskTypeTranslate");
+    if (type === "ตัดต่อ") return t("taskTypeVideoEdit");
+    if (type === "อื่นๆ") return t("taskTypeOthers");
+    return type;
+  };
+
+  const formatPriority = (p) => {
+    if (!p) return "";
+    const lower = String(p).toLowerCase();
+    if (lower === "high") return t("priorityHigh");
+    if (lower === "medium") return t("priorityMedium");
+    if (lower === "low") return t("priorityLow");
+    return p;
+  };
+
   return (
     <Modal
       show={showViewTaskModal}
@@ -69,7 +86,7 @@ const ViewTaskModal = ({
               className="form-control bg-light rounded-lg text-muted"
               value={
                 selectedTask
-                  ? selectedTask.task_type || selectedTask.taskType || ""
+                  ? formatTaskType(selectedTask.task_type || selectedTask.taskType)
                   : ""
               }
               readOnly
@@ -103,7 +120,7 @@ const ViewTaskModal = ({
             <input
               type="text"
               className="form-control bg-light rounded-lg text-muted"
-              value={selectedTask ? selectedTask.priority || "" : ""}
+              value={selectedTask ? formatPriority(selectedTask.priority) : ""}
               readOnly
               disabled
             />
@@ -148,7 +165,7 @@ const ViewTaskModal = ({
           {/* Task Status */}
           <div className="mb-3">
             <label className="form-label small fw-bold text-muted">
-              {t("taskStatus")}
+              {t("taskStatusLabel")}
             </label>
             <select
               className="form-select rounded-lg"

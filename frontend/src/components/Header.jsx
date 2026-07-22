@@ -16,6 +16,7 @@ const Header = () => {
   const location = useLocation();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -218,6 +219,91 @@ const Header = () => {
               </Link>
             )}
           </div>
+
+          {/* Mobile Navigation Dropdown Menu */}
+          {isLoggedIn && (
+            <Dropdown align="end" className="md:hidden">
+              <Dropdown.Toggle
+                variant="link"
+                className="p-2 text-slate-300 hover:text-white rounded-xl bg-slate-800/80 hover:bg-slate-700 transition-colors focus:outline-none border-0 no-underline after:hidden shadow-none flex items-center justify-center"
+                id="dropdown-mobile-nav"
+                aria-label="Mobile Navigation Menu"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </Dropdown.Toggle>
+
+              <Dropdown.Menu className="bg-[#0f172a]/95 backdrop-blur-2xl border border-slate-800 shadow-2xl p-2 text-slate-200 mt-2 min-w-[220px] rounded-2xl">
+                <Dropdown.Item
+                  as={Link}
+                  to="/Dashboard"
+                  className={`rounded-xl px-3 py-2.5 font-bold text-sm transition-all flex items-center gap-3 no-underline ${
+                    isActive("/dashboard")
+                      ? "bg-gradient-to-r from-teal-500 to-indigo-600 text-white shadow-md"
+                      : "text-slate-200 hover:bg-slate-800/80 hover:text-white bg-transparent"
+                  }`}
+                >
+                  <span className="text-base">📊</span>
+                  <span className="whitespace-nowrap">{t("dashboard")}</span>
+                </Dropdown.Item>
+
+                {user?.role === "admin" && (
+                  <Dropdown.Item
+                    as={Link}
+                    to="/ManageUsers"
+                    className={`rounded-xl px-3 py-2.5 font-bold text-sm transition-all flex items-center gap-3 no-underline mt-1 ${
+                      isActive("/manageusers")
+                        ? "bg-gradient-to-r from-teal-500 to-indigo-600 text-white shadow-md"
+                        : "text-slate-200 hover:bg-slate-800/80 hover:text-white bg-transparent"
+                    }`}
+                  >
+                    <span className="text-base">👥</span>
+                    <span className="whitespace-nowrap">{t("manageUsers")}</span>
+                  </Dropdown.Item>
+                )}
+
+                <Dropdown.Item
+                  as={Link}
+                  to="/Projects"
+                  className={`rounded-xl px-3 py-2.5 font-bold text-sm transition-all flex items-center gap-3 no-underline mt-1 ${
+                    isActive("/projects")
+                      ? "bg-gradient-to-r from-teal-500 to-indigo-600 text-white shadow-md"
+                      : "text-slate-200 hover:bg-slate-800/80 hover:text-white bg-transparent"
+                  }`}
+                >
+                  <span className="text-base">📂</span>
+                  <span className="whitespace-nowrap">{t("projects")}</span>
+                </Dropdown.Item>
+
+                <Dropdown.Item
+                  as={Link}
+                  to="/AllTasks"
+                  className={`rounded-xl px-3 py-2.5 font-bold text-sm transition-all flex items-center gap-3 no-underline mt-1 ${
+                    isActive("/alltasks")
+                      ? "bg-gradient-to-r from-teal-500 to-indigo-600 text-white shadow-md"
+                      : "text-slate-200 hover:bg-slate-800/80 hover:text-white bg-transparent"
+                  }`}
+                >
+                  <span className="text-base">📋</span>
+                  <span className="whitespace-nowrap">{t("allTasks")}</span>
+                </Dropdown.Item>
+
+                <Dropdown.Item
+                  as={Link}
+                  to="/Reports"
+                  className={`rounded-xl px-3 py-2.5 font-bold text-sm transition-all flex items-center gap-3 no-underline mt-1 ${
+                    isActive("/reports")
+                      ? "bg-gradient-to-r from-teal-500 to-indigo-600 text-white shadow-md"
+                      : "text-slate-200 hover:bg-slate-800/80 hover:text-white bg-transparent"
+                  }`}
+                >
+                  <span className="text-base">📈</span>
+                  <span className="whitespace-nowrap">{t("reports")}</span>
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          )}
         </div>
       </div>
     </header>

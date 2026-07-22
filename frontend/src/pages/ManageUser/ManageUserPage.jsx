@@ -1,12 +1,14 @@
 import React, { useEffect, useRef } from "react";
 import Header from "../../components/Header";
-import Footer from "../../components/footer";
+import Footer from "../../components/Footer";
 import ConfirmModal from "../../components/ConfirmModal";
 import { useLanguage } from "../../lib/LanguageContext";
 import { getCurrentUser } from "../../lib/auth";
 import { useUserManagement } from "./hooks/useUserManagement";
 import UserTable from "./components/UserTable";
 import UserModal from "./components/UserModal";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 /**
  * คอมโพเนนต์หน้าจัดการผู้ใช้ของระบบ (ManageUserPage Component) - Redesigned Dark Luxe Glassmorphism Theme
@@ -15,6 +17,16 @@ const ManageUserPage = () => {
   const { t } = useLanguage();
   const userHook = useUserManagement(t);
   const fileInputRef = useRef(null);
+  const pageRef = useRef(null);
+  const blob1Ref = useRef(null);
+  const blob2Ref = useRef(null);
+  const blob3Ref = useRef(null);
+
+  useGSAP(() => {
+    gsap.to(blob1Ref.current, { x: 60, y: -40, duration: 8, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    gsap.to(blob2Ref.current, { x: -50, y: 50, duration: 10, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    gsap.to(blob3Ref.current, { x: 40, y: 30, duration: 9, repeat: -1, yoyo: true, ease: "sine.inOut" });
+  }, { scope: pageRef });
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -25,17 +37,22 @@ const ManageUserPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans selection:bg-teal-500 selection:text-white">
+    <div ref={pageRef} className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans selection:bg-teal-500 selection:text-white relative overflow-hidden">
       <Header />
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 animate-fade-in-up">
+      {/* GSAP Animated Ambient Orbs */}
+      <div ref={blob1Ref} className="absolute top-10 left-1/4 w-[450px] h-[450px] bg-teal-500/15 rounded-full filter blur-[100px] pointer-events-none"></div>
+      <div ref={blob2Ref} className="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-indigo-600/20 rounded-full filter blur-[110px] pointer-events-none"></div>
+      <div ref={blob3Ref} className="absolute bottom-10 left-1/3 w-[500px] h-[500px] bg-cyan-600/15 rounded-full filter blur-[120px] pointer-events-none"></div>
+
+      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 animate-fade-in-up relative z-10">
         {/* Header Title Row */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
             <h2 className="text-2xl md:text-3xl font-extrabold text-white flex items-center gap-3 tracking-tight">
               <span>👥</span> {t("manageUsersTitle")}
             </h2>
-            <p className="text-xs text-slate-400 mt-1">จัดการผู้ใช้งานและสิทธิ์การเข้าถึงระบบ</p>
+            <p className="text-xs text-slate-400 mt-1">{t("manageUsersDesc")}</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <a
@@ -78,6 +95,16 @@ const ManageUserPage = () => {
             />
           </div>
         </div>
+
+        {/* Sleek Custom Alert Banner */}
+        {userHook.pageSuccessMessage && (
+          <div className="mb-6 w-full py-3.5 px-5 rounded-2xl bg-[#0e3b40] text-emerald-400 text-sm font-semibold flex items-center gap-3 shadow-xl border-0 animate-fade-in-down">
+            <span className="w-4 h-4 rounded bg-emerald-500 text-slate-950 flex items-center justify-center text-[10px] font-black">
+              ✓
+            </span>
+            <span>{userHook.pageSuccessMessage}</span>
+          </div>
+        )}
 
         {/* Top Filters Block */}
         <div className="glass-panel rounded-3xl p-5 mb-8 shadow-2xl">

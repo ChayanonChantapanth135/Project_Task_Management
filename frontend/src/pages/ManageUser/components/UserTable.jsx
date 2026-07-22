@@ -59,14 +59,14 @@ const UserTable = ({
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-white/5 text-xs uppercase tracking-wider text-slate-400 font-bold">
-              <th className="py-4 px-4">{t("colUser")}</th>
-              <th className="py-4 px-4">{t("colEmail")}</th>
-              <th className="py-4 px-4">{t("colRole")}</th>
-              <th className="py-4 px-4">{t("colStatus")}</th>
-              <th className="py-4 px-4">{t("colLastLogin")}</th>
+              <th className="py-4 px-4 text-left">{t("colUser")}</th>
+              <th className="py-4 px-4 text-left">{t("colEmail")}</th>
+              <th className="py-4 px-4 text-center">{t("colRole")}</th>
+              <th className="py-4 px-4 text-center">{t("colStatus")}</th>
+              <th className="py-4 px-4 text-center">{t("colLastLogin")}</th>
               <th className="py-4 px-4 text-center w-36">{t("colManage")}</th>
             </tr>
           </thead>
@@ -78,7 +78,7 @@ const UserTable = ({
                   key={user.id}
                   className="hover:bg-white/5 transition-colors"
                 >
-                  <td className="py-4 px-4">
+                  <td className="py-4 px-4 text-left">
                     <div className="flex items-center gap-3">
                       {user.avatar ? (
                         <img
@@ -107,20 +107,20 @@ const UserTable = ({
                       </div>
                     </div>
                   </td>
-                  <td className="py-4 px-4 text-slate-400 text-xs">
+                  <td className="py-4 px-4 text-slate-400 text-xs text-left">
                     <div>{user.email}</div>
                     {user.phone && user.phone !== "-" && (
                       <div className="text-[11px] text-teal-400 font-mono mt-0.5">📞 {user.phone}</div>
                     )}
                   </td>
-                  <td className="py-4 px-4">
+                  <td className="py-4 px-4 text-center">
                     <span
                       className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${getRoleBadgeStyle(user.role)}`}
                     >
                       {user.role}
                     </span>
                   </td>
-                  <td className="py-4 px-4">
+                  <td className="py-4 px-4 text-center">
                     {user.status === "active" ? (
                       <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 text-xs font-semibold">
                         {t("activeLabel")}
@@ -131,7 +131,7 @@ const UserTable = ({
                       </span>
                     )}
                   </td>
-                  <td className="py-4 px-4 text-slate-400 text-xs">
+                  <td className="py-4 px-4 text-slate-400 text-xs text-center">
                     {user.lastLogin}
                   </td>
                   <td className="py-4 px-4 text-center w-36">
