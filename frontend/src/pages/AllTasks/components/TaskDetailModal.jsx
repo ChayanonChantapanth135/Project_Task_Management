@@ -38,7 +38,9 @@ const TaskDetailModal = ({
   const fetchComments = async () => {
     if (!selectedTask) return;
     try {
-      const response = await axios.get(`/auth/tasks/${selectedTask.id}/comments`);
+      const response = await axios.get(
+        `/auth/tasks/${selectedTask.id}/comments`,
+      );
       setComments(response.data);
     } catch (err) {
       console.error("Error fetching comments:", err);
@@ -58,7 +60,9 @@ const TaskDetailModal = ({
   const fetchStatusHistory = async () => {
     if (!selectedTask) return;
     try {
-      const response = await axios.get(`/auth/tasks/${selectedTask.id}/status-history`);
+      const response = await axios.get(
+        `/auth/tasks/${selectedTask.id}/status-history`,
+      );
       setStatusHistory(response.data);
     } catch (err) {
       console.error("Error fetching status history:", err);
@@ -72,7 +76,10 @@ const TaskDetailModal = ({
         description: selectedTask.description || "",
         taskType: selectedTask.taskType || "",
         priority: selectedTask.priority || "Medium",
-        dueDate: selectedTask.dueDate && selectedTask.dueDate !== "-" ? selectedTask.dueDate : "",
+        dueDate:
+          selectedTask.dueDate && selectedTask.dueDate !== "-"
+            ? selectedTask.dueDate
+            : "",
         assignedTo: selectedTask.assignedTo || "",
         projectId: selectedTask.projectId || "",
         status: selectedTask.status || "Pending",
@@ -161,7 +168,8 @@ const TaskDetailModal = ({
   const getStatusBadgeClass = (status) => {
     const s = String(status).toLowerCase();
     if (s === "completed") return "bg-success text-white";
-    if (s === "in progress" || s === "in_progress") return "bg-primary text-white";
+    if (s === "in progress" || s === "in_progress")
+      return "bg-primary text-white";
     if (s === "reviewing" || s === "review") return "bg-warning text-dark";
     return "bg-secondary text-white";
   };
@@ -184,7 +192,9 @@ const TaskDetailModal = ({
       <Modal.Body className="p-4" style={{ borderRadius: "1rem" }}>
         <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
           <h5 className="fw-bold mb-0 text-slate-900">
-            {isEditing ? "📝 แก้ไขข้อมูลงาน" : `🔍 ${t("taskDetailsTitle") || "Task Details"}`}
+            {isEditing
+              ? "📝 แก้ไขข้อมูลงาน"
+              : `🔍 ${t("taskDetailsTitle") || "Task Details"}`}
           </h5>
           <div className="d-flex gap-2">
             {!isEditing && (
@@ -273,14 +283,20 @@ const TaskDetailModal = ({
                   onChange={handleInputChange}
                 >
                   <option value="แปล">{t("taskTypeTranslate") || "แปล"}</option>
-                  <option value="ตัดต่อ">{t("taskTypeVideoEdit") || "ตัดต่อ"}</option>
-                  <option value="อื่นๆ">{t("taskTypeOthers") || "อื่นๆ"}</option>
+                  <option value="ตัดต่อ">
+                    {t("taskTypeVideoEdit") || "ตัดต่อ"}
+                  </option>
+                  <option value="อื่นๆ">
+                    {t("taskTypeOthers") || "อื่นๆ"}
+                  </option>
                 </select>
               ) : (
                 <input
                   type="text"
                   className="form-control bg-light rounded-lg text-muted text-sm py-2"
-                  value={selectedTask ? formatTaskType(selectedTask.taskType) : ""}
+                  value={
+                    selectedTask ? formatTaskType(selectedTask.taskType) : ""
+                  }
                   readOnly
                   disabled
                 />
@@ -306,7 +322,9 @@ const TaskDetailModal = ({
                   rows="3"
                   value={
                     selectedTask
-                      ? selectedTask.description || t("noDescription") || "No description provided."
+                      ? selectedTask.description ||
+                        t("noDescription") ||
+                        "No description provided."
                       : ""
                   }
                   readOnly
@@ -328,14 +346,18 @@ const TaskDetailModal = ({
                   onChange={handleInputChange}
                 >
                   <option value="Low">{t("priorityLow") || "Low"}</option>
-                  <option value="Medium">{t("priorityMedium") || "Medium"}</option>
+                  <option value="Medium">
+                    {t("priorityMedium") || "Medium"}
+                  </option>
                   <option value="High">{t("priorityHigh") || "High"}</option>
                 </select>
               ) : (
                 <input
                   type="text"
                   className="form-control bg-light rounded-lg text-muted text-sm py-2"
-                  value={selectedTask ? formatPriority(selectedTask.priority) : ""}
+                  value={
+                    selectedTask ? formatPriority(selectedTask.priority) : ""
+                  }
                   readOnly
                   disabled
                 />
@@ -403,13 +425,20 @@ const TaskDetailModal = ({
                 value={tempStatus}
                 onChange={(e) => setTempStatus(e.target.value)}
               >
-                <option value="Pending">{t("taskStatusPending") || "Pending"}</option>
-                <option value="In Progress">{t("taskStatusInProgress") || "In Progress"}</option>
-                <option value="Reviewing">{t("taskStatusReviewing") || "Reviewing"}</option>
-                <option value="Completed">{t("taskStatusCompleted") || "Completed"}</option>
+                <option value="Pending">
+                  {t("taskStatusPending") || "Pending"}
+                </option>
+                <option value="In Progress">
+                  {t("taskStatusInProgress") || "In Progress"}
+                </option>
+                <option value="Reviewing">
+                  {t("taskStatusReviewing") || "Reviewing"}
+                </option>
+                <option value="Completed">
+                  {t("taskStatusCompleted") || "Completed"}
+                </option>
               </select>
             </div>
-
           </div>
 
           {/* Right Column: Files, Comments, History */}
@@ -453,7 +482,10 @@ const TaskDetailModal = ({
                         >
                           📎 {file.filename}
                         </a>
-                        <span className="text-muted" style={{ fontSize: "10px" }}>
+                        <span
+                          className="text-muted"
+                          style={{ fontSize: "10px" }}
+                        >
                           โดย {file.username}
                         </span>
                       </div>
@@ -493,10 +525,18 @@ const TaskDetailModal = ({
               <div className="border rounded-xl p-2.5 bg-slate-50 max-h-[150px] overflow-y-auto d-flex flex-column gap-2.5">
                 {comments.length > 0 ? (
                   comments.map((c) => (
-                    <div key={c.id} className="text-xs pb-2 border-bottom last:border-0 last:pb-0">
+                    <div
+                      key={c.id}
+                      className="text-xs pb-2 border-bottom last:border-0 last:pb-0"
+                    >
                       <div className="d-flex justify-content-between align-items-center mb-1">
-                        <span className="fw-bold text-dark">{c.username} ({c.role})</span>
-                        <span className="text-muted" style={{ fontSize: "10px" }}>
+                        <span className="fw-bold text-dark">
+                          {c.username} ({c.role})
+                        </span>
+                        <span
+                          className="text-muted"
+                          style={{ fontSize: "10px" }}
+                        >
                           {new Date(c.created_at).toLocaleString("th-TH")}
                         </span>
                       </div>
@@ -521,9 +561,13 @@ const TaskDetailModal = ({
                 {statusHistory.length > 0 ? (
                   <div className="position-relative ps-3 border-start">
                     {statusHistory.map((h, index) => {
-                      const prevStatus = index > 0 ? statusHistory[index - 1].status : null;
+                      const prevStatus =
+                        index > 0 ? statusHistory[index - 1].status : null;
                       return (
-                        <div key={index} className="mb-3 position-relative text-xs">
+                        <div
+                          key={index}
+                          className="mb-3 position-relative text-xs"
+                        >
                           {/* Dot on the timeline */}
                           <div
                             className="position-absolute rounded-circle"
@@ -537,12 +581,17 @@ const TaskDetailModal = ({
                             }}
                           ></div>
                           <div>
-                            <span className="fw-bold text-dark">{h.username || "System"}</span>{" "}
+                            <span className="fw-bold text-dark">
+                              {h.username || "System"}
+                            </span>{" "}
                             เปลี่ยนสถานะ
                             {prevStatus ? (
                               <>
-                                {" "}จาก{" "}
-                                <span className={`badge px-2 py-0.5 rounded ${getStatusBadgeClass(prevStatus)}`}>
+                                {" "}
+                                จาก{" "}
+                                <span
+                                  className={`badge px-2 py-0.5 rounded ${getStatusBadgeClass(prevStatus)}`}
+                                >
                                   {translateStatus(prevStatus)}
                                 </span>{" "}
                                 เป็น{" "}
@@ -550,11 +599,16 @@ const TaskDetailModal = ({
                             ) : (
                               " เป็น "
                             )}
-                            <span className={`badge px-2 py-0.5 rounded ${getStatusBadgeClass(h.status)}`}>
+                            <span
+                              className={`badge px-2 py-0.5 rounded ${getStatusBadgeClass(h.status)}`}
+                            >
                               {translateStatus(h.status)}
                             </span>
                           </div>
-                          <div className="text-muted mt-1 font-mono" style={{ fontSize: "10px" }}>
+                          <div
+                            className="text-muted mt-1 font-mono"
+                            style={{ fontSize: "10px" }}
+                          >
                             {new Date(h.changed_at).toLocaleString("th-TH")}
                           </div>
                         </div>
@@ -578,7 +632,11 @@ const TaskDetailModal = ({
               type="button"
               className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 rounded-full text-xs font-bold whitespace-nowrap border border-red-500/30 transition-all shadow-sm"
               onClick={() => {
-                if (window.confirm("คุณต้องการลบงานนี้จริงหรือไม่? / Are you sure you want to delete this task?")) {
+                if (
+                  window.confirm(
+                    "คุณต้องการลบงานนี้จริงหรือไม่? / Are you sure you want to delete this task?",
+                  )
+                ) {
                   handleDeleteTask(selectedTask.id);
                 }
               }}
