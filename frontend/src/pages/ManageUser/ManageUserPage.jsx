@@ -98,7 +98,10 @@ const ManageUserPage = () => {
 
         {/* Sleek Custom Alert Banner */}
         {userHook.pageSuccessMessage && (
-          <div className="mb-6 w-full py-3.5 px-5 rounded-2xl bg-[#0e3b40] text-emerald-400 text-sm font-semibold flex items-center gap-3 shadow-xl border-0 animate-fade-in-down">
+          <div 
+            className="mb-6 w-full py-3.5 px-5 rounded-2xl bg-[#0e3b40] text-emerald-400 text-sm font-semibold flex items-center gap-3 shadow-xl border-0 animate-fade-in-down"
+            style={{ border: "none" }}
+          >
             <span className="w-4 h-4 rounded bg-emerald-500 text-slate-950 flex items-center justify-center text-[10px] font-black">
               ✓
             </span>
@@ -109,9 +112,9 @@ const ManageUserPage = () => {
         {/* Top Filters Block */}
         <div className="glass-panel rounded-3xl p-5 mb-8 shadow-2xl">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
+            <div className="relative w-full">
               <select
-                className="w-full bg-slate-800/60 hover:bg-slate-800/80 rounded-2xl py-3 px-4 text-white text-xs font-medium focus:outline-none border-0 transition-all cursor-pointer"
+                className="w-full bg-slate-800/60 hover:bg-slate-800/80 rounded-2xl py-3 pl-4 pr-10 text-white text-xs font-medium focus:outline-none border-0 transition-all cursor-pointer appearance-none"
                 value={userHook.roleFilter}
                 onChange={(e) => userHook.setRoleFilter(e.target.value)}
               >
@@ -122,10 +125,15 @@ const ManageUserPage = () => {
                 <option value="Video Editor" className="bg-slate-900">Video Editor</option>
                 <option value="Translator" className="bg-slate-900">Translator</option>
               </select>
+              <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
             </div>
-            <div>
+            <div className="relative w-full">
               <select
-                className="w-full bg-slate-800/60 hover:bg-slate-800/80 rounded-2xl py-3 px-4 text-white text-xs font-medium focus:outline-none border-0 transition-all cursor-pointer"
+                className="w-full bg-slate-800/60 hover:bg-slate-800/80 rounded-2xl py-3 pl-4 pr-10 text-white text-xs font-medium focus:outline-none border-0 transition-all cursor-pointer appearance-none"
                 value={userHook.statusFilter}
                 onChange={(e) => userHook.setStatusFilter(e.target.value)}
               >
@@ -133,6 +141,11 @@ const ManageUserPage = () => {
                 <option value="active" className="bg-slate-900">{t("activeLabel")}</option>
                 <option value="suspended" className="bg-slate-900">{t("suspendedLabel")}</option>
               </select>
+              <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
             </div>
             <div className="md:col-span-2">
               <div className="relative">

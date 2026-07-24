@@ -28,7 +28,7 @@ const ProjectCard = ({
       <div>
         {/* Status & Priority */}
         <div className="flex justify-between items-center mb-4">
-          <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${badgeClass}`}>
+          <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap inline-block ${badgeClass}`}>
             ● {statusText}
           </span>
           <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${

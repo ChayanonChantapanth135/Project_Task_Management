@@ -30,7 +30,7 @@ const CreateProjectModal = ({
         <form onSubmit={handleCreateSubmit}>
           <div className="mb-3">
             <label className="form-label small fw-bold">
-              {t("modalProjectTitle")} *
+              {t("modalProjectTitle")} <span className="text-danger">*</span>
             </label>
             <input
               type="text"
@@ -44,7 +44,7 @@ const CreateProjectModal = ({
           </div>
           <div className="mb-3">
             <label className="form-label small fw-bold">
-              {t("modalProjectPriority")}
+              {t("modalProjectPriority")} <span className="text-danger">*</span>
             </label>
             <select
               className="form-select rounded-lg"
@@ -52,6 +52,7 @@ const CreateProjectModal = ({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, priority: e.target.value }))
               }
+              required
             >
               <option value="High">High</option>
               <option value="Medium">Medium</option>
@@ -60,7 +61,7 @@ const CreateProjectModal = ({
           </div>
           <div className="mb-3">
             <label className="form-label small fw-bold">
-              {t("modalProjectEndDate")} *
+              {t("modalProjectEndDate")} <span className="text-danger">*</span>
             </label>
             <input
               type="date"
@@ -74,7 +75,7 @@ const CreateProjectModal = ({
           </div>
           <div className="mb-3">
             <label className="form-label small fw-bold">
-              {t("modalProjectTeamLeader")} *
+              {t("modalProjectTeamLeader")} <span className="text-danger">*</span>
             </label>
             <select
               className="form-select rounded-lg"

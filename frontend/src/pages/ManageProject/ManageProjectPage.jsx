@@ -102,14 +102,14 @@ const ManageProjectPage = () => {
 
         {/* Global Toast Alerts */}
         {successMessage && (
-          <div className="p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold mb-6 flex items-center gap-2 shadow-lg">
+          <div className="p-4 rounded-2xl bg-emerald-500/15 border-0 text-emerald-300 text-xs font-semibold mb-6 flex items-center gap-2 shadow-lg">
             <span>✅</span>
             <span>{successMessage}</span>
           </div>
         )}
 
         {errorMessage && (
-          <div className="p-4 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold mb-6 flex items-center gap-2 shadow-lg">
+          <div className="p-4 rounded-2xl bg-rose-500/15 border-0 text-rose-300 text-xs font-semibold mb-6 flex items-center gap-2 shadow-lg">
             <span>⚠️</span>
             <span>{errorMessage}</span>
           </div>

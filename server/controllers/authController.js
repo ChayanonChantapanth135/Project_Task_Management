@@ -39,6 +39,28 @@ function deleteOldAvatar(avatarPath) {
 // Helper to log user activity
 async function logActivity(db, userId, action, details) {
     try {
+        // Prevent duplicate inserts from concurrent/race requests within 3 seconds
+        let recentLog = [];
+        if (userId) {
+            [recentLog] = await db.query(
+                "SELECT id FROM activity_logs WHERE user_id = ? AND action = ? AND details = ? AND created_at >= NOW() - INTERVAL 3 SECOND LIMIT 1",
+                [userId, action, details]
+            );
+        } else {
+            [recentLog] = await db.query(
+                "SELECT id FROM activity_logs WHERE user_id IS NULL AND action = ? AND details = ? AND created_at >= NOW() - INTERVAL 3 SECOND LIMIT 1",
+                [action, details]
+            );
+        }
+
+        if (recentLog.length > 0) {
+            await db.query(
+                "UPDATE activity_logs SET created_at = CURRENT_TIMESTAMP WHERE id = ?",
+                [recentLog[0].id]
+            );
+            return;
+        }
+
         let lastLog = [];
         if (userId) {
             [lastLog] = await db.query(
@@ -670,6 +692,11 @@ export const createTask = async (req, res) => {
             );
         }
 
+        await db.query(
+            "INSERT INTO task_history (task_id, action, details, changed_by) VALUES (?, 'create', ?, ?)",
+            [taskId, `สร้างงาน: "${title}"`, createdBy || null]
+        );
+
         await logActivity(db, createdBy || null, 'Create Task Success', `Created task: ${title} under project ID: ${projectId}`);
         res.status(201).json({ message: 'Create Success', taskId });
     } catch (error) {
@@ -690,6 +717,14 @@ export const updateTaskStatus = async (req, res) => {
         const { title, project_id, project_name, project_creator } = taskRows[0];
 
         await db.query('UPDATE tasks SET status = ? WHERE id = ?', [status, id]);
+        await db.query(
+            "INSERT INTO task_history (task_id, action, details, changed_by) VALUES (?, 'status_change', ?, ?)",
+            [id, `เปลี่ยนสถานะเป็น "${status}"`, userId || null]
+        );
+        await db.query(
+            "INSERT INTO task_status_history (task_id, status, changed_by) VALUES (?, ?, ?)",
+            [id, status, userId || null]
+        );
         await logActivity(db, userId || null, 'Update Task Status', `Updated task "${title}" status to "${status}"`);
 
         if (project_creator && Number(project_creator) !== Number(userId)) {
@@ -703,6 +738,253 @@ export const updateTaskStatus = async (req, res) => {
         res.status(200).json({ message: 'อัปเดตสถานะสำเร็จ / Status updated successfully' });
     } catch (error) {
         console.error('Error updating task status:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const updateTask = async (req, res) => {
+    const { id } = req.params;
+    const { title, description, taskType, priority, dueDate, assignedTo, projectId, status, userId } = req.body;
+    try {
+        const db = await connectToDatabase();
+        const [oldTaskRows] = await db.query('SELECT title, description, task_type, priority, due_date, assigned_to, status FROM tasks WHERE id = ?', [id]);
+        if (oldTaskRows.length === 0) {
+            return res.status(404).json({ message: 'ไม่พบข้อมูลงาน / Task not found' });
+        }
+        const oldTask = oldTaskRows[0];
+        const oldAssignee = oldTask.assigned_to;
+        const oldTitle = oldTask.title;
+        const oldStatus = oldTask.status;
+
+        await db.query(
+            'UPDATE tasks SET title = ?, description = ?, task_type = ?, priority = ?, due_date = ?, assigned_to = ?, project_id = ?, status = ? WHERE id = ?',
+            [
+                title,
+                description || null,
+                taskType || null,
+                priority || 'Medium',
+                dueDate || null,
+                assignedTo ? Number(assignedTo) : null,
+                projectId ? Number(projectId) : null,
+                status || 'Pending',
+                id
+            ]
+        );
+
+        // Log assignee change
+        if (Number(assignedTo) !== Number(oldAssignee)) {
+            const [oldUserRows] = oldAssignee ? await db.query('SELECT username FROM users WHERE id = ?', [oldAssignee]) : [[]];
+            const [newUserRows] = assignedTo ? await db.query('SELECT username FROM users WHERE id = ?', [assignedTo]) : [[]];
+            const oldName = oldUserRows[0]?.username || 'ไม่มีผู้รับผิดชอบ';
+            const newName = newUserRows[0]?.username || 'ไม่มีผู้รับผิดชอบ';
+            await db.query(
+                "INSERT INTO task_history (task_id, action, details, changed_by) VALUES (?, 'assignee_change', ?, ?)",
+                [id, `เปลี่ยนผู้รับผิดชอบจาก "${oldName}" เป็น "${newName}"`, userId || null]
+            );
+        }
+
+        // Log status change
+        if (status && status !== oldStatus) {
+            await db.query(
+                "INSERT INTO task_history (task_id, action, details, changed_by) VALUES (?, 'status_change', ?, ?)",
+                [id, `เปลี่ยนสถานะเป็น "${status}"`, userId || null]
+            );
+            await db.query(
+                "INSERT INTO task_status_history (task_id, status, changed_by) VALUES (?, ?, ?)",
+                [id, status, userId || null]
+            );
+        }
+
+        // Log general edit details if other details changed
+        const detailsChanged = (title !== oldTask.title ||
+                                description !== oldTask.description ||
+                                taskType !== oldTask.task_type ||
+                                priority !== oldTask.priority ||
+                                (dueDate && new Date(dueDate).toISOString().split('T')[0] !== (oldTask.due_date ? new Date(oldTask.due_date).toISOString().split('T')[0] : '')));
+        if (detailsChanged) {
+            await db.query(
+                "INSERT INTO task_history (task_id, action, details, changed_by) VALUES (?, 'edit_details', ?, ?)",
+                [id, `แก้ไขรายละเอียดงาน`, userId || null]
+            );
+        }
+
+        await logActivity(db, userId || null, 'Update Task Details', `Updated task details for "${title}" (ID: ${id})`);
+
+        if (assignedTo && Number(assignedTo) !== Number(oldAssignee)) {
+            const [projRows] = await db.query('SELECT name FROM projects WHERE id = ?', [projectId]);
+            const projectName = projRows[0]?.name || `ID ${projectId}`;
+            const notifMessage = `คุณได้รับมอบหมายงานใหม่: "${title}" ในโปรเจกต์ "${projectName}"`;
+            await db.query(
+                "INSERT INTO notifications (user_id, message, read_status) VALUES (?, ?, FALSE)",
+                [Number(assignedTo), notifMessage]
+            );
+        }
+
+        res.status(200).json({ message: 'อัปเดตข้อมูลงานสำเร็จ / Task updated successfully' });
+    } catch (error) {
+        console.error('Error updating task:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const deleteTask = async (req, res) => {
+    const { id } = req.params;
+    const { userId } = req.query;
+    try {
+        const db = await connectToDatabase();
+        const [taskRows] = await db.query('SELECT title FROM tasks WHERE id = ?', [id]);
+        if (taskRows.length === 0) {
+            return res.status(404).json({ message: 'ไม่พบข้อมูลงาน / Task not found' });
+        }
+        const title = taskRows[0].title;
+
+        await db.query('UPDATE tasks SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?', [id]);
+        await logActivity(db, userId || null, 'Delete Task', `Soft deleted task "${title}" (ID: ${id})`);
+        res.status(200).json({ message: 'ลบงานสำเร็จ / Task deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting task:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const getTaskHistory = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const db = await connectToDatabase();
+        
+        // 1. Get history logs with usernames
+        const [historyRows] = await db.query(`
+            SELECT th.id, th.action, th.details, th.changed_at, u.username, u.role
+            FROM task_history th
+            LEFT JOIN users u ON th.changed_by = u.id
+            WHERE th.task_id = ?
+            ORDER BY th.changed_at DESC
+        `, [id]);
+        
+        // 2. Calculate assignee changes count
+        const [assigneeChanges] = await db.query(
+            "SELECT COUNT(*) as count FROM task_history WHERE task_id = ? AND action = 'assignee_change'",
+            [id]
+        );
+        
+        // 3. Get last editor details
+        let lastEditedBy = 'ไม่มีข้อมูล / No data';
+        let lastEditedAt = null;
+        if (historyRows.length > 0) {
+            // Find the latest edit (excluding 'create')
+            const latestEdit = historyRows.find(h => h.action !== 'create');
+            if (latestEdit) {
+                lastEditedBy = latestEdit.username ? `${latestEdit.username} (${latestEdit.role})` : 'System';
+                lastEditedAt = latestEdit.changed_at;
+            } else if (historyRows[0]) {
+                lastEditedBy = historyRows[0].username ? `${historyRows[0].username} (${historyRows[0].role})` : 'System';
+                lastEditedAt = historyRows[0].changed_at;
+            }
+        }
+        
+        res.status(200).json({
+            lastEditedBy,
+            lastEditedAt,
+            assigneeChangesCount: assigneeChanges[0]?.count || 0,
+            historyLogs: historyRows
+        });
+    } catch (error) {
+        console.error('Error fetching task history:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const getTaskComments = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const db = await connectToDatabase();
+        const [rows] = await db.query(`
+            SELECT c.id, c.comment, c.created_at, u.username, u.avatar, u.role
+            FROM comments c
+            JOIN users u ON c.user_id = u.id
+            WHERE c.task_id = ?
+            ORDER BY c.created_at ASC
+        `, [id]);
+        res.status(200).json(rows);
+    } catch (error) {
+        console.error('Error fetching comments:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const createTaskComment = async (req, res) => {
+    const { id } = req.params;
+    const { comment, userId } = req.body;
+    if (!comment) {
+        return res.status(400).json({ message: 'ความคิดเห็นไม่สามารถว่างได้ / Comment cannot be empty' });
+    }
+    try {
+        const db = await connectToDatabase();
+        await db.query(
+            "INSERT INTO comments (task_id, user_id, comment) VALUES (?, ?, ?)",
+            [id, userId, comment]
+        );
+        res.status(201).json({ message: 'บันทึกความคิดเห็นสำเร็จ / Comment created successfully' });
+    } catch (error) {
+        console.error('Error creating comment:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const getTaskFiles = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const db = await connectToDatabase();
+        const [rows] = await db.query(`
+            SELECT f.id, f.filename, f.filepath, f.created_at, u.username, u.role
+            FROM files f
+            JOIN users u ON f.uploaded_by = u.id
+            WHERE f.task_id = ?
+            ORDER BY f.created_at DESC
+        `, [id]);
+        res.status(200).json(rows);
+    } catch (error) {
+        console.error('Error fetching files:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const uploadTaskFile = async (req, res) => {
+    const { id } = req.params;
+    const { uploadedBy } = req.body;
+    if (!req.file) {
+        return res.status(400).json({ message: 'กรุณาเลือกไฟล์ที่ต้องการอัปโหลด / Please select a file' });
+    }
+    try {
+        const db = await connectToDatabase();
+        const filename = req.file.originalname;
+        const filepath = `/uploads/${req.file.filename}`;
+        
+        await db.query(
+            "INSERT INTO files (task_id, filename, filepath, uploaded_by) VALUES (?, ?, ?, ?)",
+            [id, filename, filepath, uploadedBy || null]
+        );
+        res.status(201).json({ message: 'อัปโหลดไฟล์สำเร็จ / File uploaded successfully', filepath });
+    } catch (error) {
+        console.error('Error uploading task file:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const getTaskStatusHistory = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const db = await connectToDatabase();
+        const [rows] = await db.query(`
+            SELECT tsh.status, tsh.changed_at, u.username, u.role
+            FROM task_status_history tsh
+            LEFT JOIN users u ON tsh.changed_by = u.id
+            WHERE tsh.task_id = ?
+            ORDER BY tsh.changed_at ASC
+        `, [id]);
+        res.status(200).json(rows);
+    } catch (error) {
+        console.error('Error fetching status history:', error.message);
         res.status(500).json({ message: error.message });
     }
 };
@@ -798,7 +1080,6 @@ export const getActivityLogs = async (req, res) => {
             FROM activity_logs al
             LEFT JOIN users u ON al.user_id = u.id
             ORDER BY al.created_at DESC
-            LIMIT 100
         `);
         res.status(200).json(rows);
     } catch (error) {

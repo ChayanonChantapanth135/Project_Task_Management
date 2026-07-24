@@ -1,5 +1,5 @@
 import express from 'express';
-import { upload } from '../middleware/authMiddleware.js';
+import { upload, uploadTaskFileMiddleware } from '../middleware/authMiddleware.js';
 import * as authCtrl from '../controllers/authController.js';
 
 const router = express.Router();
@@ -29,6 +29,14 @@ router.delete('/projects/:id', authCtrl.deleteProject);
 
 router.post('/tasks', authCtrl.createTask);
 router.put('/tasks/:id/status', authCtrl.updateTaskStatus);
+router.put('/tasks/:id', authCtrl.updateTask);
+router.delete('/tasks/:id', authCtrl.deleteTask);
+router.get('/tasks/:id/history', authCtrl.getTaskHistory);
+router.get('/tasks/:id/comments', authCtrl.getTaskComments);
+router.post('/tasks/:id/comments', authCtrl.createTaskComment);
+router.get('/tasks/:id/files', authCtrl.getTaskFiles);
+router.post('/tasks/:id/files', uploadTaskFileMiddleware.single('file'), authCtrl.uploadTaskFile);
+router.get('/tasks/:id/status-history', authCtrl.getTaskStatusHistory);
 
 // --- DASHBOARD & LOGS ROUTES ---
 router.get('/dashboard-stats', authCtrl.getDashboardStats);

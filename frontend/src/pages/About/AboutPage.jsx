@@ -99,7 +99,7 @@ const AboutPage = () => {
         <div className="glass-panel rounded-3xl p-8 md:p-12 mb-10 shadow-2xl relative overflow-hidden text-center flex flex-col items-center">
           <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
           <div className="relative z-10 max-w-3xl flex flex-col items-center">
-            <span className="inline-block px-3.5 py-1.5 rounded-full bg-teal-500/20 text-teal-300 text-xs font-extrabold tracking-wider mb-4 border border-teal-500/30 uppercase">
+            <span className="inline-block px-3.5 py-1.5 rounded-full bg-teal-500/20 text-teal-300 text-xs font-extrabold tracking-wider mb-4 uppercase">
               🚀 {t("aboutTitle")}
             </span>
             <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4 tracking-tight">

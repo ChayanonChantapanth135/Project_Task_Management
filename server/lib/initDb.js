@@ -179,6 +179,20 @@ export const initializeDatabase = async () => {
       )
     `)
 
+    // 10.5 Create task_history table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS task_history (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        task_id INT NOT NULL,
+        action VARCHAR(100) NOT NULL,
+        details TEXT NULL,
+        changed_by INT NULL,
+        changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+        FOREIGN KEY (changed_by) REFERENCES users(id) ON DELETE SET NULL
+      )
+    `)
+
     // 11. Create user_settings table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS user_settings (
@@ -215,6 +229,8 @@ export const initializeDatabase = async () => {
       "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS task_type VARCHAR(50) DEFAULT NULL",
       "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS priority ENUM('Low', 'Medium', 'High') DEFAULT 'Medium'",
       "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS due_date DATE DEFAULT NULL",
+      "ALTER TABLE files ADD COLUMN IF NOT EXISTS task_id INT NULL",
+      "ALTER TABLE comments ADD COLUMN IF NOT EXISTS task_id INT NULL",
     ]
     for (const q of alterQueries) {
       try { await connection.query(q) } catch (e) { /* ignore if column already exists */ }

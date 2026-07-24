@@ -9,7 +9,7 @@ import Profile from "./pages/Profile";
 import MyTask from "./pages/MyTasks";
 import ManageUsers from "./pages/ManageUser/ManageUserPage";
 import Projects from "./pages/ManageProject/ManageProjectPage";
-import AllTasks from "./pages/AllTasks";
+import AllTasks from "./pages/AllTasks/AllTasksPage";
 import Reports from "./pages/Reports";
 import About from "./pages/About/AboutPage";
 import Contract from "./pages/Contract/ContractPage";

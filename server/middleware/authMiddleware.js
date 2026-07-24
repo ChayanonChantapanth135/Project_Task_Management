@@ -30,6 +30,22 @@ export const upload = multer({
     }
 });
 
+// Configure multer storage for task attachments
+const taskFileStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, path.join(__dirname, '../uploads'));
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        cb(null, 'taskfile-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+export const uploadTaskFileMiddleware = multer({
+    storage: taskFileStorage,
+    limits: { fileSize: 10 * 1024 * 1024 } // 10MB max
+});
+
 // Middleware to verify JWT token
 export const verifyToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];

@@ -35,7 +35,7 @@ const RecentActivity = ({ t, recentActivities }) => {
               </div>
               <span className="text-xs text-slate-500 font-medium whitespace-nowrap ml-2">
                 {activity.created_at
-                  ? new Date(activity.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  ? new Date(activity.created_at).toLocaleString()
                   : activity.time || ""}
               </span>
             </div>

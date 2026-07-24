@@ -30,7 +30,7 @@ const EditProjectModal = ({
         <form onSubmit={handleEditSubmit}>
           <div className="mb-3">
             <label className="form-label small fw-bold">
-              {t("modalProjectTitle")} *
+              {t("modalProjectTitle")} <span className="text-danger">*</span>
             </label>
             <input
               type="text"
@@ -44,7 +44,7 @@ const EditProjectModal = ({
           </div>
           <div className="mb-3">
             <label className="form-label small fw-bold">
-              {t("modalProjectStatus")}
+              {t("modalProjectStatus")} <span className="text-danger">*</span>
             </label>
             <select
               className="form-select rounded-lg"
@@ -55,6 +55,7 @@ const EditProjectModal = ({
                   status: e.target.value,
                 }))
               }
+              required
             >
               <option value="pending">{t("pending")}</option>
               <option value="in_progress">{t("inProgress")}</option>
@@ -64,7 +65,7 @@ const EditProjectModal = ({
           </div>
           <div className="mb-3">
             <label className="form-label small fw-bold">
-              {t("modalProjectPriority")}
+              {t("modalProjectPriority")} <span className="text-danger">*</span>
             </label>
             <select
               className="form-select rounded-lg"
@@ -75,6 +76,7 @@ const EditProjectModal = ({
                   priority: e.target.value,
                 }))
               }
+              required
             >
               <option value="High">High</option>
               <option value="Medium">Medium</option>
@@ -83,7 +85,7 @@ const EditProjectModal = ({
           </div>
           <div className="mb-3">
             <label className="form-label small fw-bold">
-              {t("modalProjectEndDate")} *
+              {t("modalProjectEndDate")} <span className="text-danger">*</span>
             </label>
             <input
               type="date"
@@ -100,7 +102,7 @@ const EditProjectModal = ({
           </div>
           <div className="mb-3">
             <label className="form-label small fw-bold">
-              {t("modalProjectTeamLeader")} *
+              {t("modalProjectTeamLeader")} <span className="text-danger">*</span>
             </label>
             <select
               className="form-select rounded-lg"

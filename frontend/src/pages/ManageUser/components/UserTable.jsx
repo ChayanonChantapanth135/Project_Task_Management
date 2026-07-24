@@ -72,7 +72,7 @@ const UserTable = ({
           </thead>
           <tbody className="divide-y divide-white/5 text-sm text-slate-200">
             {currentEntries.map((user) => {
-              const isSelf = currentUser && currentUser.email === user.email;
+              const isSelf = currentUser && (Number(currentUser.id) === Number(user.id) || currentUser.email?.toLowerCase() === user.email?.toLowerCase());
               return (
                 <tr
                   key={user.id}
@@ -143,14 +143,18 @@ const UserTable = ({
                         ✏️
                       </button>
                       <button
-                        className={`p-2 rounded-xl transition-colors ${user.status === "suspended" ? "bg-emerald-500/20 text-emerald-300 hover:scale-110" : "bg-amber-500/20 text-amber-300 hover:scale-110"}`}
-                        onClick={() => handleToggleStatus(user)}
+                        disabled={isSelf}
+                        className={`p-2 rounded-xl transition-colors ${isSelf ? "opacity-30 cursor-not-allowed" : (user.status === "suspended" ? "bg-emerald-500/20 text-emerald-300 hover:scale-110" : "bg-amber-500/20 text-amber-300 hover:scale-110")}`}
+                        onClick={() => !isSelf && handleToggleStatus(user)}
+                        title={isSelf ? (t("cannotSuspendSelf") || "ไม่สามารถระงับสิทธิ์ตัวเองได้") : ""}
                       >
                         {user.status === "suspended" ? "🔓" : "⏸️"}
                       </button>
                       <button
-                        className="p-2 rounded-xl bg-rose-500/20 text-rose-300 transition-colors hover:scale-110"
-                        onClick={() => handleDeleteUser(user)}
+                        disabled={isSelf}
+                        className={`p-2 rounded-xl bg-rose-500/20 text-rose-300 transition-colors ${isSelf ? "opacity-30 cursor-not-allowed" : "hover:scale-110"}`}
+                        onClick={() => !isSelf && handleDeleteUser(user)}
+                        title={isSelf ? (t("cannotDeleteSelf") || "ไม่สามารถลบตัวเองได้") : ""}
                       >
                         🗑️
                       </button>

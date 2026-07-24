@@ -10,7 +10,7 @@ const TechStackGrid = ({ techStack, t }) => {
         {techStack.map((tech, idx) => (
           <div
             key={idx}
-            className="bg-slate-900/70 hover:bg-slate-800 rounded-2xl p-4 text-center border border-slate-700/50 transition-all hover:scale-105"
+            className="bg-slate-900/70 hover:bg-slate-800 rounded-2xl p-4 text-center transition-all hover:scale-105"
           >
             <div className="text-2xl mb-2">{tech.icon}</div>
             <div className="text-sm font-bold text-white">{tech.name}</div>

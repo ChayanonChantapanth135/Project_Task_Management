@@ -1,5 +1,6 @@
 import React from "react";
 import { Modal } from "react-bootstrap";
+import SearchableUserSelect from "../../../components/SearchableUserSelect";
 
 const AddTaskModal = ({
   showAddTaskModal,
@@ -44,7 +45,7 @@ const AddTaskModal = ({
           {/* Title / Task Name */}
           <div className="mb-3">
             <label className="form-label small fw-bold">
-              {t("taskNameLabel")} *
+              {t("taskNameLabel")} <span className="text-danger">*</span>
             </label>
             <input
               type="text"
@@ -64,7 +65,7 @@ const AddTaskModal = ({
           {/* Task Type */}
           <div className="mb-3">
             <label className="form-label small fw-bold">
-              {t("taskTypeLabel")}
+              {t("taskTypeLabel")} <span className="text-danger">*</span>
             </label>
             <select
               className="form-select rounded-lg"
@@ -75,6 +76,7 @@ const AddTaskModal = ({
                   taskType: e.target.value,
                 }))
               }
+              required
             >
               <option value="แปล">{t("taskTypeTranslate")}</option>
               <option value="ตัดต่อ">{t("taskTypeVideoEdit")}</option>
@@ -86,7 +88,7 @@ const AddTaskModal = ({
           {taskFormData.taskType === "อื่นๆ" && (
             <div className="mb-3">
               <label className="form-label small fw-bold">
-                {t("customTaskTypeLabel")}
+                {t("customTaskTypeLabel")} <span className="text-danger">*</span>
               </label>
               <input
                 type="text"
@@ -126,7 +128,7 @@ const AddTaskModal = ({
           {/* Priority */}
           <div className="mb-3">
             <label className="form-label small fw-bold">
-              {t("taskPriorityLabel")}
+              {t("taskPriorityLabel")} <span className="text-danger">*</span>
             </label>
             <select
               className="form-select rounded-lg"
@@ -137,6 +139,7 @@ const AddTaskModal = ({
                   priority: e.target.value,
                 }))
               }
+              required
             >
               <option value="High">{t("priorityHigh")}</option>
               <option value="Medium">{t("priorityMedium")}</option>
@@ -147,7 +150,7 @@ const AddTaskModal = ({
           {/* Due Date */}
           <div className="mb-3">
             <label className="form-label small fw-bold">
-              {t("taskDueDateLabel")}
+              {t("taskDueDateLabel")} <span className="text-danger">*</span>
             </label>
             <input
               type="date"
@@ -159,16 +162,17 @@ const AddTaskModal = ({
                   dueDate: e.target.value,
                 }))
               }
+              required
             />
           </div>
 
           {/* Assignee */}
           <div className="mb-3">
             <label className="form-label small fw-bold">
-              {t("taskAssigneeLabel")} *
+              {t("taskAssigneeLabel")} <span className="text-danger">*</span>
             </label>
-            <select
-              className="form-select rounded-lg"
+            <SearchableUserSelect
+              users={users}
               value={taskFormData.assignedTo}
               onChange={(e) =>
                 setTaskFormData((prev) => ({
@@ -176,37 +180,10 @@ const AddTaskModal = ({
                   assignedTo: e.target.value,
                 }))
               }
+              allowedRoles={["team_leader", "translator", "video_editor"]}
+              placeholder={`-- ${t("selectAssignee")} --`}
               required
-            >
-              <option value="">-- {t("selectAssignee")} --</option>
-              <optgroup label="👑 Team Leader">
-                {users
-                  .filter((u) => u.role === "team_leader")
-                  .map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.username}
-                    </option>
-                  ))}
-              </optgroup>
-              <optgroup label="🗣️ Translator">
-                {users
-                  .filter((u) => u.role === "translator")
-                  .map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.username}
-                    </option>
-                  ))}
-              </optgroup>
-              <optgroup label="🎬 Video Editor">
-                {users
-                  .filter((u) => u.role === "video_editor")
-                  .map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.username}
-                    </option>
-                  ))}
-              </optgroup>
-            </select>
+            />
           </div>
 
           <div className="d-flex justify-content-end gap-2 pt-3 border-top mt-4">

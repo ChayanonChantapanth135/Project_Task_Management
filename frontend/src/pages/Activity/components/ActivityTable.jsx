@@ -27,9 +27,9 @@ const ActivityTable = ({
               setCurrentPage(1);
             }}
           >
-            <option value={10}>10</option>
-            <option value={25}>25</option>
+            <option value={20}>20</option>
             <option value={50}>50</option>
+            <option value={100}>100</option>
           </select>
           <span>{t("entriesPerPageText") || "Entries"}</span>
         </div>
@@ -38,7 +38,9 @@ const ActivityTable = ({
       {loading ? (
         <div className="text-center py-16">
           <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-slate-400 text-xs mt-3">{t("loadingActivities")}</p>
+          <p className="text-slate-400 text-xs mt-3">
+            {t("loadingActivities")}
+          </p>
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -68,9 +70,14 @@ const ActivityTable = ({
                     badgeClass = "bg-slate-700 text-slate-300";
 
                   return (
-                    <tr key={index} className="hover:bg-white/5 transition-colors">
+                    <tr
+                      key={index}
+                      className="hover:bg-white/5 transition-colors"
+                    >
                       <td className="py-4 px-4 text-left">
-                        <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${badgeClass}`}>
+                        <span
+                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap inline-block ${badgeClass}`}
+                        >
                           {t(log.action)}
                         </span>
                       </td>
@@ -90,7 +97,9 @@ const ActivityTable = ({
                 <tr>
                   <td colSpan="4" className="text-center py-12 text-slate-500">
                     <div className="text-4xl mb-2">📂</div>
-                    <p className="text-sm font-semibold">{t("noActivitiesFound")}</p>
+                    <p className="text-sm font-semibold">
+                      {t("noActivitiesFound")}
+                    </p>
                   </td>
                 </tr>
               )}
@@ -103,7 +112,10 @@ const ActivityTable = ({
       {!loading && totalPages > 1 && (
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-white/5 text-xs text-slate-400">
           <span>
-            {t("showingText") || "แสดง"} {indexOfFirstEntry + 1} - {Math.min(indexOfLastEntry, filteredLogs.length)} {t("ofText") || "จาก"} {filteredLogs.length} {t("entriesText") || "รายการ"}
+            {t("showingText") || "แสดง"} {indexOfFirstEntry + 1} -{" "}
+            {Math.min(indexOfLastEntry, filteredLogs.length)}{" "}
+            {t("ofText") || "จาก"} {filteredLogs.length}{" "}
+            {t("entriesText") || "รายการ"}
           </span>
 
           <div className="flex items-center gap-2">
@@ -120,7 +132,9 @@ const ActivityTable = ({
             <button
               disabled={currentPage === totalPages}
               className="px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 disabled:opacity-40 transition-colors"
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
             >
               {t("nextText") || "ถัดไป"}
             </button>

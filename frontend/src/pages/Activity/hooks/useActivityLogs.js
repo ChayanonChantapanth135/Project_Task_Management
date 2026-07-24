@@ -7,7 +7,7 @@ export const useActivityLogs = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [actionFilter, setActionFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [entriesPerPage, setEntriesPerPage] = useState(20);
 
   const fetchLogs = async () => {
     setLoading(true);

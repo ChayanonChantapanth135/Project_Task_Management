@@ -68,7 +68,7 @@ const ProjectTable = ({
                         statusText = t("statusReview");
                       }
                       return (
-                        <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${badgeClass}`}>
+                        <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap inline-block ${badgeClass}`}>
                           ● {statusText}
                         </span>
                       );

@@ -100,7 +100,7 @@ const ContractPage = () => {
         <div className="glass-panel rounded-3xl p-8 md:p-12 mb-10 shadow-2xl relative overflow-hidden text-center flex flex-col items-center">
           <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
           <div className="relative z-10 max-w-3xl flex flex-col items-center">
-            <span className="inline-block px-3.5 py-1.5 rounded-full bg-cyan-500/20 text-cyan-300 text-xs font-extrabold tracking-wider mb-4 border border-cyan-500/30 uppercase">
+            <span className="inline-block px-3.5 py-1.5 rounded-full bg-cyan-500/20 text-cyan-300 text-xs font-extrabold tracking-wider mb-4 uppercase">
               📞 {t("contractTitle")}
             </span>
             <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4 tracking-tight">
@@ -114,7 +114,10 @@ const ContractPage = () => {
 
         {/* Success Alert Toast */}
         {submitted && (
-          <div className="mb-8 w-full py-4 px-6 rounded-2xl bg-[#0e3b40] text-emerald-400 text-sm font-semibold flex items-center gap-3 shadow-xl border-0 animate-fade-in-down">
+          <div 
+            className="mb-8 w-full py-4 px-6 rounded-2xl bg-[#0e3b40] text-emerald-400 text-sm font-semibold flex items-center gap-3 shadow-xl border-0 animate-fade-in-down"
+            style={{ border: "none" }}
+          >
             <span className="w-5 h-5 rounded bg-emerald-500 text-slate-950 flex items-center justify-center text-xs font-black">
               ✓
             </span>
