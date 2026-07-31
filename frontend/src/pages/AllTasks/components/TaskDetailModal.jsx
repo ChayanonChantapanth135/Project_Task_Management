@@ -486,7 +486,7 @@ const TaskDetailModal = ({
                           className="text-muted"
                           style={{ fontSize: "10px" }}
                         >
-                          โดย {file.username}
+                          โดย {file.fullname || file.username}
                         </span>
                       </div>
                     ))}
@@ -531,7 +531,7 @@ const TaskDetailModal = ({
                     >
                       <div className="d-flex justify-content-between align-items-center mb-1">
                         <span className="fw-bold text-dark">
-                          {c.username} ({c.role})
+                          {c.fullname || c.username} ({c.role})
                         </span>
                         <span
                           className="text-muted"
@@ -582,7 +582,7 @@ const TaskDetailModal = ({
                           ></div>
                           <div>
                             <span className="fw-bold text-dark">
-                              {h.username || "System"}
+                              {h.fullname || h.username || "System"}
                             </span>{" "}
                             เปลี่ยนสถานะ
                             {prevStatus ? (

@@ -380,7 +380,7 @@ const ViewTaskModal = ({
                           📎 {file.filename}
                         </a>
                         <span className="text-muted" style={{ fontSize: "10px" }}>
-                          โดย {file.username}
+                          โดย {file.fullname || file.username}
                         </span>
                       </div>
                     ))}
@@ -421,7 +421,7 @@ const ViewTaskModal = ({
                   comments.map((c) => (
                     <div key={c.id} className="text-xs pb-2 border-bottom last:border-0 last:pb-0">
                       <div className="d-flex justify-content-between align-items-center mb-1">
-                        <span className="fw-bold text-dark">{c.username} ({c.role})</span>
+                        <span className="fw-bold text-dark">{c.fullname || c.username} ({c.role})</span>
                         <span className="text-muted" style={{ fontSize: "10px" }}>
                           {new Date(c.created_at).toLocaleString("th-TH")}
                         </span>
@@ -463,7 +463,7 @@ const ViewTaskModal = ({
                             }}
                           ></div>
                           <div>
-                            <span className="fw-bold text-dark">{h.username || "System"}</span>{" "}
+                            <span className="fw-bold text-dark">{h.fullname || h.username || "System"}</span>{" "}
                             เปลี่ยนสถานะ
                             {prevStatus ? (
                               <>

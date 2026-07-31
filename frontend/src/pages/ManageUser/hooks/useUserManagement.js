@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 // นำเข้า API_URL สำหรับใช้ต่อคำนำหน้าของรูปภาพโปรไฟล์ (Avatar) แบบไดนามิก
 import { API_URL } from "../../../config";
 
@@ -52,7 +54,7 @@ export const useUserManagement = (t) => {
     try {
       const response = await axios.get("/auth/users");
       const mappedUsers = response.data.map((u) => {
-        const name = u.username || "User";
+        const name = u.fullname || "User";
         const initials =
           name
             .split(" ")
@@ -170,7 +172,7 @@ export const useUserManagement = (t) => {
     setModalSuccess("");
 
     const data = new FormData();
-    data.append("username", `${formData.firstName} ${formData.lastName}`.trim());
+    data.append("fullname", `${formData.firstName} ${formData.lastName}`.trim());
     data.append("email", formData.email);
     if (formData.password) {
       data.append("password", formData.password);
@@ -214,7 +216,7 @@ export const useUserManagement = (t) => {
     const nextStatus = selectedUserForStatus.status === "active" ? "suspended" : "active";
     try {
       await axios.put(`/auth/users/${selectedUserForStatus.id}`, {
-        username: selectedUserForStatus.name,
+        fullname: selectedUserForStatus.name,
         email: selectedUserForStatus.email,
         role: selectedUserForStatus.role,
         status: nextStatus,
@@ -247,48 +249,85 @@ export const useUserManagement = (t) => {
     }
   };
 
-  // ฟังก์ชันอ่านและตรวจสอบไฟล์ CSV ก่อนนำเข้า
-  const handleImportCSV = async (file) => {
+  // ฟังก์ชันอ่านและตรวจสอบไฟล์ CSV หรือ Excel ก่อนนำเข้า
+  const handleImportFile = async (file) => {
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const text = e.target.result;
-      const lines = text.split(/\r?\n/);
-      if (lines.length <= 1) {
-        alert(t("importFailed") + " (Empty file)");
-        return;
-      }
+    const fileExtension = file.name.split(".").pop().toLowerCase();
 
-      // ดึงรายชื่อ Header คอลัมน์จากแถวแรกสุด
-      const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
-      const parsedUsers = [];
+    if (fileExtension === "xlsx" || fileExtension === "xls") {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: "array" });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
-      // วนลูปอ่านข้อมูลผู้ใช้แต่ละแถว
-      for (let i = 1; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-        const columns = line.split(",").map((c) => c.trim().replace(/^["']|["']$/g, ""));
-        if (columns.length < headers.length) continue;
+          if (jsonData.length === 0) {
+            alert(t("importFailed") + " (Empty file)");
+            return;
+          }
 
-        const userObj = {};
-        headers.forEach((header, idx) => {
-          userObj[header] = columns[idx] || "";
-        });
-        parsedUsers.push(userObj);
-      }
+          // Map properties to lowercase keys
+          const parsedUsers = jsonData.map((row) => {
+            const userObj = {};
+            Object.entries(row).forEach(([key, val]) => {
+              userObj[key.trim().toLowerCase()] = String(val).trim();
+            });
+            return userObj;
+          });
 
-      if (parsedUsers.length === 0) {
-        alert(t("importFailed") + " (No valid rows)");
-        return;
-      }
+          setImportUsersList(parsedUsers);
+          setImportFileName(file.name);
+          setShowImportConfirm(true);
+        } catch (err) {
+          console.error("Error parsing Excel:", err);
+          alert((t("importFailed") || "Import failed") + " (Invalid Excel file)");
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const text = e.target.result;
+        const lines = text.split(/\r?\n/);
+        if (lines.length <= 1) {
+          alert(t("importFailed") + " (Empty file)");
+          return;
+        }
 
-      // เก็บข้อมูลที่ประมวลผลได้ลง State และเปิดป๊อปอัปยืนยันการนำเข้า
-      setImportUsersList(parsedUsers);
-      setImportFileName(file.name);
-      setShowImportConfirm(true);
-    };
-    reader.readAsText(file);
+        // ดึงรายชื่อ Header คอลัมน์จากแถวแรกสุด
+        const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+        const parsedUsers = [];
+
+        // วนลูปอ่านข้อมูลผู้ใช้แต่ละแถว
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+          const columns = line.split(",").map((c) => c.trim().replace(/^["']|["']$/g, ""));
+          if (columns.length < headers.length) continue;
+
+          const userObj = {};
+          headers.forEach((header, idx) => {
+            userObj[header] = columns[idx] || "";
+          });
+          parsedUsers.push(userObj);
+        }
+
+        if (parsedUsers.length === 0) {
+          alert(t("importFailed") + " (No valid rows)");
+          return;
+        }
+
+        // เก็บข้อมูลที่ประมวลผลได้ลง State และเปิดป๊อปอัปยืนยันการนำเข้า
+        setImportUsersList(parsedUsers);
+        setImportFileName(file.name);
+        setShowImportConfirm(true);
+      };
+      reader.readAsText(file);
+    }
   };
 
   // ฟังก์ชันกดยืนยันการนำเข้าและส่งข้อมูลไปยังหลังบ้านเพื่อบันทึก
@@ -315,42 +354,79 @@ export const useUserManagement = (t) => {
     }
   };
 
-  // ฟังก์ชันส่งออกรายชื่อผู้ใช้ทั้งหมดเป็นไฟล์ CSV
-  const handleExportCSV = () => {
+  // ฟังก์ชันส่งออกรายชื่อผู้ใช้ทั้งหมดเป็นไฟล์ Excel (.xlsx)
+  const handleExportExcel = async () => {
     if (users.length === 0) {
       alert("No users to export");
       return;
     }
 
-    // ส่วนหัวของไฟล์ CSV ตามรูปแบบตัวอย่าง
-    const csvHeaders = "username,email,role,status\n";
-    const csvRows = users.map(u => {
-      // แปลงชื่อบทบาทการแสดงผลกลับเป็นรหัสบทบาทตัวพิมพ์เล็กสำหรับเก็บข้อมูล
-      let rawRole = "user";
-      if (u.role === "Admin") rawRole = "admin";
-      else if (u.role === "Project Manager") rawRole = "manager";
-      else if (u.role === "Team Leader") rawRole = "team_leader";
-      else if (u.role === "Video Editor") rawRole = "video_editor";
-      else if (u.role === "Translator") rawRole = "translator";
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Users");
 
-      const name = `"${(u.name || '').replace(/"/g, '""')}"`;
-      const email = `"${(u.email || '').replace(/"/g, '""')}"`;
-      const role = `"${rawRole}"`;
-      const status = `"${u.status || 'active'}"`;
-      
-      return `${name},${email},${role},${status}`;
-    }).join("\n");
+      // Define columns
+      worksheet.columns = [
+        { header: "fullname", key: "fullname", width: 25 },
+        { header: "email", key: "email", width: 30 },
+        { header: "role", key: "role", width: 15 },
+        { header: "status", key: "status", width: 15 },
+      ];
 
-    // ใส่ BOM เพื่อให้เปิดโปรแกรม Microsoft Excel แล้วอักษรไทยไม่เพี้ยน
-    const csvContent = "\uFEFF" + csvHeaders + csvRows;
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `users_export_${Date.now()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      // Add user rows
+      users.forEach((u) => {
+        let rawRole = "user";
+        if (u.role === "Admin") rawRole = "admin";
+        else if (u.role === "Project Manager") rawRole = "manager";
+        else if (u.role === "Team Leader") rawRole = "team_leader";
+        else if (u.role === "Video Editor") rawRole = "video_editor";
+        else if (u.role === "Translator") rawRole = "translator";
+
+        worksheet.addRow({
+          fullname: u.name || "",
+          email: u.email || "",
+          role: rawRole,
+          status: u.status || "active",
+        });
+      });
+
+      // Define role options & status options
+      const roleOptions = ["admin", "manager", "team_leader", "video_editor", "translator", "user"];
+      const statusOptions = ["active", "suspended"];
+
+      // Add dropdown validation for rows 2 to 100
+      worksheet.dataValidations.add("C2:C100", {
+        type: "list",
+        allowBlank: true,
+        formulae: [`"${roleOptions.join(",")}"`],
+        showErrorMessage: true,
+        errorTitle: "Invalid Role",
+        error: "Please select a role from the dropdown list."
+      });
+
+      worksheet.dataValidations.add("D2:D100", {
+        type: "list",
+        allowBlank: true,
+        formulae: [`"${statusOptions.join(",")}"`],
+        showErrorMessage: true,
+        errorTitle: "Invalid Status",
+        error: "Please select a status from the dropdown list."
+      });
+
+      // Write to buffer and trigger download
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `users_export_${Date.now()}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Error exporting Excel with ExcelJS:", error);
+      alert("Failed to export Excel file");
+    }
   };
 
   // Filtered Users computation
@@ -419,9 +495,9 @@ export const useUserManagement = (t) => {
     handleStatusConfirm,
     handleDeleteUser,
     handleDeleteConfirm,
-    handleImportCSV,
+    handleImportFile,
     handleImportConfirm,
-    handleExportCSV,
+    handleExportExcel,
     filteredUsers,
   };
 };

@@ -121,7 +121,7 @@ const EditProjectModal = ({
                   .filter((u) => u.role === "team_leader" || (!u.role && teamLeaders.some((tl) => tl.id === u.id)))
                   .map((leader) => (
                     <option key={leader.id} value={leader.id}>
-                      {leader.username}
+                      {leader.fullname || leader.username}
                     </option>
                   ))}
               </optgroup>
@@ -131,7 +131,7 @@ const EditProjectModal = ({
                     .filter((u) => u.role === "translator")
                     .map((leader) => (
                       <option key={leader.id} value={leader.id}>
-                        {leader.username}
+                        {leader.fullname || leader.username}
                       </option>
                     ))}
                 </optgroup>
@@ -142,7 +142,7 @@ const EditProjectModal = ({
                     .filter((u) => u.role === "video_editor")
                     .map((leader) => (
                       <option key={leader.id} value={leader.id}>
-                        {leader.username}
+                        {leader.fullname || leader.username}
                       </option>
                     ))}
                 </optgroup>

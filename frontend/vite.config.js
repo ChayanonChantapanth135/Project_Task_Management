@@ -10,4 +10,7 @@ const root = dirname(fileURLToPath(import.meta.url))
 export default defineConfig({
   root,
   plugins: [react(), tailwindcss()],
+  define: {
+    "process.env": {},
+  },
 })

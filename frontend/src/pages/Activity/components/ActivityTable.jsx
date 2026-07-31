@@ -85,7 +85,7 @@ const ActivityTable = ({
                         {log.details}
                       </td>
                       <td className="py-4 px-4 text-slate-300 text-xs font-semibold text-center">
-                        👤 {log.username || t("systemAdmin")}
+                        👤 {log.fullname || log.username || t("systemAdmin")}
                       </td>
                       <td className="py-4 px-4 text-center text-slate-400 text-xs">
                         {new Date(log.created_at).toLocaleString()}

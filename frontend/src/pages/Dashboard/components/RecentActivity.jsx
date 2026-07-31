@@ -29,7 +29,7 @@ const RecentActivity = ({ t, recentActivities }) => {
             >
               <div>
                 <p className="font-bold text-white text-sm">
-                  {activity.username || activity.user || "System"}
+                  {activity.fullname || activity.username || activity.user || "System"}
                 </p>
                 <p className="text-xs text-slate-400 mt-0.5">{t(activity.action)}</p>
               </div>

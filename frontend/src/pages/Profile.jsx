@@ -24,7 +24,7 @@ const Profile = () => {
   const [user, setUser] = useState(null);
 
   // Form Fields
-  const [username, setUsername] = useState("");
+  const [fullname, setFullname] = useState("");
   const [phone, setPhone] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState("");
@@ -83,7 +83,7 @@ const Profile = () => {
         const fullUser = res.data;
 
         setUser(fullUser);
-        setUsername(fullUser.username || "");
+        setFullname(fullUser.fullname || "");
         setPhone(fullUser.phone || "");
 
         if (fullUser.avatar) {
@@ -95,7 +95,7 @@ const Profile = () => {
         }
       } catch (err) {
         console.error("Error fetching user details:", err);
-        setErrorMsg("Failed to load user profile. Please try again.");
+        setErrorMsg(t("profileLoadFailed"));
       } finally {
         setLoading(false);
       }
@@ -116,8 +116,8 @@ const Profile = () => {
 
   const handleSaveProfile = async (e) => {
     e.preventDefault();
-    if (!username.trim()) {
-      setErrorMsg("Username cannot be empty");
+    if (!fullname.trim()) {
+      setErrorMsg(t("profileUsernameEmpty"));
       return;
     }
 
@@ -132,7 +132,7 @@ const Profile = () => {
 
     try {
       const formData = new FormData();
-      formData.append("username", username.trim());
+      formData.append("fullname", fullname.trim());
       formData.append("email", user.email);
       formData.append("phone", phone.trim());
       formData.append("role", user.role);
@@ -154,7 +154,7 @@ const Profile = () => {
       });
 
       if (response.status === 200) {
-        setSuccessMsg("ข้อมูลโปรไฟล์ถูกอัปเดตเรียบร้อยแล้ว");
+        setSuccessMsg(t("profileUpdateSuccess"));
         setNewPassword("");
         setConfirmPassword("");
 
@@ -175,7 +175,7 @@ const Profile = () => {
             : 2400,
           user: {
             id: updatedUser.id,
-            name: updatedUser.username,
+            name: updatedUser.fullname,
             email: updatedUser.email,
             role: updatedUser.role,
             avatar: updatedUser.avatar,
@@ -186,7 +186,7 @@ const Profile = () => {
       console.error("Error updating profile:", err);
       setErrorMsg(
         err.response?.data?.message ||
-          "Failed to update profile. Please try again.",
+          t("profileUpdateFailed"),
       );
     } finally {
       setSaving(false);
@@ -234,7 +234,7 @@ const Profile = () => {
             <span>👤</span> {t("profile") || "Profile"}
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            จัดการข้อมูลส่วนตัวและความปลอดภัยบัญชีของคุณ
+            {t("profileSubtitle")}
           </p>
         </div>
 
@@ -275,7 +275,7 @@ const Profile = () => {
                     />
                   ) : (
                     <span className="text-4xl font-extrabold">
-                      {username ? username[0]?.toUpperCase() : "U"}
+                      {fullname ? fullname[0]?.toUpperCase() : "U"}
                     </span>
                   )}
                 </div>
@@ -300,7 +300,7 @@ const Profile = () => {
               />
 
               <h4 className="text-xl font-bold text-white mb-1">
-                {user?.username}
+                {user?.fullname}
               </h4>
               <p className="text-xs text-slate-400 mb-4">{user?.email}</p>
 
@@ -316,7 +316,7 @@ const Profile = () => {
 
               <div className="w-full text-left bg-slate-800/40 rounded-2xl p-4 text-xs text-slate-300 space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Created:</span>
+                  <span className="text-slate-400">{t("profileCreated")}:</span>
                   <span>
                     {user?.created_at
                       ? new Date(user.created_at).toLocaleDateString()
@@ -324,7 +324,7 @@ const Profile = () => {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Role level:</span>
+                  <span className="text-slate-400">{t("profileRoleLevel")}:</span>
                   <span className="capitalize">{user?.role}</span>
                 </div>
               </div>
@@ -337,20 +337,20 @@ const Profile = () => {
               {/* Profile Details Card */}
               <div className="glass-panel rounded-3xl p-6 shadow-2xl space-y-4">
                 <h5 className="text-base font-bold text-teal-400 flex items-center gap-2 mb-2">
-                  <i className="bi bi-person-gear"></i> ข้อมูลส่วนตัว
+                  <i className="bi bi-person-gear"></i> {t("profilePersonalInfo")}
                 </h5>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Username */}
                   <div className="flex flex-col gap-1">
                     <label className="text-xs text-slate-400 font-semibold">
-                      ชื่อผู้ใช้ (Username)
+                      {t("profileUsername")}
                     </label>
                     <input
                       type="text"
                       className="bg-slate-800/60 hover:bg-slate-800/80 focus:bg-slate-900/90 text-white rounded-2xl px-4 py-3 text-sm transition-all"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
+                      value={fullname}
+                      onChange={(e) => setFullname(e.target.value)}
                       required
                     />
                   </div>
@@ -358,7 +358,7 @@ const Profile = () => {
                   {/* Phone */}
                   <div className="flex flex-col gap-1">
                     <label className="text-xs text-slate-400 font-semibold">
-                      {t("phone") || "Phone"}
+                      {t("profilePhone")}
                     </label>
                     <input
                       type="tel"
@@ -374,7 +374,7 @@ const Profile = () => {
                   {/* Email (Disabled) */}
                   <div className="flex flex-col gap-1">
                     <label className="text-xs text-slate-400 font-semibold opacity-70">
-                      อีเมล (Email - ไม่สามารถเปลี่ยนได้)
+                      {t("profileEmailDisabled")}
                     </label>
                     <input
                       type="email"
@@ -389,15 +389,14 @@ const Profile = () => {
               {/* Password Card */}
               <div className="glass-panel rounded-3xl p-6 shadow-2xl space-y-4">
                 <h5 className="text-base font-bold text-teal-400 flex items-center gap-2 mb-2">
-                  <i className="bi bi-shield-lock"></i> เปลี่ยนรหัสผ่าน
-                  (หากต้องการเปลี่ยน)
+                  <i className="bi bi-shield-lock"></i> {t("profileChangePassword")}
                 </h5>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* New Password */}
                   <div className="flex flex-col gap-1">
                     <label className="text-xs text-slate-400 font-semibold">
-                      รหัสผ่านใหม่ (New Password)
+                      {t("profileNewPassword")}
                     </label>
                     <input
                       type="password"
@@ -411,7 +410,7 @@ const Profile = () => {
                   {/* Confirm Password */}
                   <div className="flex flex-col gap-1">
                     <label className="text-xs text-slate-400 font-semibold">
-                      ยืนยันรหัสผ่านใหม่ (Confirm Password)
+                      {t("profileConfirmPassword")}
                     </label>
                     <input
                       type="password"
@@ -438,12 +437,12 @@ const Profile = () => {
                         role="status"
                         aria-hidden="true"
                       ></span>
-                      <span>กำลังบันทึก...</span>
+                      <span>{t("profileSaving")}</span>
                     </>
                   ) : (
                     <>
                       <i className="bi bi-check-circle-fill"></i>
-                      <span>บันทึกการเปลี่ยนแปลง</span>
+                      <span>{t("profileSaveChanges")}</span>
                     </>
                   )}
                 </button>

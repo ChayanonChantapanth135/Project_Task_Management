@@ -53,7 +53,7 @@ export const initializeDatabase = async () => {
     await connection.query(`
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        username VARCHAR(255) NOT NULL,
+        fullname VARCHAR(255) NOT NULL,
         email VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
         role ENUM('admin','manager','video_editor','translator','team_leader','user') DEFAULT 'user',
@@ -221,6 +221,7 @@ export const initializeDatabase = async () => {
 
     // Safely add missing columns to existing tables
     const alterQueries = [
+      "ALTER TABLE users CHANGE COLUMN username fullname VARCHAR(255) NOT NULL",
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS role ENUM('admin','manager','video_editor','translator','team_leader','user') DEFAULT 'user'",
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS role_id INT NULL",
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR(512) DEFAULT NULL",

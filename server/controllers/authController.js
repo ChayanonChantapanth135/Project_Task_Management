@@ -123,7 +123,7 @@ export const login = async (req, res) => {
         const tokenExpiresInSeconds = 40 * 60;
         const token = jwt.sign({ id: rows[0].id }, process.env.JWT_KEY, { expiresIn: tokenExpiresIn });
 
-        await logActivity(db, rows[0].id, 'Login', `User logged in: ${rows[0].username}`);
+        await logActivity(db, rows[0].id, 'Login', `User logged in: ${rows[0].fullname}`);
 
         if (rows[0].is_force_reset === 1) {
             return res.status(201).json({
@@ -134,7 +134,7 @@ export const login = async (req, res) => {
                 expiresInSeconds: tokenExpiresInSeconds,
                 user: {
                     id: rows[0].id,
-                    name: rows[0].username,
+                    name: rows[0].fullname,
                     email: rows[0].email,
                     role: rows[0].role || 'user',
                     avatar: rows[0].avatar || null,
@@ -149,7 +149,7 @@ export const login = async (req, res) => {
             expiresInSeconds: tokenExpiresInSeconds,
             user: {
                 id: rows[0].id,
-                name: rows[0].username,
+                name: rows[0].fullname,
                 email: rows[0].email,
                 role: rows[0].role || 'user',
                 avatar: rows[0].avatar || null,
@@ -184,7 +184,7 @@ export const refresh = async (req, res) => {
             expiresInSeconds: tokenExpiresInSeconds,
             user: {
                 id: rows[0].id,
-                name: rows[0].username,
+                name: rows[0].fullname,
                 email: rows[0].email,
                 role: rows[0].role || 'user',
                 avatar: rows[0].avatar || null
@@ -200,9 +200,9 @@ export const logout = async (req, res) => {
     try {
         const db = await connectToDatabase();
         if (userId) {
-            const [userRows] = await db.query('SELECT username FROM users WHERE id = ?', [userId]);
-            const username = userRows[0]?.username || `User ID ${userId}`;
-            await logActivity(db, userId, 'Logout', `User logged out: ${username}`);
+            const [userRows] = await db.query('SELECT fullname FROM users WHERE id = ?', [userId]);
+            const fullname = userRows[0]?.fullname || `User ID ${userId}`;
+            await logActivity(db, userId, 'Logout', `User logged out: ${fullname}`);
         }
         res.status(200).json({ message: 'Logged out successfully' });
     } catch (error) {
@@ -217,9 +217,9 @@ export const getUsers = async (req, res) => {
     const { includeDeleted } = req.query;
     try {
         const db = await connectToDatabase();
-        let query = 'SELECT id, username, email, phone, role, avatar, status, created_at, deleted_at FROM users WHERE deleted_at IS NULL';
+        let query = 'SELECT id, fullname, email, phone, role, avatar, status, created_at, deleted_at FROM users WHERE deleted_at IS NULL';
         if (includeDeleted === 'true') {
-            query = 'SELECT id, username, email, phone, role, avatar, status, created_at, deleted_at FROM users';
+            query = 'SELECT id, fullname, email, phone, role, avatar, status, created_at, deleted_at FROM users';
         }
         const [rows] = await db.query(query);
         res.status(200).json(rows);
@@ -233,7 +233,7 @@ export const getUserById = async (req, res) => {
     const { id } = req.params;
     try {
         const db = await connectToDatabase();
-        const [rows] = await db.query('SELECT id, username, email, phone, role, avatar, status, created_at, deleted_at FROM users WHERE id = ? AND deleted_at IS NULL', [id]);
+        const [rows] = await db.query('SELECT id, fullname, email, phone, role, avatar, status, created_at, deleted_at FROM users WHERE id = ? AND deleted_at IS NULL', [id]);
         if (rows.length === 0) return res.status(404).json({ message: 'User not found' });
         res.status(200).json(rows[0]);
     } catch (error) {
@@ -243,7 +243,7 @@ export const getUserById = async (req, res) => {
 };
 
 export const createUser = async (req, res) => {
-    const { username, email, password, phone, role, status } = req.body;
+    const { fullname, email, password, phone, role, status } = req.body;
     try {
         const db = await connectToDatabase();
         const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
@@ -270,8 +270,8 @@ export const createUser = async (req, res) => {
         }
 
         const [result] = await db.query(
-            'INSERT INTO users (username, email, password, phone, role, status, avatar) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [username, email, hashPassword, formattedPhone, sqlRole, sqlStatus, avatarUrl]
+            'INSERT INTO users (fullname, email, password, phone, role, status, avatar) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [fullname, email, hashPassword, formattedPhone, sqlRole, sqlStatus, avatarUrl]
         );
 
         const emailUser = (process.env.EMAIL_USER || 'chayanon.sent@gmail.com').replace(/['"]/g, '').trim();
@@ -291,7 +291,7 @@ export const createUser = async (req, res) => {
                     html: `
                         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
                             <h2 style="color: #0d6efd; text-align: center;">Welcome to Project Management</h2>
-                            <p>Hello <b>${username}</b>,</p>
+                            <p>Hello <b>${fullname}</b>,</p>
                             <p>Your user account has been successfully created by the administrator. Here are your login details:</p>
                             <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin: 20px 0;">
                                 <p style="margin: 5px 0;"><b>Email:</b> ${email}</p>
@@ -312,7 +312,7 @@ export const createUser = async (req, res) => {
         }
 
         const { creatorId } = req.body;
-        await logActivity(db, creatorId ? Number(creatorId) : null, 'Create User', `Created user: ${username} (${email})`);
+        await logActivity(db, creatorId ? Number(creatorId) : null, 'Create User', `Created user: ${fullname} (${email})`);
 
         res.status(201).json({ message: 'User created successfully', id: result.insertId });
     } catch (error) {
@@ -323,7 +323,7 @@ export const createUser = async (req, res) => {
 
 export const updateUser = async (req, res) => {
     const { id } = req.params;
-    const { username, email, password, phone, role, status, creatorId } = req.body;
+    const { fullname, email, password, phone, role, status, creatorId } = req.body;
     try {
         const db = await connectToDatabase();
         
@@ -332,8 +332,8 @@ export const updateUser = async (req, res) => {
 
         const formattedPhone = formatPhoneNumber(phone);
 
-        let query = 'UPDATE users SET username = ?, email = ?, phone = ?, role = ?, status = ?';
-        let params = [username, email, formattedPhone, role, status || 'active'];
+        let query = 'UPDATE users SET fullname = ?, email = ?, phone = ?, role = ?, status = ?';
+        let params = [fullname, email, formattedPhone, role, status || 'active'];
         
         let sqlRole = 'user';
         const normRole = (role || '').trim().toLowerCase();
@@ -368,14 +368,14 @@ export const updateUser = async (req, res) => {
         const targetStatus = status || 'active';
         if (targetStatus !== oldStatus) {
             if (targetStatus === 'suspended') {
-                await logActivity(db, creatorId ? Number(creatorId) : null, 'Suspend User', `Suspended user: ${username} (${email})`);
+                await logActivity(db, creatorId ? Number(creatorId) : null, 'Suspend User', `Suspended user: ${fullname} (${email})`);
             } else if (targetStatus === 'active') {
-                await logActivity(db, creatorId ? Number(creatorId) : null, 'Activate User', `Activated user: ${username} (${email})`);
+                await logActivity(db, creatorId ? Number(creatorId) : null, 'Activate User', `Activated user: ${fullname} (${email})`);
             } else {
-                await logActivity(db, creatorId ? Number(creatorId) : null, 'Edit User', `Edited user ID: ${id} (${username})`);
+                await logActivity(db, creatorId ? Number(creatorId) : null, 'Edit User', `Edited user ID: ${id} (${fullname})`);
             }
         } else {
-            await logActivity(db, creatorId ? Number(creatorId) : null, 'Edit User', `Edited user ID: ${id} (${username})`);
+            await logActivity(db, creatorId ? Number(creatorId) : null, 'Edit User', `Edited user ID: ${id} (${fullname})`);
         }
         res.status(200).json({ message: 'User updated successfully' });
     } catch (error) {
@@ -389,13 +389,13 @@ export const softDeleteUser = async (req, res) => {
     const { creatorId } = req.query;
     try {
         const db = await connectToDatabase();
-        const [userRows] = await db.query('SELECT username, email FROM users WHERE id = ? AND deleted_at IS NULL', [id]);
+        const [userRows] = await db.query('SELECT fullname, email FROM users WHERE id = ? AND deleted_at IS NULL', [id]);
         if (userRows.length === 0) {
             return res.status(404).json({ message: 'User not found or already deleted' });
         }
-        const { username, email } = userRows[0];
+        const { fullname, email } = userRows[0];
         await db.query('UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?', [id]);
-        await logActivity(db, creatorId ? Number(creatorId) : null, 'Soft Delete User', `Soft deleted user: ${username} (${email})`);
+        await logActivity(db, creatorId ? Number(creatorId) : null, 'Soft Delete User', `Soft deleted user: ${fullname} (${email})`);
         res.status(200).json({ message: 'User soft-deleted successfully' });
     } catch (error) {
         console.error('Error soft deleting user:', error.message);
@@ -408,13 +408,13 @@ export const restoreUser = async (req, res) => {
     const { creatorId } = req.body;
     try {
         const db = await connectToDatabase();
-        const [userRows] = await db.query('SELECT username, email FROM users WHERE id = ?', [id]);
+        const [userRows] = await db.query('SELECT fullname, email FROM users WHERE id = ?', [id]);
         if (userRows.length === 0) {
             return res.status(404).json({ message: 'User not found' });
         }
-        const { username, email } = userRows[0];
+        const { fullname, email } = userRows[0];
         await db.query('UPDATE users SET deleted_at = NULL WHERE id = ?', [id]);
-        await logActivity(db, creatorId ? Number(creatorId) : null, 'Restore User', `Restored user: ${username} (${email})`);
+        await logActivity(db, creatorId ? Number(creatorId) : null, 'Restore User', `Restored user: ${fullname} (${email})`);
         res.status(200).json({ message: 'User restored successfully' });
     } catch (error) {
         console.error('Error restoring user:', error.message);
@@ -427,16 +427,16 @@ export const permanentDeleteUser = async (req, res) => {
     const { creatorId } = req.query;
     try {
         const db = await connectToDatabase();
-        const [userRows] = await db.query('SELECT username, email, avatar FROM users WHERE id = ?', [id]);
+        const [userRows] = await db.query('SELECT fullname, email, avatar FROM users WHERE id = ?', [id]);
         if (userRows.length === 0) {
             return res.status(404).json({ message: 'User not found' });
         }
-        const { username, email, avatar } = userRows[0];
+        const { fullname, email, avatar } = userRows[0];
         if (avatar) {
             deleteOldAvatar(avatar);
         }
         await db.query('DELETE FROM users WHERE id = ?', [id]);
-        await logActivity(db, creatorId ? Number(creatorId) : null, 'Permanent Delete User', `Permanently deleted user: ${username} (${email})`);
+        await logActivity(db, creatorId ? Number(creatorId) : null, 'Permanent Delete User', `Permanently deleted user: ${fullname} (${email})`);
         res.status(200).json({ message: 'User permanently deleted successfully' });
     } catch (error) {
         console.error('Error permanently deleting user:', error.message);
@@ -490,12 +490,12 @@ export const importUsers = async (req, res) => {
         };
 
         for (const item of users) {
-            const username = (item.username || '').trim();
+            const fullname = (item.fullname || item.username || '').trim();
             const email = (item.email || '').trim();
             const password = (item.password || '').trim();
             const role = normalizeRole(item.role);
 
-            if (!email || !username) {
+            if (!email || !fullname) {
                 continue;
             }
 
@@ -503,8 +503,8 @@ export const importUsers = async (req, res) => {
 
             if (existing.length > 0) {
                 const userIdToUpdate = existing[0].id;
-                let query = 'UPDATE users SET username = ?, role = ?';
-                let params = [username, role];
+                let query = 'UPDATE users SET fullname = ?, role = ?';
+                let params = [fullname, role];
 
                 if (password) {
                     const hashPassword = await bcrypt.hash(password, 10);
@@ -521,8 +521,8 @@ export const importUsers = async (req, res) => {
                 const finalPassword = password || '123456';
                 const hashPassword = await bcrypt.hash(finalPassword, 10);
                 await db.query(
-                    'INSERT INTO users (username, email, password, role, status) VALUES (?, ?, ?, ?, ?)',
-                    [username, email, hashPassword, role, 'active']
+                    'INSERT INTO users (fullname, email, password, role, status) VALUES (?, ?, ?, ?, ?)',
+                    [fullname, email, hashPassword, role, 'active']
                 );
                 importedCount++;
             }
@@ -551,15 +551,15 @@ export const importUsers = async (req, res) => {
 export const getTeamLeaders = async (req, res) => {
     try {
         const db = await connectToDatabase();
-        let [rows] = await db.query("SELECT id, username, email FROM users WHERE role = 'team_leader' AND deleted_at IS NULL");
+        let [rows] = await db.query("SELECT id, fullname, email FROM users WHERE role = 'team_leader' AND deleted_at IS NULL");
         if (rows.length === 0) {
-            [rows] = await db.query("SELECT id, username, email FROM users WHERE deleted_at IS NULL");
+            [rows] = await db.query("SELECT id, fullname, email FROM users WHERE deleted_at IS NULL");
         }
         if (rows.length === 0) {
             rows = [
-                { id: 3, username: "Somsak Somdee (Simulated)" },
-                { id: 4, username: "Wichai Jaidee (Simulated)" },
-                { id: 5, username: "Anong Rakdee (Simulated)" }
+                { id: 3, fullname: "Somsak Somdee (Simulated)" },
+                { id: 4, fullname: "Wichai Jaidee (Simulated)" },
+                { id: 5, fullname: "Anong Rakdee (Simulated)" }
             ];
         }
         res.status(200).json(rows);
@@ -573,7 +573,7 @@ export const getProjects = async (req, res) => {
     try {
         const db = await connectToDatabase();
         const [projects] = await db.query(`
-            SELECT p.*, u.id AS teamLeaderId, u.username AS teamLeaderName
+            SELECT p.*, u.id AS teamLeaderId, u.fullname AS teamLeaderName
             FROM projects p
             LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id
             LEFT JOIN users u ON ptl.user_id = u.id
@@ -583,7 +583,7 @@ export const getProjects = async (req, res) => {
 
         for (const p of projects) {
             const [tasks] = await db.query(`
-                SELECT t.id, t.title, t.status, t.due_date, t.assigned_to, t.description, t.task_type, t.priority, u.username AS assigned_to_name
+                SELECT t.id, t.title, t.status, t.due_date, t.assigned_to, t.description, t.task_type, t.priority, u.fullname AS assigned_to_name
                 FROM tasks t
                 LEFT JOIN users u ON t.assigned_to = u.id
                 WHERE t.project_id = ? AND t.deleted_at IS NULL
@@ -773,10 +773,10 @@ export const updateTask = async (req, res) => {
 
         // Log assignee change
         if (Number(assignedTo) !== Number(oldAssignee)) {
-            const [oldUserRows] = oldAssignee ? await db.query('SELECT username FROM users WHERE id = ?', [oldAssignee]) : [[]];
-            const [newUserRows] = assignedTo ? await db.query('SELECT username FROM users WHERE id = ?', [assignedTo]) : [[]];
-            const oldName = oldUserRows[0]?.username || 'ไม่มีผู้รับผิดชอบ';
-            const newName = newUserRows[0]?.username || 'ไม่มีผู้รับผิดชอบ';
+            const [oldUserRows] = oldAssignee ? await db.query('SELECT fullname FROM users WHERE id = ?', [oldAssignee]) : [[]];
+            const [newUserRows] = assignedTo ? await db.query('SELECT fullname FROM users WHERE id = ?', [assignedTo]) : [[]];
+            const oldName = oldUserRows[0]?.fullname || 'ไม่มีผู้รับผิดชอบ';
+            const newName = newUserRows[0]?.fullname || 'ไม่มีผู้รับผิดชอบ';
             await db.query(
                 "INSERT INTO task_history (task_id, action, details, changed_by) VALUES (?, 'assignee_change', ?, ?)",
                 [id, `เปลี่ยนผู้รับผิดชอบจาก "${oldName}" เป็น "${newName}"`, userId || null]
@@ -854,7 +854,7 @@ export const getTaskHistory = async (req, res) => {
         
         // 1. Get history logs with usernames
         const [historyRows] = await db.query(`
-            SELECT th.id, th.action, th.details, th.changed_at, u.username, u.role
+            SELECT th.id, th.action, th.details, th.changed_at, u.fullname, u.role
             FROM task_history th
             LEFT JOIN users u ON th.changed_by = u.id
             WHERE th.task_id = ?
@@ -874,10 +874,10 @@ export const getTaskHistory = async (req, res) => {
             // Find the latest edit (excluding 'create')
             const latestEdit = historyRows.find(h => h.action !== 'create');
             if (latestEdit) {
-                lastEditedBy = latestEdit.username ? `${latestEdit.username} (${latestEdit.role})` : 'System';
+                lastEditedBy = latestEdit.fullname ? `${latestEdit.fullname} (${latestEdit.role})` : 'System';
                 lastEditedAt = latestEdit.changed_at;
             } else if (historyRows[0]) {
-                lastEditedBy = historyRows[0].username ? `${historyRows[0].username} (${historyRows[0].role})` : 'System';
+                lastEditedBy = historyRows[0].fullname ? `${historyRows[0].fullname} (${historyRows[0].role})` : 'System';
                 lastEditedAt = historyRows[0].changed_at;
             }
         }
@@ -899,7 +899,7 @@ export const getTaskComments = async (req, res) => {
     try {
         const db = await connectToDatabase();
         const [rows] = await db.query(`
-            SELECT c.id, c.comment, c.created_at, u.username, u.avatar, u.role
+            SELECT c.id, c.comment, c.created_at, u.fullname, u.avatar, u.role
             FROM comments c
             JOIN users u ON c.user_id = u.id
             WHERE c.task_id = ?
@@ -936,7 +936,7 @@ export const getTaskFiles = async (req, res) => {
     try {
         const db = await connectToDatabase();
         const [rows] = await db.query(`
-            SELECT f.id, f.filename, f.filepath, f.created_at, u.username, u.role
+            SELECT f.id, f.filename, f.filepath, f.created_at, u.fullname, u.role
             FROM files f
             JOIN users u ON f.uploaded_by = u.id
             WHERE f.task_id = ?
@@ -976,7 +976,7 @@ export const getTaskStatusHistory = async (req, res) => {
     try {
         const db = await connectToDatabase();
         const [rows] = await db.query(`
-            SELECT tsh.status, tsh.changed_at, u.username, u.role
+            SELECT tsh.status, tsh.changed_at, u.fullname, u.role
             FROM task_status_history tsh
             LEFT JOIN users u ON tsh.changed_by = u.id
             WHERE tsh.task_id = ?
@@ -1076,7 +1076,7 @@ export const getActivityLogs = async (req, res) => {
     try {
         const db = await connectToDatabase();
         const [rows] = await db.query(`
-            SELECT al.action, al.details, al.created_at, u.username
+            SELECT al.action, al.details, al.created_at, u.fullname
             FROM activity_logs al
             LEFT JOIN users u ON al.user_id = u.id
             ORDER BY al.created_at DESC
@@ -1094,13 +1094,13 @@ export const sendOtp = async (req, res) => {
     const { email } = req.body;
     try {
         const db = await connectToDatabase();
-        const [users] = await db.query('SELECT id, username FROM users WHERE email = ?', [email]);
+        const [users] = await db.query('SELECT id, fullname FROM users WHERE email = ?', [email]);
         if (users.length === 0) {
             return res.status(404).json({ message: 'ไม่พบอีเมลผู้ใช้ในระบบ / User not found' });
         }
 
         const userId = users[0].id;
-        const username = users[0].username;
+        const fullname = users[0].fullname;
         const otpCode = crypto.randomInt(100000, 999999).toString();
         const expiresAt = new Date(Date.now() + 3 * 60 * 1000);
 
@@ -1126,7 +1126,7 @@ export const sendOtp = async (req, res) => {
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
                     <h2 style="color: #0d6efd; text-align: center;">OTP Verification</h2>
-                    <p>Hello <b>${username}</b>,</p>
+                    <p>Hello <b>${fullname}</b>,</p>
                     <p>You requested a one-time password (OTP) to reset your account password.</p>
                     <div style="background-color: #f9f9f9; padding: 15px; text-align: center; border-radius: 8px; margin: 20px 0;">
                         <span style="font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #1a1a2e;">${otpCode}</span>
@@ -1158,7 +1158,7 @@ export const resetPassword = async (req, res) => {
     const { email, password, otpCode } = req.body;
     try {
         const db = await connectToDatabase();
-        const [rows] = await db.query('SELECT id, username FROM users WHERE email = ?', [email]);
+        const [rows] = await db.query('SELECT id, fullname FROM users WHERE email = ?', [email]);
         if (rows.length === 0) {
             return res.status(404).json({ message: 'User not found' });
         }

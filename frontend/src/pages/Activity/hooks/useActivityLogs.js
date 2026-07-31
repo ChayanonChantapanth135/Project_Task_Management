@@ -27,8 +27,8 @@ export const useActivityLogs = () => {
 
   const filteredLogs = logs.filter((log) => {
     const matchesSearch =
-      (log.username &&
-        log.username.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      ((log.fullname || log.username) &&
+        (log.fullname || log.username).toLowerCase().includes(searchQuery.toLowerCase())) ||
       (log.details &&
         log.details.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (log.action &&

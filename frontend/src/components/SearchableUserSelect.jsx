@@ -61,7 +61,7 @@ export default function SearchableUserSelect({
     if (searchQuery.trim() !== "") {
       const query = searchQuery.toLowerCase();
       const usernameMatch =
-        u.username && u.username.toLowerCase().includes(query);
+        (u.fullname || u.username) && (u.fullname || u.username).toLowerCase().includes(query);
       const roleMatch = u.role && u.role.toLowerCase().includes(query);
       const roleLabelMatch =
         u.role &&
@@ -115,7 +115,7 @@ export default function SearchableUserSelect({
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className={selectedUser ? "text-dark" : "text-muted"}>
-          {selectedUser ? selectedUser.username : placeholder}
+          {selectedUser ? (selectedUser.fullname || selectedUser.username) : placeholder}
         </span>
       </div>
 
@@ -134,7 +134,7 @@ export default function SearchableUserSelect({
             <input
               type="text"
               className="form-control form-control-sm"
-              placeholder="🔍 Search username..."
+              placeholder="🔍 Search name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               autoFocus
@@ -182,7 +182,7 @@ export default function SearchableUserSelect({
                         }}
                         onClick={() => handleSelect(u.id)}
                       >
-                        {u.username}
+                        {u.fullname || u.username}
                       </div>
                     );
                   })}

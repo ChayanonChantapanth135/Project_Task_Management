@@ -22,11 +22,35 @@ const ManageUserPage = () => {
   const blob2Ref = useRef(null);
   const blob3Ref = useRef(null);
 
-  useGSAP(() => {
-    gsap.to(blob1Ref.current, { x: 60, y: -40, duration: 8, repeat: -1, yoyo: true, ease: "sine.inOut" });
-    gsap.to(blob2Ref.current, { x: -50, y: 50, duration: 10, repeat: -1, yoyo: true, ease: "sine.inOut" });
-    gsap.to(blob3Ref.current, { x: 40, y: 30, duration: 9, repeat: -1, yoyo: true, ease: "sine.inOut" });
-  }, { scope: pageRef });
+  useGSAP(
+    () => {
+      gsap.to(blob1Ref.current, {
+        x: 60,
+        y: -40,
+        duration: 8,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+      });
+      gsap.to(blob2Ref.current, {
+        x: -50,
+        y: 50,
+        duration: 10,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+      });
+      gsap.to(blob3Ref.current, {
+        x: 40,
+        y: 30,
+        duration: 9,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+      });
+    },
+    { scope: pageRef },
+  );
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -37,13 +61,25 @@ const ManageUserPage = () => {
   }, []);
 
   return (
-    <div ref={pageRef} className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans selection:bg-teal-500 selection:text-white relative overflow-hidden">
+    <div
+      ref={pageRef}
+      className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans selection:bg-teal-500 selection:text-white relative overflow-hidden"
+    >
       <Header />
 
       {/* GSAP Animated Ambient Orbs */}
-      <div ref={blob1Ref} className="absolute top-10 left-1/4 w-[450px] h-[450px] bg-teal-500/15 rounded-full filter blur-[100px] pointer-events-none"></div>
-      <div ref={blob2Ref} className="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-indigo-600/20 rounded-full filter blur-[110px] pointer-events-none"></div>
-      <div ref={blob3Ref} className="absolute bottom-10 left-1/3 w-[500px] h-[500px] bg-cyan-600/15 rounded-full filter blur-[120px] pointer-events-none"></div>
+      <div
+        ref={blob1Ref}
+        className="absolute top-10 left-1/4 w-[450px] h-[450px] bg-teal-500/15 rounded-full filter blur-[100px] pointer-events-none"
+      ></div>
+      <div
+        ref={blob2Ref}
+        className="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-indigo-600/20 rounded-full filter blur-[110px] pointer-events-none"
+      ></div>
+      <div
+        ref={blob3Ref}
+        className="absolute bottom-10 left-1/3 w-[500px] h-[500px] bg-cyan-600/15 rounded-full filter blur-[120px] pointer-events-none"
+      ></div>
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 animate-fade-in-up relative z-10">
         {/* Header Title Row */}
@@ -52,11 +88,13 @@ const ManageUserPage = () => {
             <h2 className="text-2xl md:text-3xl font-extrabold text-white flex items-center gap-3 tracking-tight">
               <span>👥</span> {t("manageUsersTitle")}
             </h2>
-            <p className="text-xs text-slate-400 mt-1">{t("manageUsersDesc")}</p>
+            <p className="text-xs text-slate-400 mt-1">
+              {t("manageUsersDesc")}
+            </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <a
-              href="/FormatForm.csv"
+              href="/Import_Users_Template.xlsx"
               download
               className="px-4 py-2.5 rounded-xl glass-card text-slate-300 hover:text-white text-xs font-semibold no-underline"
             >
@@ -70,7 +108,7 @@ const ManageUserPage = () => {
             </button>
             <button
               className="px-4 py-2.5 rounded-xl glass-card text-emerald-400 hover:text-emerald-300 text-xs font-semibold"
-              onClick={userHook.handleExportCSV}
+              onClick={userHook.handleExportExcel}
             >
               📊 {t("exportUsersBtn")}
             </button>
@@ -86,11 +124,11 @@ const ManageUserPage = () => {
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) {
-                  userHook.handleImportCSV(file);
+                  userHook.handleImportFile(file);
                   e.target.value = "";
                 }
               }}
-              accept=".csv"
+              accept=".csv, .xlsx, .xls"
               className="hidden"
             />
           </div>
@@ -98,7 +136,7 @@ const ManageUserPage = () => {
 
         {/* Sleek Custom Alert Banner */}
         {userHook.pageSuccessMessage && (
-          <div 
+          <div
             className="mb-6 w-full py-3.5 px-5 rounded-2xl bg-[#0e3b40] text-emerald-400 text-sm font-semibold flex items-center gap-3 shadow-xl border-0 animate-fade-in-down"
             style={{ border: "none" }}
           >
@@ -118,16 +156,39 @@ const ManageUserPage = () => {
                 value={userHook.roleFilter}
                 onChange={(e) => userHook.setRoleFilter(e.target.value)}
               >
-                <option value="all" className="bg-slate-900">{t("roleFilterAll")}</option>
-                <option value="Admin" className="bg-slate-900">Admin</option>
-                <option value="Project Manager" className="bg-slate-900">Project Manager</option>
-                <option value="Team Leader" className="bg-slate-900">Team Leader</option>
-                <option value="Video Editor" className="bg-slate-900">Video Editor</option>
-                <option value="Translator" className="bg-slate-900">Translator</option>
+                <option value="all" className="bg-slate-900">
+                  {t("roleFilterAll")}
+                </option>
+                <option value="Admin" className="bg-slate-900">
+                  Admin
+                </option>
+                <option value="Project Manager" className="bg-slate-900">
+                  Project Manager
+                </option>
+                <option value="Team Leader" className="bg-slate-900">
+                  Team Leader
+                </option>
+                <option value="Video Editor" className="bg-slate-900">
+                  Video Editor
+                </option>
+                <option value="Translator" className="bg-slate-900">
+                  Translator
+                </option>
               </select>
               <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M19 9l-7 7-7-7"
+                  ></path>
                 </svg>
               </div>
             </div>
@@ -137,13 +198,30 @@ const ManageUserPage = () => {
                 value={userHook.statusFilter}
                 onChange={(e) => userHook.setStatusFilter(e.target.value)}
               >
-                <option value="all" className="bg-slate-900">{t("statusFilterAll")}</option>
-                <option value="active" className="bg-slate-900">{t("activeLabel")}</option>
-                <option value="suspended" className="bg-slate-900">{t("suspendedLabel")}</option>
+                <option value="all" className="bg-slate-900">
+                  {t("statusFilterAll")}
+                </option>
+                <option value="active" className="bg-slate-900">
+                  {t("activeLabel")}
+                </option>
+                <option value="suspended" className="bg-slate-900">
+                  {t("suspendedLabel")}
+                </option>
               </select>
               <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M19 9l-7 7-7-7"
+                  ></path>
                 </svg>
               </div>
             </div>
@@ -156,7 +234,9 @@ const ManageUserPage = () => {
                   value={userHook.searchQuery}
                   onChange={(e) => userHook.setSearchQuery(e.target.value)}
                 />
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs">🔍</span>
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs">
+                  🔍
+                </span>
               </div>
             </div>
           </div>
