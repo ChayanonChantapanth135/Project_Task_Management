@@ -1075,12 +1075,19 @@ export const getDashboardStats = async (req, res) => {
 export const getActivityLogs = async (req, res) => {
     try {
         const db = await connectToDatabase();
-        const [rows] = await db.query(`
+        const limit = req.query.limit ? parseInt(req.query.limit, 10) : null;
+        let query = `
             SELECT al.action, al.details, al.created_at, u.fullname
             FROM activity_logs al
             LEFT JOIN users u ON al.user_id = u.id
             ORDER BY al.created_at DESC
-        `);
+        `;
+        const params = [];
+        if (limit && !isNaN(limit)) {
+            query += ` LIMIT ?`;
+            params.push(limit);
+        }
+        const [rows] = await db.query(query, params);
         res.status(200).json(rows);
     } catch (error) {
         console.error('Error fetching activity logs:', error.message);

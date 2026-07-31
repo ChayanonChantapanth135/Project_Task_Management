@@ -50,8 +50,8 @@ const DashboardPage = () => {
     };
     const fetchActivities = async () => {
       try {
-        const response = await axios.get("/auth/activity-logs");
-        setRecentActivities(response.data);
+        const response = await axios.get("/auth/activity-logs?limit=20");
+        setRecentActivities(response.data.slice(0, 20));
       } catch (error) {
         console.error("Error fetching activity logs:", error);
       }
