@@ -201,6 +201,13 @@ const Header = () => {
                   >
                     📋 {t("myTask")}
                   </Dropdown.Item>
+                  <Dropdown.Item
+                    as={Link}
+                    to="/MyActivity"
+                    className="rounded-full px-3 py-2 text-slate-300 hover:text-white hover:bg-indigo-600/30 font-medium transition-colors bg-transparent"
+                  >
+                    🕒 {t("myActivity")}
+                  </Dropdown.Item>
                   <Dropdown.Divider className="my-1 border-white/5" />
                   <Dropdown.Item
                     as="button"

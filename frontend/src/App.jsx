@@ -14,6 +14,7 @@ import Reports from "./pages/Reports";
 import About from "./pages/About/AboutPage";
 import Contract from "./pages/Contract/ContractPage";
 import Activity from "./pages/Activity/ActivityPage";
+import MyActivity from "./pages/MyActivity/MyActivityPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SessionTimeoutHandler from "./components/SessionTimeoutHandler";
 import ResetPassword from "./pages/ResetPassword/ResetPasswordPage";
@@ -112,6 +113,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Activity />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/MyActivity"
+            element={
+              <ProtectedRoute>
+                <MyActivity />
               </ProtectedRoute>
             }
           />

@@ -1076,13 +1076,22 @@ export const getActivityLogs = async (req, res) => {
     try {
         const db = await connectToDatabase();
         const limit = req.query.limit ? parseInt(req.query.limit, 10) : null;
+        const userId = req.query.userId ? parseInt(req.query.userId, 10) : null;
+        
         let query = `
             SELECT al.action, al.details, al.created_at, u.fullname
             FROM activity_logs al
             LEFT JOIN users u ON al.user_id = u.id
-            ORDER BY al.created_at DESC
         `;
         const params = [];
+        
+        if (userId && !isNaN(userId)) {
+            query += ` WHERE al.user_id = ?`;
+            params.push(userId);
+        }
+        
+        query += ` ORDER BY al.created_at DESC`;
+        
         if (limit && !isNaN(limit)) {
             query += ` LIMIT ?`;
             params.push(limit);
