@@ -408,6 +408,7 @@ const TaskDetailModal = ({
                   users={users}
                   value={formData.assignedTo}
                   onChange={handleInputChange}
+                  allowedRoles={["team_leader", "translator", "video_editor"]}
                   placeholder={`-- ${t("selectAssignee") || "Select Assignee"} --`}
                 />
               ) : (
