@@ -104,6 +104,20 @@ const Profile = () => {
     fetchUserDetails();
   }, []);
 
+  // Auto-clear feedback messages after 5 seconds
+  useEffect(() => {
+    let timer;
+    if (successMsg || errorMsg) {
+      timer = setTimeout(() => {
+        setSuccessMsg("");
+        setErrorMsg("");
+      }, 5000);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [successMsg, errorMsg]);
+
   const handleAvatarChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -184,10 +198,7 @@ const Profile = () => {
       }
     } catch (err) {
       console.error("Error updating profile:", err);
-      setErrorMsg(
-        err.response?.data?.message ||
-          t("profileUpdateFailed"),
-      );
+      setErrorMsg(err.response?.data?.message || t("profileUpdateFailed"));
     } finally {
       setSaving(false);
     }
@@ -233,9 +244,7 @@ const Profile = () => {
           <h2 className="text-2xl md:text-3xl font-extrabold text-white flex items-center gap-3 tracking-tight">
             <span>👤</span> {t("profile") || "Profile"}
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            {t("profileSubtitle")}
-          </p>
+          <p className="text-xs text-slate-400 mt-1">{t("profileSubtitle")}</p>
         </div>
 
         {/* Feedback Messages */}
@@ -324,7 +333,9 @@ const Profile = () => {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">{t("profileRoleLevel")}:</span>
+                  <span className="text-slate-400">
+                    {t("profileRoleLevel")}:
+                  </span>
                   <span className="capitalize">{user?.role}</span>
                 </div>
               </div>
@@ -337,7 +348,8 @@ const Profile = () => {
               {/* Profile Details Card */}
               <div className="glass-panel rounded-3xl p-6 shadow-2xl space-y-4">
                 <h5 className="text-base font-bold text-teal-400 flex items-center gap-2 mb-2">
-                  <i className="bi bi-person-gear"></i> {t("profilePersonalInfo")}
+                  <i className="bi bi-person-gear"></i>{" "}
+                  {t("profilePersonalInfo")}
                 </h5>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -389,7 +401,8 @@ const Profile = () => {
               {/* Password Card */}
               <div className="glass-panel rounded-3xl p-6 shadow-2xl space-y-4">
                 <h5 className="text-base font-bold text-teal-400 flex items-center gap-2 mb-2">
-                  <i className="bi bi-shield-lock"></i> {t("profileChangePassword")}
+                  <i className="bi bi-shield-lock"></i>{" "}
+                  {t("profileChangePassword")}
                 </h5>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

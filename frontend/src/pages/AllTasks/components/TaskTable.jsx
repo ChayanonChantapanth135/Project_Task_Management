@@ -41,7 +41,7 @@ const TaskTable = ({
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-white/10 bg-white/5 text-slate-300 text-xs font-bold uppercase tracking-wider">
+            <tr className="border-b border-white/10 text-slate-300 text-xs font-bold uppercase tracking-wider">
               <th className="py-4 px-6">{language === "th" ? "ชื่องาน" : "Task Name"}</th>
               <th className="py-4 px-6">{language === "th" ? "โปรเจกต์" : "Project"}</th>
               <th className="py-4 px-6">{language === "th" ? "ผู้รับผิดชอบ" : "Assignee"}</th>

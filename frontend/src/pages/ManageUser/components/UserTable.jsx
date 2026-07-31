@@ -109,9 +109,6 @@ const UserTable = ({
                   </td>
                   <td className="py-4 px-4 text-slate-400 text-xs text-left">
                     <div>{user.email}</div>
-                    {user.phone && user.phone !== "-" && (
-                      <div className="text-[11px] text-teal-400 font-mono mt-0.5">📞 {user.phone}</div>
-                    )}
                   </td>
                   <td className="py-4 px-4 text-center">
                     <span

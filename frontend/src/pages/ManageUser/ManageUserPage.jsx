@@ -93,13 +93,19 @@ const ManageUserPage = () => {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <a
-              href="/Import_Users_Template.xlsx"
-              download
-              className="px-4 py-2.5 rounded-xl glass-card text-slate-300 hover:text-white text-xs font-semibold no-underline"
+            <button
+              onClick={() => {
+                const link = document.createElement("a");
+                link.href = "/Import_Users_Template.xlsx";
+                link.setAttribute("download", "Import_Users_Template.xlsx");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
+              className="px-4 py-2.5 rounded-xl glass-card text-slate-300 hover:text-white text-xs font-semibold"
             >
               📥 {t("downloadTemplateBtn")}
-            </a>
+            </button>
             <button
               className="px-4 py-2.5 rounded-xl glass-card text-slate-300 hover:text-white text-xs font-semibold"
               onClick={() => fileInputRef.current?.click()}
