@@ -34,16 +34,16 @@
 
 ## 3. ระบบจัดการงาน (Task Management Flow)
 
-- [ ] **สร้างตารางงาน (Create `tasks` Table)**:
+- [x] **สร้างตารางงาน (Create `tasks` Table)**:
   - ฟิลด์ที่จำเป็น: `id`, `project_id` (เชื่อมกับตารางโครงการ), `task_name`, `assigned_to` (เชื่อมกับ ID ผู้ใช้), `status` (ENUM: 'pending', 'in_progress', 'reviewing', 'completed'), `due_date`, `created_at`
-- [ ] **ระบบมอบหมายงาน (Create/Assign Task)**:
+- [x] **ระบบมอบหมายงาน (Create/Assign Task)**:
   - UI ฟอร์มสร้างงานใหม่ เลือกโครงการที่จะผูก และเลือกผู้ใช้ที่จะมอบหมายงานให้
   - API endpoint `POST /auth/tasks`
-- [ ] **ระบบแสดงรายการงาน (List Tasks)**:
+- [x] **ระบบแสดงรายการงาน (List Tasks)**:
   - หน้า `/AllTasks` สำหรับดูงานทั้งหมดแยกตามโครงการ/ผู้รับผิดชอบ
   - หน้า `/MyTasks` สำหรับแสดงผลเฉพาะงานที่มอบหมายให้ผู้ใช้งานคนนั้น ๆ ที่กำลังล็อกอินอยู่
   - เชื่อมโยงตัวเลขบน Dashboard (Total Tasks, Overdue Tasks และกราฟสถานะงาน)
-- [ ] **ระบบปรับปรุงสถานะงาน (Update Task Status)**:
+- [x] **ระบบปรับปรุงสถานะงาน (Update Task Status)**:
   - ฟังก์ชันสำหรับผู้ทำงานในการเปลี่ยนสถานะงาน (เช่น ย้ายจาก Pending ➔ In Progress ➔ Reviewing ➔ Completed)
 
 ---
