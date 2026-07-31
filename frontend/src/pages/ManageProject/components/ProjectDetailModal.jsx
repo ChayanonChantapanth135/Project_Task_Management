@@ -1,5 +1,7 @@
 import React from "react";
 import { Modal } from "react-bootstrap";
+import { useLanguage } from "../../../lib/LanguageContext";
+import { formatDate } from "../../../lib/dateUtils";
 
 const ProjectDetailModal = ({
   showDetailModal,
@@ -11,6 +13,8 @@ const ProjectDetailModal = ({
   setShowAddTaskModal,
   t,
 }) => {
+  const { language } = useLanguage();
+
   return (
     <Modal
       show={showDetailModal}
@@ -56,7 +60,7 @@ const ProjectDetailModal = ({
                     {t("projectDetailsDueDate")}
                   </span>
                   <strong className="text-dark">
-                    📅 {selectedProject.endDate}
+                    📅 {formatDate(selectedProject.endDate, language)}
                   </strong>
                 </div>
                 <div className="mb-3">
@@ -123,7 +127,7 @@ const ProjectDetailModal = ({
                           👤 {task.assigned_to_name || t("unassigned")}
                         </span>
                         {task.dueDate && (
-                          <span className="d-block">📅 {task.dueDate}</span>
+                          <span className="d-block">📅 {formatDate(task.dueDate, language)}</span>
                         )}
                       </div>
 

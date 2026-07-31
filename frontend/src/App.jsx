@@ -5,7 +5,7 @@ import Dashboard from "./pages/Dashboard/DashboardPage";
 import Login from "./pages/Login/LoginPage";
 // import Register from './pages/Register'
 import { LanguageProvider } from "./lib/LanguageContext";
-import Profile from "./pages/Profile";
+import Profile from "./pages/Profile/ProfilePage";
 import MyTask from "./pages/MyTasks";
 import ManageUsers from "./pages/ManageUser/ManageUserPage";
 import Projects from "./pages/ManageProject/ManageProjectPage";
