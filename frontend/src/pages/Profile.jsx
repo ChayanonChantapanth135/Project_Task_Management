@@ -39,8 +39,8 @@ const Profile = () => {
   const [errorMsg, setErrorMsg] = useState("");
 
   // GSAP Background animations
-  useGSAP(
-    () => {
+  useGSAP(() => {
+    if (blob1Ref.current) {
       gsap.to(blob1Ref.current, {
         x: 50,
         y: -30,
@@ -49,6 +49,8 @@ const Profile = () => {
         yoyo: true,
         ease: "sine.inOut",
       });
+    }
+    if (blob2Ref.current) {
       gsap.to(blob2Ref.current, {
         x: -40,
         y: 40,
@@ -57,6 +59,8 @@ const Profile = () => {
         yoyo: true,
         ease: "sine.inOut",
       });
+    }
+    if (blob3Ref.current) {
       gsap.to(blob3Ref.current, {
         x: 30,
         y: 20,
@@ -65,9 +69,8 @@ const Profile = () => {
         yoyo: true,
         ease: "sine.inOut",
       });
-    },
-    { scope: pageRef },
-  );
+    }
+  });
 
   useEffect(() => {
     const fetchUserDetails = async () => {
