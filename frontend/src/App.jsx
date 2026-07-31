@@ -22,6 +22,9 @@ import ResetPasswordFirstTime from "./pages/ResetPasswordFirstTime/ResetPassword
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => {
+    if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
     window.scrollTo(0, 0);
   }, [pathname]);
   return null;
