@@ -179,10 +179,17 @@ const TaskDetailModal = ({
 
   const translateStatus = (status) => {
     const s = String(status).toLowerCase();
-    if (s === "completed") return "เสร็จสมบูรณ์";
-    if (s === "in progress" || s === "in_progress") return "กำลังทำ";
-    if (s === "reviewing" || s === "review") return "รอตรวจสอบ";
-    return "รอดำเนินการ";
+    if (language === "th") {
+      if (s === "completed") return "เสร็จสมบูรณ์";
+      if (s === "in progress" || s === "in_progress") return "กำลังทำ";
+      if (s === "reviewing" || s === "review") return "รอตรวจสอบ";
+      return "รอดำเนินการ";
+    } else {
+      if (s === "completed") return "Completed";
+      if (s === "in progress" || s === "in_progress") return "In Progress";
+      if (s === "reviewing" || s === "review") return "Reviewing";
+      return "Pending";
+    }
   };
 
   return (
@@ -196,7 +203,7 @@ const TaskDetailModal = ({
         <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
           <h5 className="fw-bold mb-0 text-slate-900">
             {isEditing
-              ? "📝 แก้ไขข้อมูลงาน"
+              ? (language === "th" ? "📝 แก้ไขข้อมูลงาน" : "📝 Edit Task Info")
               : `🔍 ${t("taskDetailsTitle") || "Task Details"}`}
           </h5>
           <div className="d-flex gap-2">
@@ -205,7 +212,7 @@ const TaskDetailModal = ({
                 className="btn btn-sm btn-primary px-3 py-1 rounded-xl text-xs"
                 onClick={() => setIsEditing(true)}
               >
-                ✏️ แก้ไขข้อมูล
+                ✏️ {language === "th" ? "แก้ไขข้อมูล" : "Edit Info"}
               </button>
             )}
             <button
@@ -230,7 +237,7 @@ const TaskDetailModal = ({
                   value={formData.projectId}
                   onChange={handleInputChange}
                 >
-                  <option value="">เลือกโครงการ...</option>
+                  <option value="">{language === "th" ? "เลือกโครงการ..." : "Select project..."}</option>
                   {projects.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
@@ -450,7 +457,7 @@ const TaskDetailModal = ({
             <div>
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <span className="fw-bold text-slate-800 text-sm">
-                  ไฟล์แนบ ({files.length})
+                  {language === "th" ? "ไฟล์แนบ" : "Attachments"} ({files.length})
                 </span>
                 <input
                   type="file"
@@ -464,7 +471,7 @@ const TaskDetailModal = ({
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
                 >
-                  {uploading ? "กำลังอัปโหลด..." : "📤 อัปโหลด"}
+                  {uploading ? (language === "th" ? "กำลังอัปโหลด..." : "Uploading...") : (language === "th" ? "📤 อัปโหลด" : "📤 Upload")}
                 </button>
               </div>
 
@@ -489,14 +496,14 @@ const TaskDetailModal = ({
                           className="text-muted"
                           style={{ fontSize: "10px" }}
                         >
-                          โดย {file.fullname || file.username}
+                          {language === "th" ? "โดย" : "by"} {file.fullname || file.username}
                         </span>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="text-center text-muted text-xs py-3">
-                    ไม่มีไฟล์แนบ
+                    {language === "th" ? "ไม่มีไฟล์แนบ" : "No attachments"}
                   </div>
                 )}
               </div>
@@ -505,14 +512,14 @@ const TaskDetailModal = ({
             {/* ความคิดเห็น */}
             <div>
               <span className="fw-bold text-slate-800 text-sm mb-2 d-block">
-                ความคิดเห็น ({comments.length})
+                {language === "th" ? "ความคิดเห็น" : "Comments"} ({comments.length})
               </span>
 
               <form onSubmit={handleAddComment} className="mb-3">
                 <textarea
                   className="form-control text-sm rounded-lg mb-2"
                   rows="2"
-                  placeholder="เขียนความคิดเห็น..."
+                  placeholder={language === "th" ? "เขียนความคิดเห็น..." : "Write a comment..."}
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   required
@@ -521,7 +528,7 @@ const TaskDetailModal = ({
                   type="submit"
                   className="btn btn-sm btn-primary px-3 text-xs text-white"
                 >
-                  🚀 ส่งความคิดเห็น
+                  🚀 {language === "th" ? "ส่งความคิดเห็น" : "Send Comment"}
                 </button>
               </form>
 
@@ -548,7 +555,7 @@ const TaskDetailModal = ({
                   ))
                 ) : (
                   <div className="text-center text-muted text-xs py-4">
-                    ยังไม่มีความคิดเห็น
+                    {language === "th" ? "ยังไม่มีความคิดเห็น" : "No comments yet"}
                   </div>
                 )}
               </div>
@@ -557,7 +564,7 @@ const TaskDetailModal = ({
             {/* ประวัติการเปลี่ยนสถานะ */}
             <div>
               <span className="fw-bold text-slate-800 text-sm mb-2 d-block">
-                🕒 ประวัติการเปลี่ยนสถานะ
+                🕒 {language === "th" ? "ประวัติการเปลี่ยนสถานะ" : "Status History"}
               </span>
 
               <div className="border rounded-xl p-3 bg-slate-50 max-h-[160px] overflow-y-auto">
@@ -587,20 +594,20 @@ const TaskDetailModal = ({
                             <span className="fw-bold text-dark">
                               {h.fullname || h.username || "System"}
                             </span>{" "}
-                            เปลี่ยนสถานะ
+                            {language === "th" ? "เปลี่ยนสถานะ" : "changed status"}
                             {prevStatus ? (
                               <>
                                 {" "}
-                                จาก{" "}
+                                {language === "th" ? "จาก" : "from"}{" "}
                                 <span
                                   className={`badge px-2 py-0.5 rounded ${getStatusBadgeClass(prevStatus)}`}
                                 >
                                   {translateStatus(prevStatus)}
                                 </span>{" "}
-                                เป็น{" "}
+                                {language === "th" ? "เป็น" : "to"}{" "}
                               </>
                             ) : (
-                              " เป็น "
+                              language === "th" ? " เป็น " : " to "
                             )}
                             <span
                               className={`badge px-2 py-0.5 rounded ${getStatusBadgeClass(h.status)}`}
@@ -620,7 +627,7 @@ const TaskDetailModal = ({
                   </div>
                 ) : (
                   <div className="text-center text-muted text-xs py-4">
-                    ยังไม่มีประวัติการเปลี่ยนสถานะ
+                    {language === "th" ? "ยังไม่มีประวัติการเปลี่ยนสถานะ" : "No status history yet"}
                   </div>
                 )}
               </div>
@@ -637,14 +644,16 @@ const TaskDetailModal = ({
               onClick={() => {
                 if (
                   window.confirm(
-                    "คุณต้องการลบงานนี้จริงหรือไม่? / Are you sure you want to delete this task?",
+                    language === "th" 
+                      ? "คุณต้องการลบงานนี้จริงหรือไม่?" 
+                      : "Are you sure you want to delete this task?",
                   )
                 ) {
                   handleDeleteTask(selectedTask.id);
                 }
               }}
             >
-              🗑️ ลบงาน
+              🗑️ {language === "th" ? "ลบงาน" : "Delete Task"}
             </button>
           ) : (
             <div />
@@ -658,14 +667,14 @@ const TaskDetailModal = ({
                   className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full text-xs font-semibold whitespace-nowrap border border-white/10 transition-all"
                   onClick={() => setIsEditing(false)}
                 >
-                  ยกเลิก
+                  {language === "th" ? "ยกเลิก" : "Cancel"}
                 </button>
                 <button
                   type="button"
                   className="px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-lg"
                   onClick={onSave}
                 >
-                  บันทึกข้อมูล
+                  {language === "th" ? "บันทึกข้อมูล" : "Save Changes"}
                 </button>
               </>
             ) : (
