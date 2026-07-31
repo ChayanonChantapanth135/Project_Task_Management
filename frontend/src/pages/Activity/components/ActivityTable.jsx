@@ -1,4 +1,6 @@
 import React from "react";
+import { useLanguage } from "../../../lib/LanguageContext";
+import { formatDateTime } from "../../../lib/dateUtils";
 
 const ActivityTable = ({
   loading,
@@ -13,6 +15,7 @@ const ActivityTable = ({
   indexOfLastEntry,
   t,
 }) => {
+  const { language } = useLanguage();
   return (
     <div className="glass-panel rounded-3xl p-6 shadow-2xl overflow-hidden">
       {/* Show entries row */}
@@ -88,7 +91,7 @@ const ActivityTable = ({
                         👤 {log.fullname || log.username || t("systemAdmin")}
                       </td>
                       <td className="py-4 px-4 text-center text-slate-400 text-xs">
-                        {new Date(log.created_at).toLocaleString()}
+                        {formatDateTime(log.created_at, language)}
                       </td>
                     </tr>
                   );

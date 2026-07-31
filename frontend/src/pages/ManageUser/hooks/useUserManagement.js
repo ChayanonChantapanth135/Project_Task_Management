@@ -4,8 +4,9 @@ import * as XLSX from "xlsx";
 import ExcelJS from "exceljs";
 // นำเข้า API_URL สำหรับใช้ต่อคำนำหน้าของรูปภาพโปรไฟล์ (Avatar) แบบไดนามิก
 import { API_URL } from "../../../config";
+import { formatDate } from "../../../lib/dateUtils";
 
-export const useUserManagement = (t) => {
+export const useUserManagement = (t, language = "en") => {
   const [currentUser, setCurrentUser] = useState(null);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -79,7 +80,7 @@ export const useUserManagement = (t) => {
           status: u.status || "active",
           avatar: u.avatar || null,
           lastLogin: u.created_at
-            ? new Date(u.created_at).toLocaleDateString()
+            ? formatDate(u.created_at, language)
             : "-",
           initials: initials,
         };

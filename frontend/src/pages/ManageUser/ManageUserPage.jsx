@@ -14,8 +14,8 @@ import { useGSAP } from "@gsap/react";
  * คอมโพเนนต์หน้าจัดการผู้ใช้ของระบบ (ManageUserPage Component) - Redesigned Dark Luxe Glassmorphism Theme
  */
 const ManageUserPage = () => {
-  const { t } = useLanguage();
-  const userHook = useUserManagement(t);
+  const { t, language } = useLanguage();
+  const userHook = useUserManagement(t, language);
   const fileInputRef = useRef(null);
   const pageRef = useRef(null);
   const blob1Ref = useRef(null);

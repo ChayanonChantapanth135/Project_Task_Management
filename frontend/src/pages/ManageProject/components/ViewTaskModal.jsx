@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Modal } from "react-bootstrap";
 import axios from "axios";
+import { useLanguage } from "../../../lib/LanguageContext";
+import { formatDateTime } from "../../../lib/dateUtils";
 
 const ViewTaskModal = ({
   showViewTaskModal,
@@ -16,6 +18,7 @@ const ViewTaskModal = ({
   fetchProjects,
   t,
 }) => {
+  const { language } = useLanguage();
   const [comments, setComments] = useState([]);
   const [files, setFiles] = useState([]);
   const [statusHistory, setStatusHistory] = useState([]);
@@ -423,7 +426,7 @@ const ViewTaskModal = ({
                       <div className="d-flex justify-content-between align-items-center mb-1">
                         <span className="fw-bold text-dark">{c.fullname || c.username} ({c.role})</span>
                         <span className="text-muted" style={{ fontSize: "10px" }}>
-                          {new Date(c.created_at).toLocaleString("th-TH")}
+                          {formatDateTime(c.created_at, language)}
                         </span>
                       </div>
                       <p className="mb-0 text-secondary">{c.comment}</p>
@@ -481,7 +484,7 @@ const ViewTaskModal = ({
                             </span>
                           </div>
                           <div className="text-muted mt-1 font-mono" style={{ fontSize: "10px" }}>
-                            {new Date(h.changed_at).toLocaleString("th-TH")}
+                            {formatDateTime(h.changed_at, language)}
                           </div>
                         </div>
                       );

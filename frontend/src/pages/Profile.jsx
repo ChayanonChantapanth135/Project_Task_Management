@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { getCurrentUser, signIn } from "../lib/auth";
 import { useLanguage } from "../lib/LanguageContext";
+import { formatDate } from "../lib/dateUtils";
 import { API_URL } from "../config";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -12,7 +13,7 @@ import { useGSAP } from "@gsap/react";
  * คอมโพเนนต์หน้าโปรไฟล์ (Profile Page Component) - Redesigned Dark Luxe Glassmorphism Theme
  */
 const Profile = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const fileInputRef = useRef(null);
   const pageRef = useRef(null);
   const blob1Ref = useRef(null);
@@ -328,7 +329,7 @@ const Profile = () => {
                   <span className="text-slate-400">{t("profileCreated")}:</span>
                   <span>
                     {user?.created_at
-                      ? new Date(user.created_at).toLocaleDateString()
+                      ? formatDate(user.created_at, language)
                       : "-"}
                   </span>
                 </div>

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { Modal } from "react-bootstrap";
 import axios from "axios";
 import SearchableUserSelect from "../../../components/SearchableUserSelect";
+import { useLanguage } from "../../../lib/LanguageContext";
+import { formatDateTime } from "../../../lib/dateUtils";
 
 const TaskDetailModal = ({
   showViewModal,
@@ -16,6 +18,7 @@ const TaskDetailModal = ({
   currentUser,
   t,
 }) => {
+  const { language } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -537,7 +540,7 @@ const TaskDetailModal = ({
                           className="text-muted"
                           style={{ fontSize: "10px" }}
                         >
-                          {new Date(c.created_at).toLocaleString("th-TH")}
+                          {formatDateTime(c.created_at, language)}
                         </span>
                       </div>
                       <p className="mb-0 text-secondary">{c.comment}</p>
@@ -609,7 +612,7 @@ const TaskDetailModal = ({
                             className="text-muted mt-1 font-mono"
                             style={{ fontSize: "10px" }}
                           >
-                            {new Date(h.changed_at).toLocaleString("th-TH")}
+                            {formatDateTime(h.changed_at, language)}
                           </div>
                         </div>
                       );

@@ -1,10 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useLanguage } from "../../../lib/LanguageContext";
+import { formatDateTime } from "../../../lib/dateUtils";
 
 /**
  * คอมโพเนนต์แสดงบันทึกกิจกรรมล่าสุดบนแดชบอร์ด (RecentActivity Component) - Glassmorphism Theme
  */
 const RecentActivity = ({ t, recentActivities }) => {
+  const { language } = useLanguage();
   return (
     <div className="glass-panel rounded-3xl p-6 md:p-8 flex flex-col justify-between shadow-2xl">
       <div>
@@ -35,7 +38,7 @@ const RecentActivity = ({ t, recentActivities }) => {
               </div>
               <span className="text-xs text-slate-500 font-medium whitespace-nowrap ml-2">
                 {activity.created_at
-                  ? new Date(activity.created_at).toLocaleString()
+                  ? formatDateTime(activity.created_at, language)
                   : activity.time || ""}
               </span>
             </div>

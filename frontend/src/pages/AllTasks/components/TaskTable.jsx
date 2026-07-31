@@ -1,4 +1,5 @@
 import React from "react";
+import { formatDate } from "../../../lib/dateUtils";
 
 const TaskTable = ({
   currentItems,
@@ -90,7 +91,7 @@ const TaskTable = ({
                       {task.status}
                     </span>
                   </td>
-                  <td className="py-4 px-6 text-center text-slate-400 font-mono whitespace-nowrap">{task.dueDate}</td>
+                  <td className="py-4 px-6 text-center text-slate-400 font-mono whitespace-nowrap">{formatDate(task.dueDate, language)}</td>
                   <td className="py-4 px-6 text-center whitespace-nowrap">
                     <button
                       className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white rounded-xl transition-all text-xs"

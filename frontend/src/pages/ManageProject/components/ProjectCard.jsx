@@ -1,4 +1,6 @@
 import React from "react";
+import { useLanguage } from "../../../lib/LanguageContext";
+import { formatDate } from "../../../lib/dateUtils";
 
 const ProjectCard = ({
   project,
@@ -7,6 +9,7 @@ const ProjectCard = ({
   handleOpenEdit,
   handleOpenDelete
 }) => {
+  const { language } = useLanguage();
   const statusLower = project.status?.toLowerCase();
   let badgeClass = "bg-amber-500/20 text-amber-300";
   let statusText = t("statusPending");
@@ -50,7 +53,7 @@ const ProjectCard = ({
           <div className="flex items-center gap-2">
             <span>⏱️ {t("endDateLabel")}:</span>
             <span className="font-semibold text-slate-200">
-              {project.end_date ? new Date(project.end_date).toLocaleDateString() : "-"}
+              {project.end_date ? formatDate(project.end_date, language) : "-"}
             </span>
           </div>
           <div className="flex items-center gap-2">
