@@ -1,22 +1,22 @@
 import React, { useRef } from "react";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import { useLanguage } from "../lib/LanguageContext";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
+import { useLanguage } from "../../lib/LanguageContext";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
-import { useReportsData } from "./Reports/hooks/useReportsData";
-import ReportHeader from "./Reports/components/ReportHeader";
-import AdminReportView from "./Reports/components/AdminReportView";
-import ManagerReportView from "./Reports/components/ManagerReportView";
-import TeamLeaderReportView from "./Reports/components/TeamLeaderReportView";
-import UserReportView from "./Reports/components/UserReportView";
+import { useReportsData } from "./hooks/useReportsData";
+import ReportHeader from "./components/ReportHeader";
+import AdminReportView from "./components/AdminReportView";
+import ManagerReportView from "./components/ManagerReportView";
+import TeamLeaderReportView from "./components/TeamLeaderReportView";
+import UserReportView from "./components/UserReportView";
 
 /**
  * คอมโพเนนต์หน้ารายงานโครงการและวิเคราะห์สถิติ (Reports & Analytics Page Component)
  * - สรุปข้อมูลวิเคราะห์ สถิติ และประสิทธิภาพการทำงาน ปรับการแสดงผลตามระดับสิทธิ์ของผู้ใช้งาน (Role-Based View)
  */
-const Reports = () => {
+const ReportsPage = () => {
   const { language } = useLanguage();
   const reportData = useReportsData();
   const {
@@ -103,4 +103,4 @@ const Reports = () => {
   );
 };
 
-export default Reports;
+export default ReportsPage;
