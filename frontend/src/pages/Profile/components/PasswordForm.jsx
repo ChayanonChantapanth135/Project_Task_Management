@@ -1,6 +1,8 @@
 import React from "react";
 
 const PasswordForm = ({
+  currentPassword,
+  setCurrentPassword,
   newPassword,
   setNewPassword,
   confirmPassword,
@@ -14,33 +16,49 @@ const PasswordForm = ({
         {t("profileChangePassword")}
       </h5>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* New Password */}
+      <div className="flex flex-col gap-4">
+        {/* Current Password */}
         <div className="flex flex-col gap-1">
           <label className="text-xs text-slate-400 font-semibold">
-            {t("profileNewPassword")}
+            {t("profileCurrentPassword") || "Current Password"}
           </label>
           <input
             type="password"
             className="bg-slate-800/60 hover:bg-slate-800/80 focus:bg-slate-900/90 text-white rounded-2xl px-4 py-3 text-sm transition-all"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
             placeholder="••••••••"
           />
         </div>
 
-        {/* Confirm Password */}
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-slate-400 font-semibold">
-            {t("profileConfirmPassword")}
-          </label>
-          <input
-            type="password"
-            className="bg-slate-800/60 hover:bg-slate-800/80 focus:bg-slate-900/90 text-white rounded-2xl px-4 py-3 text-sm transition-all"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="••••••••"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* New Password */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-slate-400 font-semibold">
+              {t("profileNewPassword")}
+            </label>
+            <input
+              type="password"
+              className="bg-slate-800/60 hover:bg-slate-800/80 focus:bg-slate-900/90 text-white rounded-2xl px-4 py-3 text-sm transition-all"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="••••••••"
+            />
+          </div>
+
+          {/* Confirm Password */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-slate-400 font-semibold">
+              {t("profileConfirmPassword")}
+            </label>
+            <input
+              type="password"
+              className="bg-slate-800/60 hover:bg-slate-800/80 focus:bg-slate-900/90 text-white rounded-2xl px-4 py-3 text-sm transition-all"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="••••••••"
+            />
+          </div>
         </div>
       </div>
     </div>

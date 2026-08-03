@@ -19,7 +19,11 @@ const ProfilePage = () => {
     setFullname,
     phone,
     setPhone,
+    email,
+    setEmail,
     avatarPreview,
+    currentPassword,
+    setCurrentPassword,
     newPassword,
     setNewPassword,
     confirmPassword,
@@ -153,11 +157,14 @@ const ProfilePage = () => {
                 setFullname={setFullname}
                 phone={phone}
                 setPhone={setPhone}
-                email={user?.email}
+                email={email}
+                setEmail={setEmail}
                 t={t}
               />
 
               <PasswordForm
+                currentPassword={currentPassword}
+                setCurrentPassword={setCurrentPassword}
                 newPassword={newPassword}
                 setNewPassword={setNewPassword}
                 confirmPassword={confirmPassword}

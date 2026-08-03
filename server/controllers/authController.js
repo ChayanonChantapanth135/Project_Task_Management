@@ -323,12 +323,30 @@ export const createUser = async (req, res) => {
 
 export const updateUser = async (req, res) => {
     const { id } = req.params;
-    const { fullname, email, password, phone, role, status, creatorId } = req.body;
+    const { fullname, email, password, phone, role, status, creatorId, currentPassword } = req.body;
     try {
         const db = await connectToDatabase();
         
-        const [oldUserRows] = await db.query('SELECT status FROM users WHERE id = ?', [id]);
+        const [oldUserRows] = await db.query('SELECT password, status FROM users WHERE id = ?', [id]);
+        const oldPasswordHash = oldUserRows[0]?.password;
         const oldStatus = oldUserRows[0]?.status;
+
+        if (password && String(id) === String(creatorId)) {
+            if (!currentPassword) {
+                return res.status(400).json({ message: 'กรุณากรอกรหัสผ่านปัจจุบัน' });
+            }
+            const isMatch = await bcrypt.compare(currentPassword, oldPasswordHash);
+            if (!isMatch) {
+                return res.status(400).json({ message: 'รหัสผ่านปัจจุบันไม่ถูกต้อง' });
+            }
+        }
+
+        if (email) {
+            const [existing] = await db.query('SELECT id FROM users WHERE email = ? AND id != ? AND deleted_at IS NULL', [email, id]);
+            if (existing.length > 0) {
+                return res.status(409).json({ message: 'อีเมลนี้ถูกใช้งานโดยผู้ใช้อื่นแล้ว' });
+            }
+        }
 
         const formattedPhone = formatPhoneNumber(phone);
 

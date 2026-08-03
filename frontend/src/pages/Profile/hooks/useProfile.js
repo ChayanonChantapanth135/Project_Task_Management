@@ -12,11 +12,13 @@ export const useProfile = () => {
 
   // Form Fields
   const [fullname, setFullname] = useState("");
+  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState("");
 
   // Password Fields
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -40,6 +42,7 @@ export const useProfile = () => {
 
         setUser(fullUser);
         setFullname(fullUser.fullname || "");
+        setEmail(fullUser.email || "");
         setPhone(fullUser.phone || "");
 
         if (fullUser.avatar) {
@@ -91,6 +94,11 @@ export const useProfile = () => {
       return;
     }
 
+    if (newPassword && !currentPassword) {
+      setErrorMsg(t("currentPasswordRequired") || "Please enter your current password");
+      return;
+    }
+
     if (newPassword && newPassword !== confirmPassword) {
       setErrorMsg(t("passwordsMismatch") || "Passwords do not match");
       return;
@@ -103,7 +111,7 @@ export const useProfile = () => {
     try {
       const formData = new FormData();
       formData.append("fullname", fullname.trim());
-      formData.append("email", user.email);
+      formData.append("email", email.trim());
       formData.append("phone", phone.trim());
       formData.append("role", user.role);
       formData.append("status", user.status || "active");
@@ -111,6 +119,7 @@ export const useProfile = () => {
 
       if (newPassword) {
         formData.append("password", newPassword);
+        formData.append("currentPassword", currentPassword);
       }
 
       if (avatarFile) {
@@ -125,6 +134,7 @@ export const useProfile = () => {
 
       if (response.status === 200) {
         setSuccessMsg(t("profileUpdateSuccess"));
+        setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
 
@@ -170,8 +180,12 @@ export const useProfile = () => {
     setFullname,
     phone,
     setPhone,
+    email,
+    setEmail,
     avatarFile,
     avatarPreview,
+    currentPassword,
+    setCurrentPassword,
     newPassword,
     setNewPassword,
     confirmPassword,

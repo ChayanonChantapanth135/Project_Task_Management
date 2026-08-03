@@ -6,6 +6,7 @@ const PersonalInfoForm = ({
   phone,
   setPhone,
   email,
+  setEmail,
   t,
 }) => {
   return (
@@ -46,16 +47,17 @@ const PersonalInfoForm = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Email (Disabled) */}
+        {/* Email */}
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-slate-400 font-semibold opacity-70">
-            {t("profileEmailDisabled")}
+          <label className="text-xs text-slate-400 font-semibold">
+            {t("profileEmail") || "Email"}
           </label>
           <input
             type="email"
-            className="bg-slate-800/20 text-slate-500 rounded-2xl px-4 py-3 text-sm cursor-not-allowed"
+            className="bg-slate-800/60 hover:bg-slate-800/80 focus:bg-slate-900/90 text-white rounded-2xl px-4 py-3 text-sm transition-all"
             value={email || ""}
-            disabled
+            onChange={(e) => setEmail(e.target.value)}
+            required
           />
         </div>
       </div>
