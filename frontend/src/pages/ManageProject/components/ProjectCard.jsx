@@ -24,8 +24,36 @@ const ProjectCard = ({
     statusText = t("statusReview");
   }
 
+  const deadlineStyle = (() => {
+    if (!project.end_date || statusLower === "completed") return {};
+    const now = new Date();
+    const end = new Date(project.end_date);
+    const endDay = new Date(end);
+    endDay.setHours(23, 59, 59, 999);
+    
+    if (now > endDay) {
+      return {
+        background: "rgba(244, 63, 94, 0.15)", // light red
+        border: "1.5px solid rgba(244, 63, 94, 0.4)",
+      };
+    }
+    
+    const diffTime = endDay.getTime() - now.getTime();
+    const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+    if (diffTime >= 0 && diffTime <= threeDaysMs) {
+      return {
+        background: "rgba(245, 158, 11, 0.15)", // light yellow
+        border: "1.5px solid rgba(245, 158, 11, 0.4)",
+      };
+    }
+    return {};
+  })();
+
   return (
-    <div className="glass-card rounded-3xl p-6 flex flex-col justify-between h-full relative overflow-hidden group">
+    <div 
+      className="glass-card rounded-3xl p-6 flex flex-col justify-between h-full relative overflow-hidden group"
+      style={deadlineStyle}
+    >
       <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-indigo-500/10 rounded-full filter blur-2xl group-hover:bg-indigo-500/20 transition-all pointer-events-none"></div>
 
       <div>

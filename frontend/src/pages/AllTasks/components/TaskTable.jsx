@@ -54,54 +54,80 @@ const TaskTable = ({
           </thead>
           <tbody className="divide-y divide-white/5 text-sm">
             {currentItems.length > 0 ? (
-              currentItems.map((task) => (
-                <tr key={task.id} className="hover:bg-white/5 transition-colors duration-200">
-                  <td className="py-4 px-6 font-semibold text-white">{task.title}</td>
-                  <td className="py-4 px-6 text-slate-300">
-                    <span className="bg-[#1e293b]/60 px-2.5 py-1 rounded-lg text-xs whitespace-nowrap">
-                      {task.project}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-slate-300 whitespace-nowrap">{task.assignee}</td>
-                  <td className="py-4 px-6 text-center">
-                    <span
-                      className={`inline-block px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${
-                        task.priority === "High"
-                          ? "bg-red-500/20 text-red-300"
-                          : task.priority === "Medium"
-                          ? "bg-amber-500/20 text-amber-300"
-                          : "bg-blue-500/20 text-blue-300"
-                      }`}
-                    >
-                      {task.priority}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-center">
-                    <span
-                      className={`inline-block px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${
-                        task.status === "Completed"
-                          ? "bg-emerald-500/20 text-emerald-300"
-                          : task.status === "In Progress"
-                          ? "bg-indigo-500/20 text-indigo-300"
-                          : task.status === "Reviewing"
-                          ? "bg-amber-500/20 text-amber-300"
-                          : "bg-slate-500/20 text-slate-300"
-                      }`}
-                    >
-                      {task.status}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-center text-slate-400 font-mono whitespace-nowrap">{formatDate(task.dueDate, language)}</td>
-                  <td className="py-4 px-6 text-center whitespace-nowrap">
-                    <button
-                      className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white rounded-xl transition-all text-xs"
-                      onClick={() => onManageClick(task)}
-                    >
-                      {language === "th" ? "จัดการ" : "Manage"}
-                    </button>
-                  </td>
-                </tr>
-              ))
+              currentItems.map((task) => {
+                const statusLower = task.status?.toLowerCase();
+                const deadlineStyle = (() => {
+                  if (!task.dueDate || statusLower === "completed") return {};
+                  const now = new Date();
+                  const end = new Date(task.dueDate);
+                  const endDay = new Date(end);
+                  endDay.setHours(23, 59, 59, 999);
+                  
+                  if (now > endDay) {
+                    return {
+                      backgroundColor: "rgba(244, 63, 94, 0.15)", // light red
+                    };
+                  }
+                  
+                  const diffTime = endDay.getTime() - now.getTime();
+                  const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+                  if (diffTime >= 0 && diffTime <= threeDaysMs) {
+                    return {
+                      backgroundColor: "rgba(245, 158, 11, 0.15)", // light yellow
+                    };
+                  }
+                  return {};
+                })();
+
+                return (
+                  <tr key={task.id} className="hover:bg-white/5 transition-colors duration-200">
+                    <td className="py-4 px-6 font-semibold text-white rounded-l-2xl" style={deadlineStyle}>{task.title}</td>
+                    <td className="py-4 px-6 text-slate-300" style={deadlineStyle}>
+                      <span className="bg-[#1e293b]/60 px-2.5 py-1 rounded-lg text-xs whitespace-nowrap">
+                        {task.project}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 text-slate-300 whitespace-nowrap" style={deadlineStyle}>{task.assignee}</td>
+                    <td className="py-4 px-6 text-center" style={deadlineStyle}>
+                      <span
+                        className={`inline-block px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${
+                          task.priority === "High"
+                            ? "bg-red-500/20 text-red-300"
+                            : task.priority === "Medium"
+                            ? "bg-amber-500/20 text-amber-300"
+                            : "bg-blue-500/20 text-blue-300"
+                        }`}
+                      >
+                        {task.priority}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 text-center" style={deadlineStyle}>
+                      <span
+                        className={`inline-block px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${
+                          task.status === "Completed"
+                            ? "bg-emerald-500/20 text-emerald-300"
+                            : task.status === "In Progress"
+                            ? "bg-indigo-500/20 text-indigo-300"
+                            : task.status === "Reviewing"
+                            ? "bg-amber-500/20 text-amber-300"
+                            : "bg-slate-500/20 text-slate-300"
+                        }`}
+                      >
+                        {task.status}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 text-center text-slate-400 font-mono whitespace-nowrap" style={deadlineStyle}>{formatDate(task.dueDate, language)}</td>
+                    <td className="py-4 px-6 text-center whitespace-nowrap rounded-r-2xl" style={deadlineStyle}>
+                      <button
+                        className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white rounded-xl transition-all text-xs"
+                        onClick={() => onManageClick(task)}
+                      >
+                        {language === "th" ? "จัดการ" : "Manage"}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td colSpan="7" className="py-8 text-center text-slate-500">

@@ -41,12 +41,37 @@ const ProjectTable = ({
           </thead>
           <tbody className="divide-y divide-white/5 text-sm text-slate-200">
             {filteredProjects.length > 0 ? (
-              filteredProjects.map((project) => (
-                <tr key={project.id} className="hover:bg-white/5 transition-colors">
-                  <td className="py-4 px-4 font-bold text-white">
+              filteredProjects.map((project) => {
+                const statusLower = project.status?.toLowerCase();
+                const deadlineStyle = (() => {
+                  if (!project.end_date || statusLower === "completed") return {};
+                  const now = new Date();
+                  const end = new Date(project.end_date);
+                  const endDay = new Date(end);
+                  endDay.setHours(23, 59, 59, 999);
+                  
+                  if (now > endDay) {
+                    return {
+                      backgroundColor: "rgba(244, 63, 94, 0.15)", // light red
+                    };
+                  }
+                  
+                  const diffTime = endDay.getTime() - now.getTime();
+                  const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+                  if (diffTime >= 0 && diffTime <= threeDaysMs) {
+                    return {
+                      backgroundColor: "rgba(245, 158, 11, 0.15)", // light yellow
+                    };
+                  }
+                  return {};
+                })();
+
+                return (
+                  <tr key={project.id} className="hover:bg-white/5 transition-colors">
+                    <td className="py-4 px-4 font-bold text-white rounded-l-2xl" style={deadlineStyle}>
                     {project.name}
                   </td>
-                  <td className="py-4 px-4">
+                  <td className="py-4 px-4" style={deadlineStyle}>
                     {(() => {
                       const statusLower = project.status?.toLowerCase();
                       let badgeClass = "bg-amber-500/20 text-amber-300";
@@ -74,7 +99,7 @@ const ProjectTable = ({
                       );
                     })()}
                   </td>
-                  <td className="py-4 px-4">
+                  <td className="py-4 px-4" style={deadlineStyle}>
                     <div className="flex items-center gap-3 w-36">
                       <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden">
                         <div
@@ -87,7 +112,7 @@ const ProjectTable = ({
                       </span>
                     </div>
                   </td>
-                  <td className="py-4 px-4">
+                  <td className="py-4 px-4" style={deadlineStyle}>
                     <span
                       className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${
                         project.priority === "High"
@@ -100,10 +125,10 @@ const ProjectTable = ({
                       {project.priority}
                     </span>
                   </td>
-                  <td className="py-4 px-4 text-slate-400 text-xs">
+                  <td className="py-4 px-4 text-slate-400 text-xs" style={deadlineStyle}>
                     👤 {project.teamLeaderName || "-"}
                   </td>
-                  <td className="py-4 px-4 text-right">
+                  <td className="py-4 px-4 text-right rounded-r-2xl" style={deadlineStyle}>
                     <div className="inline-flex items-center gap-2">
                       <button
                         className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-medium transition-colors"
@@ -126,7 +151,8 @@ const ProjectTable = ({
                     </div>
                   </td>
                 </tr>
-              ))
+                );
+              })
             ) : (
               <tr>
                 <td colSpan="6" className="text-center py-12 text-slate-500">
