@@ -76,7 +76,6 @@ const UserModal = ({
                   value={formData.email}
                   onChange={handleInputChange}
                   required
-                  disabled={isEditMode}
                 />
               </div>
 

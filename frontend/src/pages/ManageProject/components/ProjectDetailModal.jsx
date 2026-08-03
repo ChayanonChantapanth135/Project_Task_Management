@@ -15,6 +15,27 @@ const ProjectDetailModal = ({
 }) => {
   const { language } = useLanguage();
 
+  const getTaskStyle = (task) => {
+    if (task.status === "Completed") return {};
+    if (!task.dueDate) return {};
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const dueDate = new Date(task.dueDate);
+    dueDate.setHours(0, 0, 0, 0);
+
+    const diffTime = dueDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return { backgroundColor: "rgba(220, 53, 69, 0.12)" }; // light red
+    } else if (diffDays <= 3) {
+      return { backgroundColor: "rgba(255, 193, 7, 0.15)" }; // light yellow
+    }
+    return {};
+  };
+
   return (
     <Modal
       show={showDetailModal}
@@ -102,7 +123,8 @@ const ProjectDetailModal = ({
                   selectedProject.tasks.map((task) => (
                     <div
                       key={task.id}
-                      className="list-group-item d-flex align-items-center justify-content-between py-3"
+                      className="list-group-item d-flex align-items-center justify-content-between py-3 rounded-2xl mb-1 border-0"
+                      style={getTaskStyle(task)}
                     >
                       {/* Left: Task Title */}
                       <div

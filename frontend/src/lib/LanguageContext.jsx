@@ -63,6 +63,7 @@ const translations = {
     // Dashboard Page
     dashboardTitle: "Dashboard",
     allUsers: "All Users",
+    allMyTasks: "All My Tasks",
     manageUsersLink: "Manage Users →",
     allProjects: "All Projects",
     viewProjectsLink: "View Projects →",
@@ -433,6 +434,7 @@ const translations = {
     // Dashboard Page
     dashboardTitle: "แดชบอร์ด",
     allUsers: "ผู้ใช้ทั้งหมด",
+    allMyTasks: "งานทั้งหมดของฉัน",
     manageUsersLink: "จัดการผู้ใช้ →",
     allProjects: "โปรเจคทั้งหมด",
     viewProjectsLink: "ดูโปรเจค →",

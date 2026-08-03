@@ -7,9 +7,14 @@ const TaskTable = ({
   t,
   itemsPerPage,
   setItemsPerPage,
+  currentPage,
   setCurrentPage,
+  totalPages,
+  totalItems,
   onManageClick,
 }) => {
+  const startEntry = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+  const endEntry = Math.min(currentPage * itemsPerPage, totalItems);
   return (
     <div className="glass-panel rounded-3xl p-6 overflow-hidden border-0 bg-white/5 backdrop-blur-lg shadow-2xl mb-6">
       {/* Show entries row */}
@@ -137,6 +142,39 @@ const TaskTable = ({
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Footer Pagination Row */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-white/5 text-xs text-slate-400">
+        <span>
+          {t("showingText") || "Showing"} {totalItems === 0 ? 0 : startEntry}{" "}
+          {t("toText") || "to"} {endEntry} {t("ofText") || "of"}{" "}
+          {totalItems} {t("entriesText") || "Entries"}
+        </span>
+
+        {totalPages > 1 && (
+          <div className="flex items-center gap-2">
+            <button
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 disabled:opacity-40 transition-colors"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            >
+              {t("prevText") || "Previous"}
+            </button>
+            <span className="px-3 py-1.5 font-bold text-white bg-indigo-600 rounded-xl">
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 disabled:opacity-40 transition-colors"
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+            >
+              {t("nextText") || "Next"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

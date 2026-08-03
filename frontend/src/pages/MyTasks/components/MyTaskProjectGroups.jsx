@@ -98,35 +98,57 @@ export default function MyTaskProjectGroups({
                     return type;
                   };
 
+                  const getTaskRowStyle = (t) => {
+                    if (t.status === "Completed") return {};
+                    if (!t.dueDate || t.dueDate === "-") return {};
+
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    const dueDate = new Date(t.dueDate);
+                    dueDate.setHours(0, 0, 0, 0);
+
+                    const diffTime = dueDate - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (diffDays < 0) {
+                      return { backgroundColor: "rgba(225, 29, 72, 0.18)" }; // light red
+                    } else if (diffDays <= 3) {
+                      return { backgroundColor: "rgba(245, 158, 11, 0.20)" }; // light yellow
+                    }
+                    return {};
+                  };
+
                   return (
                     <tr
                       key={task.id}
                       className="hover:bg-slate-800/30 transition-all group"
+                      style={getTaskRowStyle(task)}
                     >
-                      <td className="py-3.5 px-4 text-center font-semibold text-white group-hover:text-teal-300 transition-colors">
+                      <td className="py-3.5 px-4 text-center font-semibold text-white group-hover:text-teal-300 transition-colors first:rounded-l-xl last:rounded-r-xl">
                         {task.title}
                       </td>
-                      <td className="py-3.5 px-4 text-center text-slate-300">
+                      <td className="py-3.5 px-4 text-center text-slate-300 first:rounded-l-xl last:rounded-r-xl">
                         {formatTaskType(task.taskType)}
                       </td>
-                      <td className="py-3.5 px-4 text-center">
+                      <td className="py-3.5 px-4 text-center first:rounded-l-xl last:rounded-r-xl">
                         <span
                           className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${priorityColors[task.priority]}`}
                         >
                           {translatePriority(task.priority)}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-center">
+                      <td className="py-3.5 px-4 text-center first:rounded-l-xl last:rounded-r-xl">
                         <span
                           className={`inline-block px-2.5 py-1 rounded-full text-xs font-bold ${statusColors[task.status]}`}
                         >
                           {translateStatus(task.status)}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-center text-slate-400 text-xs">
+                      <td className="py-3.5 px-4 text-center text-slate-400 text-xs first:rounded-l-xl last:rounded-r-xl">
                         📅 {task.dueDate}
                       </td>
-                      <td className="py-3.5 px-4 text-center">
+                      <td className="py-3.5 px-4 text-center first:rounded-l-xl last:rounded-r-xl">
                         <button
                           className="px-4 py-1.5 bg-[#184157] hover:bg-teal-500 hover:text-[#112936] text-slate-200 text-xs font-bold rounded-full transition-all"
                           onClick={() => handleManageClick(task)}

@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useLanguage } from "../../../lib/LanguageContext";
 
 export const useAllTasks = () => {
+  const { language } = useLanguage();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [allProjectsList, setAllProjectsList] = useState([]);
@@ -172,12 +174,12 @@ export const useAllTasks = () => {
 
       await fetchTasks();
 
-      setSuccessMessage("อัปเดตข้อมูลงานสำเร็จ");
+      setSuccessMessage(language === "th" ? "อัปเดตข้อมูลงานสำเร็จ" : "Task updated successfully");
       setTimeout(() => setSuccessMessage(""), 5000);
       setShowViewModal(false);
     } catch (err) {
       console.error("Failed to update task:", err);
-      setErrorMessage("ไม่สามารถอัปเดตข้อมูลงานได้");
+      setErrorMessage(language === "th" ? "ไม่สามารถอัปเดตข้อมูลงานได้" : "Failed to update task");
       setTimeout(() => setErrorMessage(""), 5000);
     }
   };
@@ -188,12 +190,12 @@ export const useAllTasks = () => {
 
       await fetchTasks();
 
-      setSuccessMessage("ลบงานสำเร็จ");
+      setSuccessMessage(language === "th" ? "ลบงานสำเร็จ" : "Task deleted successfully");
       setTimeout(() => setSuccessMessage(""), 5000);
       setShowViewModal(false);
     } catch (err) {
       console.error("Failed to delete task:", err);
-      setErrorMessage("ไม่สามารถลบงานได้");
+      setErrorMessage(language === "th" ? "ไม่สามารถลบงานได้" : "Failed to delete task");
       setTimeout(() => setErrorMessage(""), 5000);
     }
   };
@@ -233,5 +235,6 @@ export const useAllTasks = () => {
     currentUser,
     taskHistory,
     fetchTaskHistory,
+    totalItems: filteredTasks.length,
   };
 };

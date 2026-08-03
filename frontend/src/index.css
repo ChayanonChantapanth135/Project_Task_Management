@@ -192,3 +192,65 @@ footer, footer p, footer li, footer span {
 footer a:hover {
   color: #2dd4bf !important;
 }
+
+/* Light Theme Overrides */
+.light {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.light body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.light .glass-panel {
+  background: rgba(255, 255, 255, 0.85) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05) !important;
+  color: #1e293b !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.light .glass-card {
+  background: rgba(255, 255, 255, 0.65) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
+  color: #1e293b !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.light .text-white {
+  color: #0f172a !important;
+}
+
+.light .text-slate-100 {
+  color: #0f172a !important;
+}
+
+.light .text-slate-200 {
+  color: #1e293b !important;
+}
+
+.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+.light .text-slate-400 {
+  color: #64748b !important;
+}
+
+.light header {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.light header span.text-white {
+  color: #0f172a !important;
+}
+
+.light .bg-\[\#153648\] {
+  background-color: #f8fafc !important;
+}
+
+.light footer, .light footer p, .light footer li, .light footer span {
+  color: #475569 !important;
+}

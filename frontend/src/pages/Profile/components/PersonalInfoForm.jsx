@@ -12,8 +12,7 @@ const PersonalInfoForm = ({
   return (
     <div className="glass-panel rounded-3xl p-6 shadow-2xl space-y-4">
       <h5 className="text-base font-bold text-teal-400 flex items-center gap-2 mb-2">
-        <i className="bi bi-person-gear"></i>{" "}
-        {t("profilePersonalInfo")}
+        <i className="bi bi-person-gear"></i> {t("profilePersonalInfo")}
       </h5>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -54,10 +53,9 @@ const PersonalInfoForm = ({
           </label>
           <input
             type="email"
-            className="bg-slate-800/60 hover:bg-slate-800/80 focus:bg-slate-900/90 text-white rounded-2xl px-4 py-3 text-sm transition-all"
+            className="bg-slate-800/30 text-slate-500 rounded-2xl px-4 py-3 text-sm cursor-not-allowed opacity-70"
             value={email || ""}
-            onChange={(e) => setEmail(e.target.value)}
-            required
+            disabled
           />
         </div>
       </div>

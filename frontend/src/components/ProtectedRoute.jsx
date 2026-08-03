@@ -8,10 +8,11 @@ import { getCurrentUser } from '../lib/auth';
  * - หากยังไม่ได้เข้าสู่ระบบ (หรือเซสชันหมดอายุ) จะทำการนำทางไปยังหน้า Login (/login) ทันที
  * - แสดง Spinner โหลดดิ้งระหว่างรอตรวจสอบสถานะความถูกต้อง
  */
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, allowedRoles }) => {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [isForceReset, setIsForceReset] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
     /**
@@ -22,6 +23,7 @@ const ProtectedRoute = ({ children }) => {
       if (user) {
         setAuthenticated(true);
         setIsForceReset(user.is_force_reset === 1);
+        setUserRole(user.role ? user.role.toLowerCase().trim().replace(/\s+/g, "_") : null);
       } else {
         setAuthenticated(false);
       }
@@ -46,6 +48,10 @@ const ProtectedRoute = ({ children }) => {
 
   if (isForceReset) {
     return <Navigate to="/reset-password-first-time" replace />;
+  }
+
+  if (allowedRoles && allowedRoles.length > 0 && (!userRole || !allowedRoles.includes(userRole))) {
+    return <Navigate to="/Dashboard" replace />;
   }
 
   return children;

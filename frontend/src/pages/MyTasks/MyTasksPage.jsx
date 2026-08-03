@@ -164,6 +164,7 @@ const MyTasksPage = () => {
           users={allUsers}
           currentUser={currentUser}
           t={t}
+          hideEditInfoButton={true}
         />
       )}
     </div>

@@ -54,6 +54,7 @@ const AllTasksPage = () => {
     allUsersList,
     currentUser,
     taskHistory,
+    totalItems,
   } = useAllTasks();
 
   // GSAP Animations สำหรับลูกบอลเรืองแสงพื้นหลัง
@@ -182,14 +183,11 @@ const AllTasksPage = () => {
               t={t}
               itemsPerPage={itemsPerPage}
               setItemsPerPage={setItemsPerPage}
-              setCurrentPage={setCurrentPage}
-              onManageClick={handleManageClick}
-            />
-            <TaskPagination
               currentPage={currentPage}
               setCurrentPage={setCurrentPage}
               totalPages={totalPages}
-              language={language}
+              totalItems={totalItems}
+              onManageClick={handleManageClick}
             />
           </>
         )}

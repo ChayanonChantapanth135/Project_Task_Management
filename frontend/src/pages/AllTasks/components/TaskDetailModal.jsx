@@ -17,6 +17,7 @@ const TaskDetailModal = ({
   users = [],
   currentUser,
   t,
+  hideEditInfoButton = false,
 }) => {
   const { language } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
@@ -207,7 +208,7 @@ const TaskDetailModal = ({
               : `🔍 ${t("taskDetailsTitle") || "Task Details"}`}
           </h5>
           <div className="d-flex gap-2">
-            {!isEditing && (
+            {!isEditing && !hideEditInfoButton && (
               <button
                 className="btn btn-sm btn-primary px-3 py-1 rounded-xl text-xs"
                 onClick={() => setIsEditing(true)}
