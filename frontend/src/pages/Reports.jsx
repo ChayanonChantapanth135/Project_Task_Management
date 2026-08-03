@@ -1,19 +1,103 @@
-import React from "react";
+import React, { useRef } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { useLanguage } from "../lib/LanguageContext";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+
+import { useReportsData } from "./Reports/hooks/useReportsData";
+import ReportHeader from "./Reports/components/ReportHeader";
+import AdminReportView from "./Reports/components/AdminReportView";
+import ManagerReportView from "./Reports/components/ManagerReportView";
+import TeamLeaderReportView from "./Reports/components/TeamLeaderReportView";
+import UserReportView from "./Reports/components/UserReportView";
 
 /**
- * คอมโพเนนต์หน้ารายงานโครงการ (Reports Page Component)
- * - สรุปข้อมูลวิเคราะห์ สถิติ และความคืบหน้าของโครงการ/งานทั้งหมดในระบบ
+ * คอมโพเนนต์หน้ารายงานโครงการและวิเคราะห์สถิติ (Reports & Analytics Page Component)
+ * - สรุปข้อมูลวิเคราะห์ สถิติ และประสิทธิภาพการทำงาน ปรับการแสดงผลตามระดับสิทธิ์ของผู้ใช้งาน (Role-Based View)
  */
 const Reports = () => {
+  const { language } = useLanguage();
+  const reportData = useReportsData();
+  const {
+    loading,
+    isAdmin,
+    isManager,
+    isTeamLeader,
+    refreshData,
+    exportToExcel,
+    printReport,
+  } = reportData;
+
+  // Background Animation Refs
+  const pageRef = useRef(null);
+  const blob1Ref = useRef(null);
+  const blob2Ref = useRef(null);
+  const blob3Ref = useRef(null);
+
+  useGSAP(() => {
+    gsap.to(blob1Ref.current, { x: 50, y: -30, duration: 8, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    gsap.to(blob2Ref.current, { x: -40, y: 40, duration: 10, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    gsap.to(blob3Ref.current, { x: 30, y: 20, duration: 9, repeat: -1, yoyo: true, ease: "sine.inOut" });
+  }, { scope: pageRef });
+
+  // Role titles & descriptions
+  let roleTitle = language === "th" ? "รายงานประสิทธิภาพส่วนบุคคล" : "Personal Performance Report";
+  let roleDesc = language === "th"
+    ? "วิเคราะห์และติดตามสรุปผลการทำงาน กำหนดส่ง และสัดส่วนภารกิจของฉัน"
+    : "Analytics and performance tracking for your assigned tasks";
+
+  if (isAdmin) {
+    roleTitle = language === "th" ? "รายงานภาพรวมผู้บริหารและวิเคราะห์ระบบ" : "Executive System Analytics Report";
+    roleDesc = language === "th"
+      ? "สรุปสถิติภาพรวมทั้งระบบ การดำเนินงานของโปรเจกต์ และภาระงานของบุคลากร"
+      : "High-level executive dashboard tracking all projects, users, and overall delivery rates";
+  } else if (isManager) {
+    roleTitle = language === "th" ? "รายงานวิเคราะห์การบริหารโครงการ" : "Project Management Delivery Report";
+    roleDesc = language === "th"
+      ? "ติดตามสถานะความคืบหน้าของโครงการที่ท่านบริหารและจัดการทีมงาน"
+      : "Comprehensive progress and delivery metrics for projects under your supervision";
+  } else if (isTeamLeader) {
+    roleTitle = language === "th" ? "รายงานและสถิติการทำงานของทีม" : "Team Performance & Execution Report";
+    roleDesc = language === "th"
+      ? "วิเคราะห์ประสิทธิภาพการดำเนินงาน ปริมาณงานคงค้าง และการส่งงานของลูกทีม"
+      : "Execution tracking, workload breakdown, and delivery stats for your team";
+  }
+
   return (
-    <div>
+    <div ref={pageRef} className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans relative overflow-hidden">
       <Header />
-      <div className="container mt-4">
-        <h1>Projects Reports</h1>
-        <p>Reports</p>
-      </div>
+
+      {/* Background Animated Blobs */}
+      <div ref={blob1Ref} className="absolute top-10 left-1/4 w-[400px] h-[400px] bg-teal-500/10 rounded-full filter blur-[100px] pointer-events-none"></div>
+      <div ref={blob2Ref} className="absolute top-1/3 right-1/4 w-[350px] h-[350px] bg-indigo-600/15 rounded-full filter blur-[110px] pointer-events-none"></div>
+      <div ref={blob3Ref} className="absolute bottom-10 left-1/3 w-[450px] h-[450px] bg-cyan-600/10 rounded-full filter blur-[120px] pointer-events-none"></div>
+
+      <main className="flex-1 p-6 max-w-7xl mx-auto w-full relative z-10">
+        <ReportHeader
+          roleTitle={roleTitle}
+          roleDesc={roleDesc}
+          onExportExcel={exportToExcel}
+          onPrint={printReport}
+          onRefresh={refreshData}
+        />
+
+        {loading ? (
+          <div className="flex justify-center items-center py-24">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-teal-500 border-t-transparent"></div>
+          </div>
+        ) : (
+          <div>
+            {isAdmin && <AdminReportView data={reportData} />}
+            {isManager && <ManagerReportView data={reportData} />}
+            {isTeamLeader && <TeamLeaderReportView data={reportData} />}
+            {!isAdmin && !isManager && !isTeamLeader && (
+              <UserReportView data={reportData} />
+            )}
+          </div>
+        )}
+      </main>
+
       <Footer />
     </div>
   );

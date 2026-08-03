@@ -416,7 +416,7 @@ const DashboardPage = () => {
             </div>
 
             {/* Recent Activity Panel */}
-            <RecentActivity t={t} recentActivities={projectAndTaskActivities} />
+            <RecentActivity t={t} recentActivities={isAdmin ? recentActivities : projectAndTaskActivities} />
           </div>
         )}
 
