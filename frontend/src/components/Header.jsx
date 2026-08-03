@@ -65,7 +65,8 @@ const Header = () => {
 
   const isLoggedIn = user !== null;
 
-  const isActive = (path) => location.pathname.toLowerCase() === path.toLowerCase();
+  const isActive = (path) =>
+    location.pathname.toLowerCase() === path.toLowerCase();
 
   return (
     <header className="sticky top-0 z-50 px-4 py-3 bg-[#153648]/90 backdrop-blur-2xl shadow-xl shadow-black/20 transition-all">
@@ -82,7 +83,7 @@ const Header = () => {
             </div>
           </div>
           <span className="text-lg font-black tracking-wider text-white">
-            RNM <span className="gradient-text">TASK</span>
+            PROJECT <span className="gradient-text">TASK</span>
           </span>
         </Link>
 
@@ -178,8 +179,12 @@ const Header = () => {
                 </Dropdown.Toggle>
                 <Dropdown.Menu className="bg-[#0f172a] shadow-2xl p-2 text-slate-200 mt-2 min-w-[200px] border-0">
                   <Dropdown.Header className="px-3 py-2 bg-transparent">
-                    <strong className="text-white text-base block">{user?.name || "User"}</strong>
-                    <small className="text-slate-400 text-xs block truncate">{user?.email}</small>
+                    <strong className="text-white text-base block">
+                      {user?.name || "User"}
+                    </strong>
+                    <small className="text-slate-400 text-xs block truncate">
+                      {user?.email}
+                    </small>
                     {user?.role && (
                       <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-semibold">
                         {user.role}
@@ -220,7 +225,10 @@ const Header = () => {
               </Dropdown>
             ) : (
               <Link to="/login" className="no-underline">
-                <button type="button" className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-sm glow-button transition-all">
+                <button
+                  type="button"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-sm glow-button transition-all"
+                >
                   {t("login")}
                 </button>
               </Link>
@@ -236,8 +244,18 @@ const Header = () => {
                 id="dropdown-mobile-nav"
                 aria-label="Mobile Navigation Menu"
               >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 </svg>
               </Dropdown.Toggle>
 
@@ -266,7 +284,9 @@ const Header = () => {
                     }`}
                   >
                     <span className="text-base">👥</span>
-                    <span className="whitespace-nowrap">{t("manageUsers")}</span>
+                    <span className="whitespace-nowrap">
+                      {t("manageUsers")}
+                    </span>
                   </Dropdown.Item>
                 )}
 
