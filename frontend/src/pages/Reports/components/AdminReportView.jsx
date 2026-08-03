@@ -2,7 +2,7 @@ import React from "react";
 import { useLanguage } from "../../../lib/LanguageContext";
 
 export default function AdminReportView({ data }) {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const {
     totalProjects,
     totalTasks,
@@ -23,7 +23,7 @@ export default function AdminReportView({ data }) {
           </div>
           <div>
             <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-              {language === "th" ? "โปรเจกต์ทั้งหมด" : "Total Projects"}
+              {t("allProjects")}
             </p>
             <h3 className="text-2xl font-black text-white mt-1">{totalProjects}</h3>
           </div>
@@ -35,7 +35,7 @@ export default function AdminReportView({ data }) {
           </div>
           <div>
             <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-              {language === "th" ? "งานทั้งหมด" : "Total Tasks"}
+              {t("totalTasks")}
             </p>
             <h3 className="text-2xl font-black text-white mt-1">{totalTasks}</h3>
           </div>
@@ -47,7 +47,7 @@ export default function AdminReportView({ data }) {
           </div>
           <div>
             <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-              {language === "th" ? "ผู้ใช้งานในระบบ" : "Total Active Users"}
+              {t("totalActiveUsers")}
             </p>
             <h3 className="text-2xl font-black text-white mt-1">{totalUsers}</h3>
           </div>
@@ -59,7 +59,7 @@ export default function AdminReportView({ data }) {
           </div>
           <div>
             <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-              {language === "th" ? "อัตราความสำเร็จภาพรวม" : "Completion Rate"}
+              {t("overallCompletionRateLabel")}
             </p>
             <h3 className="text-2xl font-black text-emerald-400 mt-1">
               {overallCompletionRate}%
@@ -74,12 +74,10 @@ export default function AdminReportView({ data }) {
         <div className="glass-panel rounded-3xl p-8 border border-white/10 flex flex-col justify-between shadow-2xl">
           <div>
             <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-3">
-              <span>🎯</span> {language === "th" ? "อัตราการส่งงานสำเร็จ" : "System Delivery Efficiency"}
+              <span>🎯</span> {t("systemDeliveryEfficiency")}
             </h3>
             <p className="text-xs text-slate-400">
-              {language === "th"
-                ? "สัดส่วนงานที่เสร็จสิ้นเปรียบเทียบกับงานทั้งหมดในระบบ"
-                : "Ratio of completed tasks against total system tasks"}
+              {t("systemDeliveryDesc")}
             </p>
           </div>
 
@@ -105,7 +103,7 @@ export default function AdminReportView({ data }) {
               </svg>
               <div className="absolute flex flex-col items-center">
                 <span className="text-3xl font-black text-white">{overallCompletionRate}%</span>
-                <span className="text-[10px] text-slate-400 font-bold uppercase">{language === "th" ? "สำเร็จ" : "Done"}</span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase">{t("completed")}</span>
               </div>
             </div>
           </div>
@@ -122,12 +120,10 @@ export default function AdminReportView({ data }) {
         <div className="lg:col-span-2 glass-panel rounded-3xl p-8 border border-white/10 shadow-2xl flex flex-col justify-between">
           <div>
             <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-3">
-              <span>📊</span> {language === "th" ? "สถานะโครงการในระบบ" : "Project Status Breakdown"}
+              <span>📊</span> {t("projectStatusBreakdownTitle")}
             </h3>
             <p className="text-xs text-slate-400 mb-6">
-              {language === "th"
-                ? "แจกแจงสถานะของโครงการทั้งหมดที่กำลังดำเนินการในระบบ"
-                : "Detailed breakdown of all active projects by lifecycle status"}
+              {t("projectStatusBreakdownDesc")}
             </p>
           </div>
 
@@ -135,22 +131,22 @@ export default function AdminReportView({ data }) {
             <div className="glass-card rounded-2xl p-5 text-center border border-white/5">
               <span className="text-2xl block mb-2">⏳</span>
               <p className="text-2xl font-black text-slate-300">{projectStatusCounts.pending}</p>
-              <p className="text-xs text-slate-400 font-bold mt-1 uppercase">{language === "th" ? "รอดำเนินการ" : "Pending"}</p>
+              <p className="text-xs text-slate-400 font-bold mt-1 uppercase">{t("pending")}</p>
             </div>
             <div className="glass-card rounded-2xl p-5 text-center border border-indigo-500/20 bg-indigo-500/5">
               <span className="text-2xl block mb-2">⚙️</span>
               <p className="text-2xl font-black text-indigo-400">{projectStatusCounts.inProgress}</p>
-              <p className="text-xs text-indigo-300 font-bold mt-1 uppercase">{language === "th" ? "กำลังทำ" : "In Progress"}</p>
+              <p className="text-xs text-indigo-300 font-bold mt-1 uppercase">{t("inProgress")}</p>
             </div>
             <div className="glass-card rounded-2xl p-5 text-center border border-amber-500/20 bg-amber-500/5">
               <span className="text-2xl block mb-2">🔍</span>
               <p className="text-2xl font-black text-amber-400">{projectStatusCounts.review}</p>
-              <p className="text-xs text-amber-300 font-bold mt-1 uppercase">{language === "th" ? "รอตรวจสอบ" : "Reviewing"}</p>
+              <p className="text-xs text-amber-300 font-bold mt-1 uppercase">{t("reviewing")}</p>
             </div>
             <div className="glass-card rounded-2xl p-5 text-center border border-emerald-500/20 bg-emerald-500/5">
               <span className="text-2xl block mb-2">✅</span>
               <p className="text-2xl font-black text-emerald-400">{projectStatusCounts.completed}</p>
-              <p className="text-xs text-emerald-300 font-bold mt-1 uppercase">{language === "th" ? "เสร็จสิ้น" : "Completed"}</p>
+              <p className="text-xs text-emerald-300 font-bold mt-1 uppercase">{t("completed")}</p>
             </div>
           </div>
 
@@ -182,23 +178,21 @@ export default function AdminReportView({ data }) {
       {/* User Workload Breakdown Table */}
       <div className="glass-panel rounded-3xl p-8 border border-white/10 shadow-2xl">
         <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-3">
-          <span>👥</span> {language === "th" ? "รายงานภาระงานและอัตราความสำเร็จของสมาชิก" : "User Workload & Performance Matrix"}
+          <span>👥</span> {t("userWorkloadMatrixTitle")}
         </h3>
         <p className="text-xs text-slate-400 mb-6">
-          {language === "th"
-            ? "สรุปจำนวนงานที่ได้รับมอบหมายและเปอร์เซ็นต์ความสำเร็จของบุคลากรแต่ละคน"
-            : "Summary of assigned task volume and completion percentage per team member"}
+          {t("userWorkloadMatrixDesc")}
         </p>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-800 text-slate-400 text-xs uppercase tracking-wider">
-                <th className="py-3 px-4">{language === "th" ? "ชื่อผู้ใช้งาน" : "User"}</th>
-                <th className="py-3 px-4">{language === "th" ? "บทบาท" : "Role"}</th>
-                <th className="py-3 px-4 text-center">{language === "th" ? "งานที่ได้รับ" : "Assigned"}</th>
-                <th className="py-3 px-4 text-center">{language === "th" ? "งานที่สำเร็จ" : "Completed"}</th>
-                <th className="py-3 px-4">{language === "th" ? "อัตราความสำเร็จ" : "Progress Rate"}</th>
+                <th className="py-3 px-4">{t("colUser")}</th>
+                <th className="py-3 px-4">{t("colRole")}</th>
+                <th className="py-3 px-4 text-center">{t("assignedTasksLabel")}</th>
+                <th className="py-3 px-4 text-center">{t("completedTasksLabel")}</th>
+                <th className="py-3 px-4">{t("progressRateLabel")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50 text-sm">

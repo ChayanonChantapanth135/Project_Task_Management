@@ -2,7 +2,7 @@ import React from "react";
 import { useLanguage } from "../../../lib/LanguageContext";
 
 export default function UserReportView({ data }) {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const {
     myTasks,
     myCompletedCount,
@@ -23,7 +23,7 @@ export default function UserReportView({ data }) {
           </div>
           <div>
             <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-              {language === "th" ? "งานที่ได้รับมอบหมาย" : "Assigned Tasks"}
+              {t("assignedTasksLabel")}
             </p>
             <h3 className="text-2xl font-black text-white mt-1">{myTasks.length}</h3>
           </div>
@@ -35,7 +35,7 @@ export default function UserReportView({ data }) {
           </div>
           <div>
             <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-              {language === "th" ? "งานที่ทำเสร็จแล้ว" : "Completed Tasks"}
+              {t("completedTasksLabel")}
             </p>
             <h3 className="text-2xl font-black text-emerald-400 mt-1">{myCompletedCount}</h3>
           </div>
@@ -47,7 +47,7 @@ export default function UserReportView({ data }) {
           </div>
           <div>
             <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-              {language === "th" ? "งานเกินกำหนด" : "Overdue Tasks"}
+              {t("overdueTasks")}
             </p>
             <h3 className="text-2xl font-black text-rose-400 mt-1">{myOverdueCount}</h3>
           </div>
@@ -59,7 +59,7 @@ export default function UserReportView({ data }) {
           </div>
           <div>
             <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-              {language === "th" ? "อัตราการส่งงานตรงเวลา" : "Completion Rate"}
+              {t("overallCompletionRateLabel")}
             </p>
             <h3 className="text-2xl font-black text-indigo-300 mt-1">{myCompletionRate}%</h3>
           </div>
@@ -72,12 +72,10 @@ export default function UserReportView({ data }) {
         <div className="glass-panel rounded-3xl p-8 border border-white/10 flex flex-col justify-between shadow-2xl">
           <div>
             <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-3">
-              <span>⭐</span> {language === "th" ? "ประสิทธิภาพการส่งงานส่วนบุคคล" : "Personal Work Rate"}
+              <span>⭐</span> {t("personalWorkRateTitle")}
             </h3>
             <p className="text-xs text-slate-400">
-              {language === "th"
-                ? "สัดส่วนงานที่ท่านทำสำเร็จเปรียบเทียบกับภารกิจทั้งหมด"
-                : "Ratio of your completed tasks against total assigned tasks"}
+              {t("personalWorkRateDesc")}
             </p>
           </div>
 
@@ -103,7 +101,7 @@ export default function UserReportView({ data }) {
               </svg>
               <div className="absolute flex flex-col items-center">
                 <span className="text-3xl font-black text-white">{myCompletionRate}%</span>
-                <span className="text-[10px] text-slate-400 font-bold uppercase">{language === "th" ? "สำเร็จ" : "Done"}</span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase">{t("completed")}</span>
               </div>
             </div>
           </div>
@@ -120,12 +118,10 @@ export default function UserReportView({ data }) {
         <div className="lg:col-span-2 glass-panel rounded-3xl p-8 border border-white/10 shadow-2xl flex flex-col justify-between">
           <div>
             <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-3">
-              <span>🏷️</span> {language === "th" ? "สัดส่วนจำแนกตามประเภทงาน" : "Workload Distribution by Type"}
+              <span>🏷️</span> {t("workloadDistributionTypeTitle")}
             </h3>
             <p className="text-xs text-slate-400 mb-6">
-              {language === "th"
-                ? "แจกแจงปริมาณงานตามประเภทกิจกรรม เช่น งานแปล และ งานตัดต่อ"
-                : "Task count categorized by task execution domain"}
+              {t("workloadDistributionTypeDesc")}
             </p>
           </div>
 
@@ -133,19 +129,19 @@ export default function UserReportView({ data }) {
             <div className="glass-card rounded-2xl p-6 text-center border border-teal-500/20 bg-teal-500/5">
               <span className="text-3xl block mb-2">🌐</span>
               <p className="text-3xl font-black text-teal-300">{myTaskTypeCounts.translate}</p>
-              <p className="text-xs text-teal-200 font-bold mt-2 uppercase">{language === "th" ? "งานแปล (Translate)" : "Translate"}</p>
+              <p className="text-xs text-teal-200 font-bold mt-2 uppercase">{t("taskTypeTranslate")}</p>
             </div>
 
             <div className="glass-card rounded-2xl p-6 text-center border border-indigo-500/20 bg-indigo-500/5">
               <span className="text-3xl block mb-2">🎬</span>
               <p className="text-3xl font-black text-indigo-300">{myTaskTypeCounts.videoEdit}</p>
-              <p className="text-xs text-indigo-200 font-bold mt-2 uppercase">{language === "th" ? "งานตัดต่อ (Video Edit)" : "Video Edit"}</p>
+              <p className="text-xs text-indigo-200 font-bold mt-2 uppercase">{t("taskTypeVideoEdit")}</p>
             </div>
 
             <div className="glass-card rounded-2xl p-6 text-center border border-purple-500/20 bg-purple-500/5">
               <span className="text-3xl block mb-2">📌</span>
               <p className="text-3xl font-black text-purple-300">{myTaskTypeCounts.others}</p>
-              <p className="text-xs text-purple-200 font-bold mt-2 uppercase">{language === "th" ? "งานอื่นๆ (Others)" : "Others"}</p>
+              <p className="text-xs text-purple-200 font-bold mt-2 uppercase">{t("taskTypeOthers")}</p>
             </div>
           </div>
         </div>
@@ -154,46 +150,44 @@ export default function UserReportView({ data }) {
       {/* Personal Tasks Table */}
       <div className="glass-panel rounded-3xl p-8 border border-white/10 shadow-2xl">
         <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-3">
-          <span>📋</span> {language === "th" ? "สรุปภารกิจของฉัน" : "My Task Performance Summary"}
+          <span>📋</span> {t("myTaskPerformanceSummaryTitle")}
         </h3>
         <p className="text-xs text-slate-400 mb-6">
-          {language === "th"
-            ? "ตารางสรุปรายการงานทั้งหมดที่ท่านรับผิดชอบพร้อมสถานะและกำหนดส่ง"
-            : "Detailed list of all your assigned tasks with execution status"}
+          {t("myTaskPerformanceSummaryDesc")}
         </p>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-800 text-slate-400 text-xs uppercase tracking-wider">
-                <th className="py-3 px-4">{language === "th" ? "ชื่องาน" : "Task Name"}</th>
-                <th className="py-3 px-4">{language === "th" ? "โครงการ" : "Project"}</th>
-                <th className="py-3 px-4">{language === "th" ? "ประเภท" : "Type"}</th>
-                <th className="py-3 px-4 text-center">{language === "th" ? "สถานะ" : "Status"}</th>
-                <th className="py-3 px-4 text-center">{language === "th" ? "กำหนดส่ง" : "Due Date"}</th>
+                <th className="py-3 px-4">{t("taskNameLabel")}</th>
+                <th className="py-3 px-4">{t("taskProjectLabel")}</th>
+                <th className="py-3 px-4">{t("taskTypeLabel")}</th>
+                <th className="py-3 px-4 text-center">{t("taskStatusLabel")}</th>
+                <th className="py-3 px-4 text-center">{t("taskDueDateLabel")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/40 text-sm">
               {myTasks.length > 0 ? (
-                myTasks.map((t) => (
-                  <tr key={t.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="py-3.5 px-4 font-semibold text-white">{t.title}</td>
-                    <td className="py-3.5 px-4 text-slate-300">{t.projectName}</td>
-                    <td className="py-3.5 px-4 text-teal-300 font-bold">{t.taskType || "-"}</td>
+                myTasks.map((tItem) => (
+                  <tr key={tItem.id} className="hover:bg-slate-800/30 transition-colors">
+                    <td className="py-3.5 px-4 font-semibold text-white">{tItem.title}</td>
+                    <td className="py-3.5 px-4 text-slate-300">{tItem.projectName}</td>
+                    <td className="py-3.5 px-4 text-teal-300 font-bold">{tItem.taskType || "-"}</td>
                     <td className="py-3.5 px-4 text-center">
                       <span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-xs font-bold text-slate-300">
-                        {t.status}
+                        {tItem.status}
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-center text-slate-400 text-xs">
-                      📅 {t.due_date ? t.due_date.split("T")[0] : "-"}
+                      📅 {tItem.due_date ? tItem.due_date.split("T")[0] : "-"}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td colSpan="5" className="text-center py-8 text-slate-400 text-sm">
-                    {language === "th" ? "ไม่มีภารกิจในขณะนี้" : "No assigned tasks."}
+                    {t("noAssignedTasksText")}
                   </td>
                 </tr>
               )}

@@ -2,14 +2,10 @@ import React from "react";
 import { useLanguage } from "../../../lib/LanguageContext";
 
 export default function ManagerReportView({ data }) {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const { managedProjects, managedTasks, managerCompletionRate } = data;
 
   const onTrackCount = managedProjects.filter((p) => (p.status || "").toLowerCase() !== "delayed").length;
-  const inProgressCount = managedProjects.filter((p) => {
-    const s = (p.status || "").toLowerCase();
-    return s === "in progress" || s === "in_progress";
-  }).length;
 
   return (
     <div className="space-y-8">
@@ -21,7 +17,7 @@ export default function ManagerReportView({ data }) {
           </div>
           <div>
             <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-              {language === "th" ? "โครงการที่ดูแล" : "Managed Projects"}
+              {t("projectsTitle")}
             </p>
             <h3 className="text-2xl font-black text-white mt-1">{managedProjects.length}</h3>
           </div>
@@ -33,7 +29,7 @@ export default function ManagerReportView({ data }) {
           </div>
           <div>
             <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-              {language === "th" ? "งานทั้งหมดภายใต้โครงการ" : "Total Tasks"}
+              {t("totalTasks")}
             </p>
             <h3 className="text-2xl font-black text-white mt-1">{managedTasks.length}</h3>
           </div>
@@ -45,7 +41,7 @@ export default function ManagerReportView({ data }) {
           </div>
           <div>
             <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-              {language === "th" ? "โครงการที่ดำเนินตามแผน" : "On-Track Projects"}
+              {t("onTrackProjectsLabel")}
             </p>
             <h3 className="text-2xl font-black text-emerald-400 mt-1">{onTrackCount}</h3>
           </div>
@@ -57,7 +53,7 @@ export default function ManagerReportView({ data }) {
           </div>
           <div>
             <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-              {language === "th" ? "อัตราความสำเร็จของโครงการ" : "Completion Rate"}
+              {t("overallCompletionRateLabel")}
             </p>
             <h3 className="text-2xl font-black text-cyan-300 mt-1">{managerCompletionRate}%</h3>
           </div>
@@ -67,12 +63,10 @@ export default function ManagerReportView({ data }) {
       {/* Managed Projects Health & Progress List */}
       <div className="glass-panel rounded-3xl p-8 border border-white/10 shadow-2xl">
         <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-3">
-          <span>🎯</span> {language === "th" ? "ความคืบหน้าของโครงการที่อยู่ในการดูแล" : "Managed Projects Progress"}
+          <span>🎯</span> {t("managedProjectsProgressTitle")}
         </h3>
         <p className="text-xs text-slate-400 mb-6">
-          {language === "th"
-            ? "ติดตามสถานะ กำหนดส่ง และความคืบหน้าของโครงการที่ท่านรับผิดชอบ"
-            : "Monitor status, deadline, and progress meters for your assigned projects"}
+          {t("managedProjectsProgressDesc")}
         </p>
 
         <div className="space-y-4">
@@ -87,13 +81,13 @@ export default function ManagerReportView({ data }) {
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 mt-1">
-                    Team Leader: <strong className="text-slate-200">{p.teamLeaderName || "-"}</strong> | {language === "th" ? "กำหนดส่ง" : "End Date"}: {p.end_date ? p.end_date.split("T")[0] : "-"}
+                    {t("colTeamLeader")}: <strong className="text-slate-200">{p.teamLeaderName || "-"}</strong> | {t("endDateLabel")}: {p.end_date ? p.end_date.split("T")[0] : "-"}
                   </p>
                 </div>
 
                 <div className="w-full md:w-64">
                   <div className="flex justify-between items-center text-xs font-bold mb-1">
-                    <span className="text-slate-300">{language === "th" ? "ความคืบหน้า" : "Progress"}</span>
+                    <span className="text-slate-300">{t("colProgress")}</span>
                     <span className="text-teal-400">{p.progress || 0}%</span>
                   </div>
                   <div className="w-full bg-slate-800 rounded-full h-2.5">
@@ -107,7 +101,7 @@ export default function ManagerReportView({ data }) {
             ))
           ) : (
             <div className="text-center py-8 text-slate-400 text-sm">
-              {language === "th" ? "ไม่มีโครงการภายใต้การดูแลในขณะนี้" : "No managed projects found."}
+              {t("noManagedProjectsText")}
             </div>
           )}
         </div>

@@ -17,7 +17,7 @@ import UserReportView from "./components/UserReportView";
  * - สรุปข้อมูลวิเคราะห์ สถิติ และประสิทธิภาพการทำงาน ปรับการแสดงผลตามระดับสิทธิ์ของผู้ใช้งาน (Role-Based View)
  */
 const ReportsPage = () => {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const reportData = useReportsData();
   const {
     loading,
@@ -42,26 +42,18 @@ const ReportsPage = () => {
   }, { scope: pageRef });
 
   // Role titles & descriptions
-  let roleTitle = language === "th" ? "รายงานประสิทธิภาพส่วนบุคคล" : "Personal Performance Report";
-  let roleDesc = language === "th"
-    ? "วิเคราะห์และติดตามสรุปผลการทำงาน กำหนดส่ง และสัดส่วนภารกิจของฉัน"
-    : "Analytics and performance tracking for your assigned tasks";
+  let roleTitle = t("reportsHeaderTitle");
+  let roleDesc = t("reportsHeaderDesc");
 
   if (isAdmin) {
-    roleTitle = language === "th" ? "รายงานภาพรวมผู้บริหารและวิเคราะห์ระบบ" : "Executive System Analytics Report";
-    roleDesc = language === "th"
-      ? "สรุปสถิติภาพรวมทั้งระบบ การดำเนินงานของโปรเจกต์ และภาระงานของบุคลากร"
-      : "High-level executive dashboard tracking all projects, users, and overall delivery rates";
+    roleTitle = t("adminReportTitle");
+    roleDesc = t("adminReportDesc");
   } else if (isManager) {
-    roleTitle = language === "th" ? "รายงานวิเคราะห์การบริหารโครงการ" : "Project Management Delivery Report";
-    roleDesc = language === "th"
-      ? "ติดตามสถานะความคืบหน้าของโครงการที่ท่านบริหารและจัดการทีมงาน"
-      : "Comprehensive progress and delivery metrics for projects under your supervision";
+    roleTitle = t("managerReportTitle");
+    roleDesc = t("managerReportDesc");
   } else if (isTeamLeader) {
-    roleTitle = language === "th" ? "รายงานและสถิติการทำงานของทีม" : "Team Performance & Execution Report";
-    roleDesc = language === "th"
-      ? "วิเคราะห์ประสิทธิภาพการดำเนินงาน ปริมาณงานคงค้าง และการส่งงานของลูกทีม"
-      : "Execution tracking, workload breakdown, and delivery stats for your team";
+    roleTitle = t("teamLeaderReportTitle");
+    roleDesc = t("teamLeaderReportDesc");
   }
 
   return (

@@ -429,15 +429,15 @@ const DashboardPage = () => {
                 {isAdminOrManager
                   ? t("Project Calendar Title")
                   : isTeamLeader
-                  ? (language === "th" ? "ปฏิทินโปรเจกต์ที่ดูแล" : "Managed Projects Calendar")
-                  : (language === "th" ? "ปฏิทินงานของฉัน" : "My Task Calendar")}
+                  ? t("managedProjectsCalendar")
+                  : t("myTaskCalendar")}
               </h3>
               <p className="text-xs text-slate-400 mt-1">
                 {isAdminOrManager
                   ? t("projectCalendarDesc")
                   : isTeamLeader
-                  ? (language === "th" ? "ติดตามกำหนดส่งและสถานะโปรเจกต์ที่คุณเป็น Team Leader" : "Track deadlines and statuses of projects you lead")
-                  : (language === "th" ? "ติดตามกำหนดส่งงานและสถานะงานของฉัน" : "Track your personal task deadlines and statuses")}
+                  ? t("managedProjectsCalendarDesc")
+                  : t("myTaskCalendarDesc")}
               </p>
             </div>
           </div>

@@ -1,15 +1,50 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useLanguage } from "../../../lib/LanguageContext";
+import { getCurrentUser } from "../../../lib/auth";
 
 export const useAllTasks = () => {
   const { language } = useLanguage();
+
+  // All state hooks grouped together at the top of custom hook
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [allProjectsList, setAllProjectsList] = useState([]);
   const [allUsersList, setAllUsersList] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [priorityFilter, setPriorityFilter] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [tempStatus, setTempStatus] = useState("Pending");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
+  const [taskHistory, setTaskHistory] = useState({
+    lastEditedBy: "ไม่มีข้อมูล / No data",
+    lastEditedAt: null,
+    assigneeChangesCount: 0,
+    historyLogs: [],
+  });
 
-  // ดึงข้อมูลงานและข้อมูลเสริมจากฐานข้อมูล
+  // Fetch current logged-in user
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          setCurrentUser(user);
+        }
+      } catch (err) {
+        console.error("Error loading user profile:", err);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  // Fetch tasks and lookup data
   const fetchTasks = async () => {
     try {
       setLoading(true);
@@ -26,7 +61,7 @@ export const useAllTasks = () => {
                 formattedDueDate = task.due_date;
               }
             }
-            // ปรับรูปแบบตัวอักษรของระดับความสำคัญและสถานะให้ตรงกับที่ UI ใช้กรอง
+
             let normalizedPriority = "Medium";
             if (task.priority) {
               const p = task.priority.toLowerCase();
@@ -83,14 +118,7 @@ export const useAllTasks = () => {
     fetchUsers();
   }, []);
 
-  // ตัวกรองและคำค้นหา
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [priorityFilter, setPriorityFilter] = useState("All");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-
-  // กรองงานตามเงื่อนไข
+  // Filter tasks based on search & criteria
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch =
       task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -102,13 +130,13 @@ export const useAllTasks = () => {
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
-  // คำนวณข้อมูลสำหรับ Pagination
+  // Pagination calculation
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredTasks.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
 
-  // สถิติสรุปภาพรวมงาน
+  // Statistics
   const stats = {
     total: tasks.length,
     pending: tasks.filter((t) => t.status === "Pending").length,
@@ -116,37 +144,6 @@ export const useAllTasks = () => {
     reviewing: tasks.filter((t) => t.status === "Reviewing").length,
     completed: tasks.filter((t) => t.status === "Completed").length,
   };
-
-  // Manage Task Modal States
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [selectedTask, setSelectedTask] = useState(null);
-  const [tempStatus, setTempStatus] = useState("Pending");
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [currentUser, setCurrentUser] = useState(null);
-
-  // ดึงข้อมูลผู้ใช้ปัจจุบัน
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const { getCurrentUser } = await import("../../../lib/auth");
-        const user = await getCurrentUser();
-        if (user) {
-          setCurrentUser(user);
-        }
-      } catch (err) {
-        console.error("Error loading user profile:", err);
-      }
-    };
-    fetchUser();
-  }, []);
-
-  const [taskHistory, setTaskHistory] = useState({
-    lastEditedBy: "ไม่มีข้อมูล / No data",
-    lastEditedAt: null,
-    assigneeChangesCount: 0,
-    historyLogs: [],
-  });
 
   const fetchTaskHistory = async (taskId) => {
     try {
