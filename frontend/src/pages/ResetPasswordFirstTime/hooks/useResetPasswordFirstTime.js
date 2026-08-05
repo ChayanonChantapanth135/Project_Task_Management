@@ -20,6 +20,8 @@ export const useResetPasswordFirstTime = (t) => {
       const user = await getCurrentUser();
       if (!user) {
         navigate("/login");
+      } else if (user.is_force_reset === 0 || user.is_force_reset !== 1) {
+        navigate("/Dashboard");
       } else {
         setCurrentUser(user);
       }

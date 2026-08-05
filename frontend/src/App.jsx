@@ -48,6 +48,7 @@ function App() {
           <Route path="/Contract" element={<Contract />} />
           <Route path="/login" element={<Login />} />
           <Route path="/ResetPassword" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/reset-password-first-time" element={<ResetPasswordFirstTime />} />
           {/* <Route path='/register' element={<Register />} /> */}
 

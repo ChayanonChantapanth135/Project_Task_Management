@@ -101,6 +101,7 @@ export const useReportsData = () => {
       fullname: u.fullname || u.name,
       email: u.email,
       role: u.role,
+      avatar: u.avatar,
       assignedCount: assignedTasks.length,
       completedCount: completedCount,
       rate: assignedTasks.length > 0 ? Math.round((completedCount / assignedTasks.length) * 100) : 0,

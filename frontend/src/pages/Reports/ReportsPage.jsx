@@ -29,17 +29,41 @@ const ReportsPage = () => {
     printReport,
   } = reportData;
 
-  // Background Animation Refs
+  // Animation Refs
   const pageRef = useRef(null);
-  const blob1Ref = useRef(null);
-  const blob2Ref = useRef(null);
-  const blob3Ref = useRef(null);
+  const orb1Ref = useRef(null);
+  const orb2Ref = useRef(null);
+  const orb3Ref = useRef(null);
+  const orb4Ref = useRef(null);
+  const headerRef = useRef(null);
+  const contentRef = useRef(null);
 
   useGSAP(() => {
-    gsap.to(blob1Ref.current, { x: 50, y: -30, duration: 8, repeat: -1, yoyo: true, ease: "sine.inOut" });
-    gsap.to(blob2Ref.current, { x: -40, y: 40, duration: 10, repeat: -1, yoyo: true, ease: "sine.inOut" });
-    gsap.to(blob3Ref.current, { x: 30, y: 20, duration: 9, repeat: -1, yoyo: true, ease: "sine.inOut" });
-  }, { scope: pageRef });
+    // Floating orbs — smooth infinite motion
+    gsap.to(orb1Ref.current, { x: 60, y: -40, duration: 12, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    gsap.to(orb2Ref.current, { x: -50, y: 50, duration: 14, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    gsap.to(orb3Ref.current, { x: 40, y: 30, duration: 11, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    gsap.to(orb4Ref.current, { x: -30, y: -20, duration: 13, repeat: -1, yoyo: true, ease: "sine.inOut" });
+
+    // Header entrance
+    if (headerRef.current) {
+      gsap.fromTo(headerRef.current,
+        { opacity: 0, y: -20 },
+        { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }
+      );
+    }
+
+    // Content entrance with stagger
+    if (contentRef.current) {
+      const sections = contentRef.current.querySelectorAll(":scope > div > div");
+      if (sections.length > 0) {
+        gsap.fromTo(sections,
+          { opacity: 0, y: 30 },
+          { opacity: 1, y: 0, duration: 0.6, stagger: 0.12, ease: "power3.out", delay: 0.3 }
+        );
+      }
+    }
+  }, { scope: pageRef, dependencies: [loading] });
 
   // Role titles & descriptions
   let roleTitle = t("reportsHeaderTitle");
@@ -60,26 +84,68 @@ const ReportsPage = () => {
     <div ref={pageRef} className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans relative overflow-hidden">
       <Header />
 
-      {/* Background Animated Blobs */}
-      <div ref={blob1Ref} className="absolute top-10 left-1/4 w-[400px] h-[400px] bg-teal-500/10 rounded-full filter blur-[100px] pointer-events-none"></div>
-      <div ref={blob2Ref} className="absolute top-1/3 right-1/4 w-[350px] h-[350px] bg-indigo-600/15 rounded-full filter blur-[110px] pointer-events-none"></div>
-      <div ref={blob3Ref} className="absolute bottom-10 left-1/3 w-[450px] h-[450px] bg-cyan-600/10 rounded-full filter blur-[120px] pointer-events-none"></div>
+      {/* Background Animated Orbs — Mesh-style gradient */}
+      <div ref={orb1Ref} className="absolute top-[5%] left-[15%] w-[500px] h-[500px] rounded-full pointer-events-none"
+        style={{
+          background: "radial-gradient(circle, rgba(20,184,166,0.08) 0%, transparent 70%)",
+          filter: "blur(80px)",
+        }}
+      />
+      <div ref={orb2Ref} className="absolute top-[30%] right-[10%] w-[450px] h-[450px] rounded-full pointer-events-none"
+        style={{
+          background: "radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%)",
+          filter: "blur(90px)",
+        }}
+      />
+      <div ref={orb3Ref} className="absolute bottom-[10%] left-[25%] w-[550px] h-[550px] rounded-full pointer-events-none"
+        style={{
+          background: "radial-gradient(circle, rgba(168,85,247,0.07) 0%, transparent 70%)",
+          filter: "blur(100px)",
+        }}
+      />
+      <div ref={orb4Ref} className="absolute top-[60%] right-[30%] w-[400px] h-[400px] rounded-full pointer-events-none"
+        style={{
+          background: "radial-gradient(circle, rgba(6,182,212,0.06) 0%, transparent 70%)",
+          filter: "blur(70px)",
+        }}
+      />
 
-      <main className="flex-1 p-6 max-w-7xl mx-auto w-full relative z-10">
-        <ReportHeader
-          roleTitle={roleTitle}
-          roleDesc={roleDesc}
-          onExportExcel={exportToExcel}
-          onPrint={printReport}
-          onRefresh={refreshData}
-        />
+      <main className="flex-1 p-4 md:p-6 max-w-7xl mx-auto w-full relative z-10">
+        <div ref={headerRef}>
+          <ReportHeader
+            roleTitle={roleTitle}
+            roleDesc={roleDesc}
+            onExportExcel={exportToExcel}
+            onPrint={printReport}
+            onRefresh={refreshData}
+          />
+        </div>
 
         {loading ? (
-          <div className="flex justify-center items-center py-24">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-teal-500 border-t-transparent"></div>
+          <div className="flex flex-col justify-center items-center py-32 gap-4">
+            <div className="relative w-16 h-16">
+              <div className="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
+                style={{
+                  borderTopColor: "#14b8a6",
+                  borderRightColor: "#6366f1",
+                  animationDuration: "1s",
+                }}
+              />
+              <div className="absolute inset-2 rounded-full border-2 border-transparent animate-spin"
+                style={{
+                  borderBottomColor: "#a855f7",
+                  borderLeftColor: "#06b6d4",
+                  animationDuration: "1.5s",
+                  animationDirection: "reverse",
+                }}
+              />
+            </div>
+            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider animate-pulse">
+              Loading analytics...
+            </span>
           </div>
         ) : (
-          <div>
+          <div ref={contentRef}>
             {isAdmin && <AdminReportView data={reportData} />}
             {isManager && <ManagerReportView data={reportData} />}
             {isTeamLeader && <TeamLeaderReportView data={reportData} />}
