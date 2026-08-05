@@ -303,24 +303,30 @@ const translations = {
     taskStatusCompleted: "Completed",
     manageUsersDesc: "Manage system users and access permissions",
     projectManagementDesc: "Manage projects and assigned team members",
-    
+
     // About & Contract Pages
     aboutTitle: "About RNM Task System",
     aboutSubtitle: "Modern platform for team project and task management",
     aboutVisionTitle: "Our Mission & Vision",
-    aboutVisionDesc: "RNM Task Management is designed to elevate teamwork, enhance project transparency, and optimize task workflows through real-time updates and seamless activity tracking.",
+    aboutVisionDesc:
+      "RNM Task Management is designed to elevate teamwork, enhance project transparency, and optimize task workflows through real-time updates and seamless activity tracking.",
     featureAnalyticsTitle: "Real-time Analytics & Dashboard",
-    featureAnalyticsDesc: "Track total active users, projects, and pending or overdue tasks with intuitive visual charts.",
+    featureAnalyticsDesc:
+      "Track total active users, projects, and pending or overdue tasks with intuitive visual charts.",
     featureWorkflowTitle: "Structured Task Workflows",
-    featureWorkflowDesc: "Organize tasks by status (Pending, In Progress, Reviewing, Completed) and assign priority levels.",
+    featureWorkflowDesc:
+      "Organize tasks by status (Pending, In Progress, Reviewing, Completed) and assign priority levels.",
     featureAccessTitle: "Role-Based Access Control",
-    featureAccessDesc: "Granular permissions for Admins, Team Leaders, Translators, and Video Editors.",
+    featureAccessDesc:
+      "Granular permissions for Admins, Team Leaders, Translators, and Video Editors.",
     featureAuditTitle: "Comprehensive Activity Logs",
-    featureAuditDesc: "Transparent audit trail tracking every project modification, user creation, and status update.",
+    featureAuditDesc:
+      "Transparent audit trail tracking every project modification, user creation, and status update.",
     techStackTitle: "Powered by Modern Technology",
-    
+
     contractTitle: "Contact Us & Support",
-    contractSubtitle: "Have questions or need assistance? Reach out to our dedicated support team.",
+    contractSubtitle:
+      "Have questions or need assistance? Reach out to our dedicated support team.",
     contactInfoTitle: "Contact Information",
     contactAddressLabel: "Office Address",
     contactAddressVal: "123/45 Sukhumvit Rd, Khlong Toei, Bangkok 10110",
@@ -338,7 +344,8 @@ const translations = {
     formMessage: "Message",
     formMessagePlaceholder: "Type your message here...",
     sendMessageBtn: "Send Message 🚀",
-    sendMessageSuccess: "Thank you for reaching out! Your message has been sent successfully.",
+    sendMessageSuccess:
+      "Thank you for reaching out! Your message has been sent successfully.",
     colDetails: "Details",
     colAction: "Action",
     colTime: "Date/Time",
@@ -375,13 +382,17 @@ const translations = {
 
     // Reports Page & Role Reports
     reportsHeaderTitle: "Personal Performance Report",
-    reportsHeaderDesc: "Analytics and performance tracking for your assigned tasks",
+    reportsHeaderDesc:
+      "Analytics and performance tracking for your assigned tasks",
     adminReportTitle: "Executive System Analytics Report",
-    adminReportDesc: "High-level executive dashboard tracking all projects, users, and overall delivery rates",
+    adminReportDesc:
+      "High-level executive dashboard tracking all projects, users, and overall delivery rates",
     managerReportTitle: "Project Management Delivery Report",
-    managerReportDesc: "Comprehensive progress and delivery metrics for projects under your supervision",
+    managerReportDesc:
+      "Comprehensive progress and delivery metrics for projects under your supervision",
     teamLeaderReportTitle: "Team Performance & Execution Report",
-    teamLeaderReportDesc: "Execution tracking, workload breakdown, and delivery stats for your team",
+    teamLeaderReportDesc:
+      "Execution tracking, workload breakdown, and delivery stats for your team",
     exportExcel: "Export Excel",
     printReport: "Print Report",
     totalActiveUsers: "Total Active Users",
@@ -389,25 +400,33 @@ const translations = {
     systemDeliveryEfficiency: "System Delivery Efficiency",
     systemDeliveryDesc: "Ratio of completed tasks against total system tasks",
     projectStatusBreakdownTitle: "Project Status Breakdown",
-    projectStatusBreakdownDesc: "Detailed breakdown of all active projects by lifecycle status",
+    projectStatusBreakdownDesc:
+      "Detailed breakdown of all active projects by lifecycle status",
     userWorkloadMatrixTitle: "User Workload & Performance Matrix",
-    userWorkloadMatrixDesc: "Summary of assigned task volume and completion percentage per team member",
+    userWorkloadMatrixDesc:
+      "Summary of assigned task volume and completion percentage per team member",
     assignedTasksLabel: "Assigned Tasks",
     completedTasksLabel: "Completed Tasks",
     progressRateLabel: "Progress Rate",
     managedProjectsProgressTitle: "Managed Projects Progress",
-    managedProjectsProgressDesc: "Monitor status, deadline, and progress meters for your assigned projects",
+    managedProjectsProgressDesc:
+      "Monitor status, deadline, and progress meters for your assigned projects",
     onTrackProjectsLabel: "On-Track Projects",
     activeTeamTasksTitle: "Active Team Tasks Execution",
-    activeTeamTasksDesc: "Track ongoing and pending tasks assigned to your team members",
+    activeTeamTasksDesc:
+      "Track ongoing and pending tasks assigned to your team members",
     personalWorkRateTitle: "Personal Work Rate",
-    personalWorkRateDesc: "Ratio of your completed tasks against total assigned tasks",
+    personalWorkRateDesc:
+      "Ratio of your completed tasks against total assigned tasks",
     workloadDistributionTypeTitle: "Workload Distribution by Type",
-    workloadDistributionTypeDesc: "Task count categorized by task execution domain",
+    workloadDistributionTypeDesc:
+      "Task count categorized by task execution domain",
     myTaskPerformanceSummaryTitle: "My Task Performance Summary",
-    myTaskPerformanceSummaryDesc: "Detailed list of all your assigned tasks with execution status",
+    myTaskPerformanceSummaryDesc:
+      "Detailed list of all your assigned tasks with execution status",
     managedProjectsCalendar: "Managed Projects Calendar",
-    managedProjectsCalendarDesc: "Track deadlines and statuses of projects you lead",
+    managedProjectsCalendarDesc:
+      "Track deadlines and statuses of projects you lead",
     myTaskCalendar: "My Task Calendar",
     myTaskCalendarDesc: "Track your personal task deadlines and statuses",
     editTaskInfoBtn: "Edit Info",
@@ -443,10 +462,12 @@ const translations = {
     profileSaving: "กำลังบันทึก...",
     profileSaveChanges: "บันทึกการเปลี่ยนแปลง",
     profileUpdateSuccess: "ข้อมูลโปรไฟล์ถูกอัปเดตเรียบร้อยแล้ว",
-    profileLoadFailed: "เกิดข้อผิดพลาดในการโหลดโปรไฟล์ผู้ใช้งาน กรุณาลองใหม่อีกครั้ง",
+    profileLoadFailed:
+      "เกิดข้อผิดพลาดในการโหลดโปรไฟล์ผู้ใช้งาน กรุณาลองใหม่อีกครั้ง",
     profileUsernameEmpty: "ชื่อ-นามสกุลต้องไม่ว่างเปล่า",
     currentPasswordRequired: "กรุณากรอกรหัสผ่านปัจจุบัน",
-    profileUpdateFailed: "เกิดข้อผิดพลาดในการอัปเดตข้อมูลโปรไฟล์ กรุณาลองใหม่อีกครั้ง",
+    profileUpdateFailed:
+      "เกิดข้อผิดพลาดในการอัปเดตข้อมูลโปรไฟล์ กรุณาลองใหม่อีกครั้ง",
     myTask: "งานของฉัน",
     myActivity: "กิจกรรมของฉัน",
     myActivitySubtitle: "ดูประวัติกิจกรรมการทำงานส่วนตัวของคุณ",
@@ -707,9 +728,9 @@ const translations = {
     taskDescLabel: "รายละเอียด",
     taskDescPlaceholder: "กรอกรายละเอียดงาน",
     taskPriorityLabel: "ความสำคัญ",
-    priorityHigh: "สูง (High)",
-    priorityMedium: "ปานกลาง (Medium)",
-    priorityLow: "ต่ำ (Low)",
+    priorityHigh: "สูง",
+    priorityMedium: "ปานกลาง",
+    priorityLow: "ต่ำ",
     optionalText: "ระบุหรือไม่ก็ได้",
     taskDueDateLabel: "วันส่งงาน",
     taskAssigneeLabel: "ผู้รับผิดชอบ",
@@ -724,27 +745,34 @@ const translations = {
     taskStatusCompleted: "Completed (เสร็จสมบูรณ์)",
     manageUsersDesc: "จัดการผู้ใช้งานและสิทธิ์การเข้าถึงระบบ",
     projectManagementDesc: "บริหารจัดการโครงการและทีมงานที่รับผิดชอบ",
-    
+
     // About & Contract Pages
     aboutTitle: "เกี่ยวกับระบบ RNM Task",
     aboutSubtitle: "แพลตฟอร์มยุคใหม่สำหรับการบริหารจัดการโครงการและงานในทีม",
     aboutVisionTitle: "วิสัยทัศน์และเป้าหมายของเรา",
-    aboutVisionDesc: "RNM Task Management ถูกออกแบบมาเพื่อยกระดับการทำงานร่วมกันของทีม เพิ่มความโปร่งใสในโครงการ และจัดระเบียบขั้นตอนการทำงานด้วยระบบอัปเดตแบบเรียลไทม์และบันทึกประวัติกิจกรรมอย่างละเอียด",
+    aboutVisionDesc:
+      "RNM Task Management ถูกออกแบบมาเพื่อยกระดับการทำงานร่วมกันของทีม เพิ่มความโปร่งใสในโครงการ และจัดระเบียบขั้นตอนการทำงานด้วยระบบอัปเดตแบบเรียลไทม์และบันทึกประวัติกิจกรรมอย่างละเอียด",
     featureAnalyticsTitle: "ระบบวิเคราะห์ & แดชบอร์ดเรียลไทม์",
-    featureAnalyticsDesc: "ติดตามสถิติผู้ใช้งาน โครงการ และงานที่เกินกำหนดได้อย่างแม่นยำผ่านกราฟภาพรวม",
+    featureAnalyticsDesc:
+      "ติดตามสถิติผู้ใช้งาน โครงการ และงานที่เกินกำหนดได้อย่างแม่นยำผ่านกราฟภาพรวม",
     featureWorkflowTitle: "ผังการทำงานที่เป็นระบบ",
-    featureWorkflowDesc: "จัดกลุ่มงานตามสถานะ (รอดำเนินการ, กำลังดำเนินการ, รอตรวจสอบ, เสร็จสิ้น) พร้อมกำหนดระดับความสำคัญ",
+    featureWorkflowDesc:
+      "จัดกลุ่มงานตามสถานะ (รอดำเนินการ, กำลังดำเนินการ, รอตรวจสอบ, เสร็จสิ้น) พร้อมกำหนดระดับความสำคัญ",
     featureAccessTitle: "ระบบกำหนดสิทธิ์ตามบทบาท",
-    featureAccessDesc: "จัดการสิทธิ์การเข้าถึงอย่างปลอดภัยสำหรับ แอดมิน, หัวหน้าทีม, นักแปล, และนักตัดต่อวิดีโอ",
+    featureAccessDesc:
+      "จัดการสิทธิ์การเข้าถึงอย่างปลอดภัยสำหรับ แอดมิน, หัวหน้าทีม, นักแปล, และนักตัดต่อวิดีโอ",
     featureAuditTitle: "บันทึกประวัติกิจกรรมครบถ้วน",
-    featureAuditDesc: "ติดตามทุกการเปลี่ยนแปลงของโครงการ การสร้างผู้ใช้งาน และการอัปเดตสถานะงานอย่างโปร่งใส",
+    featureAuditDesc:
+      "ติดตามทุกการเปลี่ยนแปลงของโครงการ การสร้างผู้ใช้งาน และการอัปเดตสถานะงานอย่างโปร่งใส",
     techStackTitle: "พัฒนาด้วยเทคโนโลยีทันสมัย",
-    
+
     contractTitle: "ติดต่อเรา & สนับสนุนการใช้งาน",
-    contractSubtitle: "มีข้อสงสัยเกี่ยวกับระบบ หรือต้องการสอบถามข้อมูลเพิ่มเติม ติดต่อทีมงานของเราได้ตลอดเวลา",
+    contractSubtitle:
+      "มีข้อสงสัยเกี่ยวกับระบบ หรือต้องการสอบถามข้อมูลเพิ่มเติม ติดต่อทีมงานของเราได้ตลอดเวลา",
     contactInfoTitle: "ข้อมูลการติดต่อ",
     contactAddressLabel: "ที่อยู่สำนักงาน",
-    contactAddressVal: "123/45 ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110",
+    contactAddressVal:
+      "123/45 ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110",
     contactEmailLabel: "อีเมลสนับสนุน",
     contactPhoneLabel: "เบอร์โทรศัพท์ติดต่อ",
     contactHoursLabel: "เวลาทำการ",
@@ -759,7 +787,8 @@ const translations = {
     formMessage: "ข้อความ",
     formMessagePlaceholder: "กรอกรายละเอียดข้อความของคุณ...",
     sendMessageBtn: "ส่งข้อความ 🚀",
-    sendMessageSuccess: "ขอบคุณสำหรับการติดต่อ! ข้อความของคุณถูกส่งเรียบร้อยแล้ว ทีมงานจะติดต่อกลับโดยเร็วที่สุด",
+    sendMessageSuccess:
+      "ขอบคุณสำหรับการติดต่อ! ข้อความของคุณถูกส่งเรียบร้อยแล้ว ทีมงานจะติดต่อกลับโดยเร็วที่สุด",
     colDetails: "รายละเอียด",
     colAction: "การจัดการ",
     colTime: "เวลา",
@@ -795,13 +824,17 @@ const translations = {
 
     // Reports Page & Role Reports
     reportsHeaderTitle: "รายงานประสิทธิภาพส่วนบุคคล",
-    reportsHeaderDesc: "วิเคราะห์และติดตามสรุปผลการทำงาน กำหนดส่ง และสัดส่วนภารกิจของฉัน",
+    reportsHeaderDesc:
+      "วิเคราะห์และติดตามสรุปผลการทำงาน กำหนดส่ง และสัดส่วนภารกิจของฉัน",
     adminReportTitle: "รายงานภาพรวมผู้บริหารและวิเคราะห์ระบบ",
-    adminReportDesc: "สรุปสถิติภาพรวมทั้งระบบ การดำเนินงานของโปรเจกต์ และภาระงานของบุคลากร",
+    adminReportDesc:
+      "สรุปสถิติภาพรวมทั้งระบบ การดำเนินงานของโปรเจกต์ และภาระงานของบุคลากร",
     managerReportTitle: "รายงานวิเคราะห์การบริหารโครงการ",
-    managerReportDesc: "ติดตามสถานะความคืบหน้าของโครงการที่ท่านบริหารและจัดการทีมงาน",
+    managerReportDesc:
+      "ติดตามสถานะความคืบหน้าของโครงการที่ท่านบริหารและจัดการทีมงาน",
     teamLeaderReportTitle: "รายงานและสถิติการทำงานของทีม",
-    teamLeaderReportDesc: "วิเคราะห์ประสิทธิภาพการดำเนินงาน ปริมาณงานคงค้าง และการส่งงานของลูกทีม",
+    teamLeaderReportDesc:
+      "วิเคราะห์ประสิทธิภาพการดำเนินงาน ปริมาณงานคงค้าง และการส่งงานของลูกทีม",
     exportExcel: "ส่งออก Excel",
     printReport: "พิมพ์รายงาน",
     totalActiveUsers: "ผู้ใช้งานในระบบ",
@@ -809,25 +842,32 @@ const translations = {
     systemDeliveryEfficiency: "อัตราการส่งงานสำเร็จ",
     systemDeliveryDesc: "สัดส่วนงานที่เสร็จสิ้นเปรียบเทียบกับงานทั้งหมดในระบบ",
     projectStatusBreakdownTitle: "สถานะโครงการในระบบ",
-    projectStatusBreakdownDesc: "แจกแจงสถานะของโครงการทั้งหมดที่กำลังดำเนินการในระบบ",
+    projectStatusBreakdownDesc:
+      "แจกแจงสถานะของโครงการทั้งหมดที่กำลังดำเนินการในระบบ",
     userWorkloadMatrixTitle: "รายงานภาระงานและอัตราความสำเร็จของสมาชิก",
-    userWorkloadMatrixDesc: "สรุปจำนวนงานที่ได้รับมอบหมายและเปอร์เซ็นต์ความสำเร็จของบุคลากรแต่ละคน",
+    userWorkloadMatrixDesc:
+      "สรุปจำนวนงานที่ได้รับมอบหมายและเปอร์เซ็นต์ความสำเร็จของบุคลากรแต่ละคน",
     assignedTasksLabel: "งานที่ได้รับ",
     completedTasksLabel: "งานที่สำเร็จ",
     progressRateLabel: "อัตราความสำเร็จ",
     managedProjectsProgressTitle: "ความคืบหน้าของโครงการที่อยู่ในการดูแล",
-    managedProjectsProgressDesc: "ติดตามสถานะ กำหนดส่ง และความคืบหน้าของโครงการที่ท่านรับผิดชอบ",
+    managedProjectsProgressDesc:
+      "ติดตามสถานะ กำหนดส่ง และความคืบหน้าของโครงการที่ท่านรับผิดชอบ",
     onTrackProjectsLabel: "โครงการที่ดำเนินตามแผน",
     activeTeamTasksTitle: "สถานะการดำเนินงานของทีมที่กำลังทำอยู่",
     activeTeamTasksDesc: "การติดตามงานคงค้างและงานที่กำลังดำเนินการของลูกทีม",
     personalWorkRateTitle: "ประสิทธิภาพการส่งงานส่วนบุคคล",
-    personalWorkRateDesc: "สัดส่วนงานที่ท่านทำสำเร็จเปรียบเทียบกับภารกิจทั้งหมด",
+    personalWorkRateDesc:
+      "สัดส่วนงานที่ท่านทำสำเร็จเปรียบเทียบกับภารกิจทั้งหมด",
     workloadDistributionTypeTitle: "สัดส่วนจำแนกตามประเภทงาน",
-    workloadDistributionTypeDesc: "แจกแจงปริมาณงานตามประเภทกิจกรรม เช่น งานแปล และ งานตัดต่อ",
+    workloadDistributionTypeDesc:
+      "แจกแจงปริมาณงานตามประเภทกิจกรรม เช่น งานแปล และ งานตัดต่อ",
     myTaskPerformanceSummaryTitle: "สรุปภารกิจของฉัน",
-    myTaskPerformanceSummaryDesc: "ตารางสรุปรายการงานทั้งหมดที่ท่านรับผิดชอบพร้อมสถานะและกำหนดส่ง",
+    myTaskPerformanceSummaryDesc:
+      "ตารางสรุปรายการงานทั้งหมดที่ท่านรับผิดชอบพร้อมสถานะและกำหนดส่ง",
     managedProjectsCalendar: "ปฏิทินโปรเจกต์ที่ดูแล",
-    managedProjectsCalendarDesc: "ติดตามกำหนดส่งและสถานะโปรเจกต์ที่คุณเป็น Team Leader",
+    managedProjectsCalendarDesc:
+      "ติดตามกำหนดส่งและสถานะโปรเจกต์ที่คุณเป็น Team Leader",
     myTaskCalendar: "ปฏิทินงานของฉัน",
     myTaskCalendarDesc: "ติดตามกำหนดส่งงานและสถานะงานของฉัน",
     editTaskInfoBtn: "แก้ไขข้อมูล",

@@ -56,9 +56,20 @@ export const useMyTasks = () => {
               }
 
               let formattedDueDate = "-";
+              let rawDueDate = task.due_date;
               if (task.due_date) {
                 try {
-                  formattedDueDate = new Date(task.due_date).toISOString().split("T")[0];
+                  const parts = String(task.due_date).split("T")[0].split("-");
+                  if (parts.length === 3) {
+                    const [year, month, day] = parts;
+                    formattedDueDate = `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+                  } else {
+                    const d = new Date(task.due_date);
+                    const day = String(d.getDate()).padStart(2, "0");
+                    const month = String(d.getMonth() + 1).padStart(2, "0");
+                    const year = d.getFullYear();
+                    formattedDueDate = `${day}/${month}/${year}`;
+                  }
                 } catch (e) {
                   formattedDueDate = task.due_date;
                 }
@@ -74,6 +85,7 @@ export const useMyTasks = () => {
                 status: normalizedStatus,
                 priority: normalizedPriority,
                 dueDate: formattedDueDate,
+                rawDueDate: rawDueDate,
                 description: task.description || "",
                 taskType: task.task_type || "",
               });
