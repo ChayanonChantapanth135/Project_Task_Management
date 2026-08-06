@@ -42,6 +42,7 @@ const TaskStats = ({ stats, language, t }) => {
           <p className="text-xs font-semibold text-slate-400 mt-1">
             {stat.label}
           </p>
+          <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-500/10 rounded-full filter blur-xl group-hover:bg-indigo-500/20 transition-all pointer-events-none"></div>
         </div>
       ))}
     </div>
