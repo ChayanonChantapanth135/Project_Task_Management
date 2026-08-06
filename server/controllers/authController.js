@@ -595,9 +595,13 @@ const checkAndUpdateProjectStatus = async (db, projectId) => {
             [projectId]
         );
         if (tasks.length > 0) {
+            const hasReviewing = tasks.some(t => t.status && (t.status.toLowerCase() === 'reviewing' || t.status.toLowerCase() === 'review'));
             const completedCount = tasks.filter(t => t.status && t.status.toLowerCase() === 'completed').length;
             const progress = Math.round((completedCount / tasks.length) * 100);
-            if (progress === 100) {
+
+            if (hasReviewing) {
+                await db.query("UPDATE projects SET status = 'Reviewing' WHERE id = ?", [projectId]);
+            } else if (progress === 100) {
                 await db.query("UPDATE projects SET status = 'Completed' WHERE id = ?", [projectId]);
             } else {
                 await db.query("UPDATE projects SET status = 'In Progress' WHERE id = ?", [projectId]);
@@ -629,9 +633,16 @@ export const getProjects = async (req, res) => {
             `, [p.id]);
             p.tasks = tasks;
             if (tasks.length > 0) {
+                const hasReviewing = tasks.some(t => t.status && (t.status.toLowerCase() === 'reviewing' || t.status.toLowerCase() === 'review'));
                 const completed = tasks.filter(t => t.status && t.status.toLowerCase() === 'completed').length;
                 p.progress = Math.round((completed / tasks.length) * 100);
-                if (p.progress === 100) {
+
+                if (hasReviewing) {
+                    if (p.status !== 'Reviewing') {
+                        p.status = 'Reviewing';
+                        await db.query("UPDATE projects SET status = 'Reviewing' WHERE id = ?", [p.id]);
+                    }
+                } else if (p.progress === 100) {
                     if (p.status !== 'Completed') {
                         p.status = 'Completed';
                         await db.query("UPDATE projects SET status = 'Completed' WHERE id = ?", [p.id]);
@@ -1087,23 +1098,6 @@ export const getDashboardStats = async (req, res) => {
         let inProgressTasks = 0;
         let reviewingTasks = 0;
         let completedTasks = 0;
-
-        try {
-            const [pRows] = await db.query('SELECT COUNT(*) as count FROM projects WHERE deleted_at IS NULL');
-            projectCount = pRows[0].count;
-
-            const [pendingProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'pending' AND deleted_at IS NULL");
-            pendingProjects = pendingProjRows[0].count;
-
-            const [inProgressProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'in_progress' AND deleted_at IS NULL");
-            inProgressProjects = inProgressProjRows[0].count;
-
-            const [reviewProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'review' AND deleted_at IS NULL");
-            reviewProjects = reviewProjRows[0].count;
-
-            const [completedProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'completed' AND deleted_at IS NULL");
-            completedProjects = completedProjRows[0].count;
-        } catch (e) {}
 
         try {
             const [tRows] = await db.query('SELECT COUNT(*) as count FROM tasks WHERE deleted_at IS NULL');

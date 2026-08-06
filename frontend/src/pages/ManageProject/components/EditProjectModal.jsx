@@ -49,27 +49,7 @@ const EditProjectModal = ({
               required
             />
           </div>
-          <div className="mb-3">
-            <label className="form-label small fw-bold">
-              {t("modalProjectStatus")} <span className="text-danger">*</span>
-            </label>
-            <select
-              className="form-select rounded-lg"
-              value={editFormData.status}
-              onChange={(e) =>
-                setEditFormData((prev) => ({
-                  ...prev,
-                  status: e.target.value,
-                }))
-              }
-              required
-            >
-              <option value="pending">{t("pending")}</option>
-              <option value="in_progress">{t("inProgress")}</option>
-              <option value="review">{t("reviewing")}</option>
-              <option value="completed">{t("completed")}</option>
-            </select>
-          </div>
+
           <div className="mb-3">
             <label className="form-label small fw-bold">
               {t("modalProjectPriority")} <span className="text-danger">*</span>

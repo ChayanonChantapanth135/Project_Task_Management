@@ -260,7 +260,20 @@ const DashboardPage = () => {
     }
   });
 
-  const currentProjectStatus = isTeamLeader
+  const currentProjectStatus = isAdminOrManager
+    ? {
+        pending: projects.filter((p) => (p.status || "").toLowerCase() === "pending").length,
+        inProgress: projects.filter((p) => {
+          const s = (p.status || "").toLowerCase();
+          return s === "in progress" || s === "in_progress";
+        }).length,
+        review: projects.filter((p) => {
+          const s = (p.status || "").toLowerCase();
+          return s === "review" || s === "reviewing";
+        }).length,
+        completed: projects.filter((p) => (p.status || "").toLowerCase() === "completed").length,
+      }
+    : isTeamLeader
     ? {
         pending: tlProjects.filter((p) => (p.status || "").toLowerCase() === "pending").length,
         inProgress: tlProjects.filter((p) => {
@@ -275,7 +288,29 @@ const DashboardPage = () => {
       }
     : stats.projectStatus;
 
-  const currentTaskStatus = isTeamLeader
+  const allTasksAcrossProjects = [];
+  if (projects && Array.isArray(projects)) {
+    projects.forEach((proj) => {
+      if (proj.tasks && Array.isArray(proj.tasks)) {
+        allTasksAcrossProjects.push(...proj.tasks);
+      }
+    });
+  }
+
+  const currentTaskStatus = isAdminOrManager
+    ? {
+        pending: allTasksAcrossProjects.filter((t) => (t.status || "").toLowerCase() === "pending").length,
+        inProgress: allTasksAcrossProjects.filter((t) => {
+          const s = (t.status || "").toLowerCase();
+          return s === "in progress" || s === "in_progress";
+        }).length,
+        reviewing: allTasksAcrossProjects.filter((t) => {
+          const s = (t.status || "").toLowerCase();
+          return s === "review" || s === "reviewing";
+        }).length,
+        completed: allTasksAcrossProjects.filter((t) => (t.status || "").toLowerCase() === "completed").length,
+      }
+    : isTeamLeader
     ? {
         pending: tlTasks.filter((t) => (t.status || "").toLowerCase() === "pending").length,
         inProgress: tlTasks.filter((t) => {

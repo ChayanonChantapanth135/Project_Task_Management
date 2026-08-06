@@ -501,7 +501,7 @@ export default function AdminReportView({ data }) {
 
           {/* Project Health */}
           <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
-            {projects.slice(0, 6).map((p) => (
+            {projects.map((p) => (
               <div
                 key={p.id}
                 className="rounded-xl p-3.5 flex items-center justify-between gap-4 transition-all duration-300 hover:bg-white/[0.03]"
