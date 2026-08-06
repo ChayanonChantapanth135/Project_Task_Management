@@ -1100,6 +1100,21 @@ export const getDashboardStats = async (req, res) => {
         let completedTasks = 0;
 
         try {
+            const [pRows] = await db.query('SELECT COUNT(*) as count FROM projects WHERE deleted_at IS NULL');
+            projectCount = pRows[0].count;
+
+            const [pPendingRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'Pending' AND deleted_at IS NULL");
+            pendingProjects = pPendingRows[0].count;
+
+            const [pProgressRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'In Progress' AND deleted_at IS NULL");
+            inProgressProjects = pProgressRows[0].count;
+
+            const [pReviewRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'Reviewing' AND deleted_at IS NULL");
+            reviewProjects = pReviewRows[0].count;
+
+            const [pCompletedRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'Completed' AND deleted_at IS NULL");
+            completedProjects = pCompletedRows[0].count;
+
             const [tRows] = await db.query('SELECT COUNT(*) as count FROM tasks WHERE deleted_at IS NULL');
             taskCount = tRows[0].count;
             
