@@ -1,4 +1,4 @@
-# 🚀 Project & Task Management System (RNM AUTH)
+# 🚀 Project & Task Management System (PM Project)
 
 ระบบบริหารจัดการโครงการและติดตามงานในทีมแบบครบวงจร (Enterprise Project & Task Management System) ที่ออกแบบด้วยดีไซน์ **Dark Luxe Glassmorphism** ทันสมัย ลื่นไหล และปลอดภัย พร้อมระบบกระจายงาน สรุปสถิติอัตโนมัติ และการจัดลำดับสิทธิ์การเข้าถึงตามบทบาทผู้ใช้ (Role-Based Access Control)
 
