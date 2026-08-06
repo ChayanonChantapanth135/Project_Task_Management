@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { Modal } from "react-bootstrap";
 import axios from "axios";
 import SearchableUserSelect from "../../../components/SearchableUserSelect";
+import CustomDateInput from "../../../components/CustomDateInput";
 import { useLanguage } from "../../../lib/LanguageContext";
-import { formatDateTime } from "../../../lib/dateUtils";
+import { formatDateTime, formatDate } from "../../../lib/dateUtils";
 
 const TaskDetailModal = ({
   showViewModal,
@@ -75,15 +76,28 @@ const TaskDetailModal = ({
 
   useEffect(() => {
     if (selectedTask) {
+      const rawDate = selectedTask.rawDueDate || selectedTask.due_date || selectedTask.dueDate;
+      let isoDueDate = "";
+      if (rawDate && rawDate !== "-") {
+        const str = String(rawDate).trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+          isoDueDate = str;
+        } else if (str.includes("T")) {
+          isoDueDate = str.split("T")[0];
+        } else if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) {
+          const [d, m, y] = str.split("/");
+          let yearNum = parseInt(y, 10);
+          if (yearNum > 2400) yearNum -= 543;
+          isoDueDate = `${yearNum}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+        }
+      }
+
       setFormData({
         title: selectedTask.title || "",
         description: selectedTask.description || "",
         taskType: selectedTask.taskType || "",
         priority: selectedTask.priority || "Medium",
-        dueDate:
-          selectedTask.dueDate && selectedTask.dueDate !== "-"
-            ? selectedTask.dueDate
-            : "",
+        dueDate: isoDueDate,
         assignedTo: selectedTask.assignedTo || "",
         projectId: selectedTask.projectId || "",
         status: selectedTask.status || "Pending",
@@ -202,18 +216,27 @@ const TaskDetailModal = ({
     >
       <Modal.Body className="p-4" style={{ borderRadius: "1rem" }}>
         <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-          <h5 className="fw-bold mb-0 text-slate-900">
-            {isEditing
-              ? (language === "th" ? "📝 แก้ไขข้อมูลงาน" : "📝 Edit Task Info")
-              : `🔍 ${t("taskDetailsTitle") || "Task Details"}`}
+          <h5 className="fw-bold mb-0 text-slate-900 d-flex align-items-center gap-1.5">
+            {isEditing ? (
+              <>
+                <ion-icon name="create-outline" style={{ fontSize: "20px" }}></ion-icon>
+                <span>{language === "th" ? "แก้ไขข้อมูลงาน" : "Edit Task Info"}</span>
+              </>
+            ) : (
+              <>
+                <ion-icon name="search-outline" style={{ fontSize: "20px" }}></ion-icon>
+                <span>{t("taskDetailsTitle") || "Task Details"}</span>
+              </>
+            )}
           </h5>
           <div className="d-flex gap-2">
             {!isEditing && !hideEditInfoButton && (
               <button
-                className="btn btn-sm btn-primary px-3 py-1 rounded-xl text-xs"
+                className="btn btn-sm btn-primary px-3 py-1 rounded-xl text-xs fw-bold text-white shadow-sm d-flex align-items-center gap-1"
                 onClick={() => setIsEditing(true)}
               >
-                ✏️ {language === "th" ? "แก้ไขข้อมูล" : "Edit Info"}
+                <ion-icon name="create-outline" style={{ fontSize: "15px" }}></ion-icon>
+                <span>{language === "th" ? "แก้ไขข้อมูล" : "Edit Task"}</span>
               </button>
             )}
             <button
@@ -376,15 +399,13 @@ const TaskDetailModal = ({
             </div>
 
             {/* Due Date */}
-            <div className="mb-3">
+            <div className="mb-3" lang={language === "th" ? "th-TH" : "en-GB"}>
               <label className="form-label small fw-bold text-muted mb-1">
                 {t("taskDueDateLabel") || "Due Date"}
               </label>
               {isEditing ? (
-                <input
-                  type="date"
+                <CustomDateInput
                   name="dueDate"
-                  className="form-control rounded-lg text-sm py-2"
                   value={formData.dueDate}
                   onChange={handleInputChange}
                 />
@@ -392,7 +413,7 @@ const TaskDetailModal = ({
                 <input
                   type="text"
                   className="form-control bg-light rounded-lg text-muted text-sm py-2"
-                  value={selectedTask ? selectedTask.dueDate : ""}
+                  value={selectedTask ? formatDate(selectedTask.dueDate || selectedTask.due_date, language) : ""}
                   readOnly
                   disabled
                 />
@@ -409,7 +430,7 @@ const TaskDetailModal = ({
                   users={users}
                   value={formData.assignedTo}
                   onChange={handleInputChange}
-                  allowedRoles={["team_leader", "translator", "video_editor"]}
+                  allowedRoles={["manager", "project_manager", "team_leader", "translator", "video_editor"]}
                   placeholder={`-- ${t("selectAssignee") || "Select Assignee"} --`}
                 />
               ) : (
@@ -528,9 +549,10 @@ const TaskDetailModal = ({
                 />
                 <button
                   type="submit"
-                  className="btn btn-sm btn-primary px-3 text-xs text-white"
+                  className="btn btn-sm btn-primary px-3 text-xs text-white d-inline-flex align-items-center gap-1"
                 >
-                  🚀 {language === "th" ? "ส่งความคิดเห็น" : "Send Comment"}
+                  <ion-icon name="send-outline" style={{ fontSize: "14px" }}></ion-icon>
+                  <span>{language === "th" ? "ส่งความคิดเห็น" : "Send Comment"}</span>
                 </button>
               </form>
 
@@ -565,8 +587,9 @@ const TaskDetailModal = ({
 
             {/* ประวัติการเปลี่ยนสถานะ */}
             <div>
-              <span className="fw-bold text-slate-800 text-sm mb-2 d-block">
-                🕒 {language === "th" ? "ประวัติการเปลี่ยนสถานะ" : "Status History"}
+              <span className="fw-bold text-slate-800 text-sm mb-2 d-flex align-items-center gap-1.5">
+                <ion-icon name="time-outline" style={{ fontSize: "18px" }}></ion-icon>
+                <span>{language === "th" ? "ประวัติการเปลี่ยนสถานะ" : "Status History"}</span>
               </span>
 
               <div className="border rounded-xl p-3 bg-slate-50 max-h-[160px] overflow-y-auto">
@@ -642,7 +665,7 @@ const TaskDetailModal = ({
           {currentUser?.role === "admin" && selectedTask ? (
             <button
               type="button"
-              className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 rounded-full text-xs font-bold whitespace-nowrap border border-red-500/30 transition-all shadow-sm"
+              className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 rounded-full text-xs font-bold whitespace-nowrap border border-red-500/30 transition-all shadow-sm d-inline-flex align-items-center gap-1"
               onClick={() => {
                 if (
                   window.confirm(
@@ -655,7 +678,8 @@ const TaskDetailModal = ({
                 }
               }}
             >
-              🗑️ {language === "th" ? "ลบงาน" : "Delete Task"}
+              <ion-icon name="trash-outline" style={{ fontSize: "15px" }}></ion-icon>
+              <span>{language === "th" ? "ลบงาน" : "Delete Task"}</span>
             </button>
           ) : (
             <div />

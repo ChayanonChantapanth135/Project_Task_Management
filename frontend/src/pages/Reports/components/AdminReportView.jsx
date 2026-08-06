@@ -174,6 +174,17 @@ function StatusPill({ status }) {
   );
 }
 
+const formatRole = (role) => {
+  if (!role) return "-";
+  const r = String(role).toLowerCase().trim();
+  if (r === "admin") return "Admin";
+  if (r === "manager" || r === "project_manager" || r === "project manager") return "Project Manager";
+  if (r === "team_leader" || r === "team leader" || r === "tl") return "Team Leader";
+  if (r === "video_editor" || r === "video editor") return "Video Editor";
+  if (r === "translator") return "Translator";
+  return role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
 const getRoleBadgeStyle = (role) => {
   const r = (role || "").toLowerCase();
   if (r.includes("admin")) return "bg-indigo-500/20 text-indigo-300";
@@ -716,21 +727,16 @@ export default function AdminReportView({ data }) {
                           {(item.fullname || "U")[0].toUpperCase()}
                         </div>
                       )}
-                      <div className="min-w-0">
-                        <p className="font-bold text-white text-sm truncate">
-                          {item.fullname}
-                        </p>
-                        <p className="text-xs text-slate-400 truncate">
-                          {item.email}
-                        </p>
-                      </div>
+                      <span className="font-bold text-white text-sm truncate leading-none">
+                        {item.fullname}
+                      </span>
                     </div>
                   </td>
                   <td className="py-4 px-4 text-center">
                     <span
                       className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${getRoleBadgeStyle(item.role)}`}
                     >
-                      {item.role}
+                      {formatRole(item.role)}
                     </span>
                   </td>
                   <td className="py-4 px-4 text-center font-bold text-slate-200 tabular-nums">

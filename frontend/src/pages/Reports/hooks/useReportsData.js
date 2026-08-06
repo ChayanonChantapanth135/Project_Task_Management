@@ -2,8 +2,11 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { getCurrentUser } from "../../../lib/auth";
 import * as XLSX from "xlsx";
+import { formatDate } from "../../../lib/dateUtils";
+import { useLanguage } from "../../../lib/LanguageContext";
 
 export const useReportsData = () => {
+  const { language } = useLanguage();
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState([]);
@@ -49,6 +52,7 @@ export const useReportsData = () => {
       proj.tasks.forEach((t) => {
         allTasks.push({
           ...t,
+          taskType: t.taskType || t.task_type || "",
           projectName: proj.name,
           projectDueDate: proj.end_date,
         });
@@ -117,7 +121,12 @@ export const useReportsData = () => {
   const managedTasks = [];
   managedProjects.forEach((p) => {
     if (p.tasks && Array.isArray(p.tasks)) {
-      p.tasks.forEach((t) => managedTasks.push(t));
+      p.tasks.forEach((t) =>
+        managedTasks.push({
+          ...t,
+          taskType: t.taskType || t.task_type || "",
+        })
+      );
     }
   });
 
@@ -145,7 +154,12 @@ export const useReportsData = () => {
   const tlTasks = [];
   tlProjects.forEach((p) => {
     if (p.tasks && Array.isArray(p.tasks)) {
-      p.tasks.forEach((t) => tlTasks.push(t));
+      p.tasks.forEach((t) =>
+        tlTasks.push({
+          ...t,
+          taskType: t.taskType || t.task_type || "",
+        })
+      );
     }
   });
 
@@ -201,9 +215,40 @@ export const useReportsData = () => {
     myTasks.length > 0 ? Math.round((myCompletedCount / myTasks.length) * 100) : 0;
 
   const myTaskTypeCounts = {
-    translate: myTasks.filter((t) => t.taskType === "แปล" || t.taskType === "Translate").length,
-    videoEdit: myTasks.filter((t) => t.taskType === "ตัดต่อ" || t.taskType === "Video Edit").length,
-    others: myTasks.filter((t) => t.taskType === "อื่นๆ" || t.taskType === "Others").length,
+    translate: myTasks.filter((t) => {
+      const type = (t.taskType || t.task_type || "").toLowerCase().trim();
+      return type === "แปล" || type === "translate" || type === "translation";
+    }).length,
+    videoEdit: myTasks.filter((t) => {
+      const type = (t.taskType || t.task_type || "").toLowerCase().trim();
+      return (
+        type === "ตัดต่อ" ||
+        type === "video edit" ||
+        type === "video editing" ||
+        type === "video editor" ||
+        type === "edit video" ||
+        type === "ตัดต่อวิดีโอ" ||
+        type.includes("video") ||
+        type.includes("ตัดต่อ")
+      );
+    }).length,
+    others: myTasks.filter((t) => {
+      const raw = (t.taskType || t.task_type || "").trim();
+      if (!raw) return false;
+      const type = raw.toLowerCase();
+      const isTranslate = type === "แปล" || type === "translate" || type === "translation";
+      const isVideo = (
+        type === "ตัดต่อ" ||
+        type === "video edit" ||
+        type === "video editing" ||
+        type === "video editor" ||
+        type === "edit video" ||
+        type === "ตัดต่อวิดีโอ" ||
+        type.includes("video") ||
+        type.includes("ตัดต่อ")
+      );
+      return !isTranslate && !isVideo;
+    }).length,
   };
 
   // Export to Excel helper
@@ -228,7 +273,7 @@ export const useReportsData = () => {
         "Team Leader": p.teamLeaderName || "-",
         Progress: `${p.progress || 0}%`,
         Status: p.status,
-        "End Date": p.end_date ? p.end_date.split("T")[0] : "-",
+        "End Date": formatDate(p.end_date || p.endDate, language),
       }));
     } else if (isTeamLeader) {
       fileName = "Team_Leader_Report.xlsx";
@@ -238,7 +283,7 @@ export const useReportsData = () => {
         "Assigned To": t.assigned_to_name || "-",
         Status: t.status,
         Priority: t.priority,
-        "Due Date": t.due_date ? t.due_date.split("T")[0] : "-",
+        "Due Date": formatDate(t.due_date || t.dueDate, language),
       }));
     } else {
       fileName = "My_Task_Performance.xlsx";
@@ -248,7 +293,7 @@ export const useReportsData = () => {
         Type: t.taskType,
         Status: t.status,
         Priority: t.priority,
-        "Due Date": t.due_date ? t.due_date.split("T")[0] : "-",
+        "Due Date": formatDate(t.due_date || t.dueDate, language),
       }));
     }
 

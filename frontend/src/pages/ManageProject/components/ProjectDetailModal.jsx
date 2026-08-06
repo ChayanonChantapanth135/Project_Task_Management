@@ -47,7 +47,10 @@ const ProjectDetailModal = ({
         {selectedProject && (
           <>
             <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-              <h5 className="fw-bold mb-0">🔍 {t("projectDetailsTitle")}</h5>
+              <h5 className="fw-bold mb-0 d-flex align-items-center gap-1.5">
+                <ion-icon name="folder-open-outline" style={{ fontSize: "20px" }}></ion-icon>
+                <span>{t("projectDetailsTitle")}</span>
+              </h5>
               <button
                 className="btn-close"
                 onClick={() => setShowDetailModal(false)}
@@ -80,16 +83,18 @@ const ProjectDetailModal = ({
                   <span className="text-muted small d-block">
                     {t("projectDetailsDueDate")}
                   </span>
-                  <strong className="text-dark">
-                    📅 {formatDate(selectedProject.endDate, language)}
+                  <strong className="text-dark d-flex align-items-center gap-1">
+                    <ion-icon name="calendar-outline" style={{ fontSize: "16px" }}></ion-icon>
+                    <span>{formatDate(selectedProject.endDate, language)}</span>
                   </strong>
                 </div>
                 <div className="mb-3">
                   <span className="text-muted small d-block">
                     {t("projectDetailsLeader")}
                   </span>
-                  <span className="text-primary fw-bold">
-                    👤 {selectedProject.teamLeaderName}
+                  <span className="text-primary fw-bold d-flex align-items-center gap-1">
+                    <ion-icon name="person-outline" style={{ fontSize: "16px" }}></ion-icon>
+                    <span>{selectedProject.teamLeaderName}</span>
                   </span>
                 </div>
               </div>
@@ -115,8 +120,9 @@ const ProjectDetailModal = ({
 
             {/* Tasks List */}
             <div className="mb-4">
-              <h6 className="fw-bold text-dark mb-3">
-                📝 {t("projectDetailsTaskList")}
+              <h6 className="fw-bold text-dark mb-3 d-flex align-items-center gap-1.5">
+                <ion-icon name="clipboard-outline" style={{ fontSize: "20px" }}></ion-icon>
+                <span>{t("projectDetailsTaskList")}</span>
               </h6>
               <div className="list-group rounded-lg shadow-xs">
                 {selectedProject.tasks && selectedProject.tasks.length > 0 ? (

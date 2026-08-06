@@ -104,13 +104,13 @@ const ManageUserPage = () => {
               }}
               className="px-4 py-2.5 rounded-xl glass-card text-slate-300 hover:text-white text-xs font-semibold"
             >
-              📥 {t("downloadTemplateBtn")}
+              📤 {t("downloadTemplateBtn")}
             </button>
             <button
               className="px-4 py-2.5 rounded-xl glass-card text-slate-300 hover:text-white text-xs font-semibold"
               onClick={() => fileInputRef.current?.click()}
             >
-              📤 {t("importUsersBtn")}
+              📥 {t("importUsersBtn")}
             </button>
             <button
               className="px-4 py-2.5 rounded-xl glass-card text-emerald-400 hover:text-emerald-300 text-xs font-semibold"

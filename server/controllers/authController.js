@@ -587,6 +587,27 @@ export const getTeamLeaders = async (req, res) => {
     }
 };
 
+const checkAndUpdateProjectStatus = async (db, projectId) => {
+    if (!projectId) return;
+    try {
+        const [tasks] = await db.query(
+            "SELECT status FROM tasks WHERE project_id = ? AND deleted_at IS NULL",
+            [projectId]
+        );
+        if (tasks.length > 0) {
+            const completedCount = tasks.filter(t => t.status && t.status.toLowerCase() === 'completed').length;
+            const progress = Math.round((completedCount / tasks.length) * 100);
+            if (progress === 100) {
+                await db.query("UPDATE projects SET status = 'Completed' WHERE id = ?", [projectId]);
+            } else {
+                await db.query("UPDATE projects SET status = 'In Progress' WHERE id = ?", [projectId]);
+            }
+        }
+    } catch (err) {
+        console.error("Error auto updating project status:", err.message);
+    }
+};
+
 export const getProjects = async (req, res) => {
     try {
         const db = await connectToDatabase();
@@ -610,8 +631,19 @@ export const getProjects = async (req, res) => {
             if (tasks.length > 0) {
                 const completed = tasks.filter(t => t.status && t.status.toLowerCase() === 'completed').length;
                 p.progress = Math.round((completed / tasks.length) * 100);
+                if (p.progress === 100) {
+                    if (p.status !== 'Completed') {
+                        p.status = 'Completed';
+                        await db.query("UPDATE projects SET status = 'Completed' WHERE id = ?", [p.id]);
+                    }
+                } else {
+                    if (p.status !== 'In Progress') {
+                        p.status = 'In Progress';
+                        await db.query("UPDATE projects SET status = 'In Progress' WHERE id = ?", [p.id]);
+                    }
+                }
             } else {
-                p.progress = (p.status && p.status.toLowerCase() === 'completed') ? 100 : 0;
+                p.progress = 0;
             }
         }
 
@@ -686,17 +718,36 @@ export const deleteProject = async (req, res) => {
     }
 };
 
+const parseDueDate = (dateStr) => {
+    if (!dateStr || dateStr === "-" || dateStr === "null" || dateStr === "undefined") return null;
+    const str = String(dateStr).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+    if (str.includes("T")) return str.split("T")[0];
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) {
+        const [d, m, y] = str.split("/");
+        let yearNum = parseInt(y, 10);
+        if (yearNum > 2400) yearNum -= 543;
+        return `${yearNum}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+    }
+    const d = new Date(str);
+    if (!isNaN(d.getTime())) {
+        return d.toISOString().split("T")[0];
+    }
+    return null;
+};
+
 export const createTask = async (req, res) => {
     const { projectId, title, description, taskType, priority, dueDate, assignedTo, createdBy } = req.body;
     if (!projectId || !title) {
         return res.status(400).json({ message: 'สร้างไม่สำเร็จ: กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน' });
     }
 
+    const formattedDueDate = parseDueDate(dueDate);
     try {
         const db = await connectToDatabase();
         const [result] = await db.query(
             "INSERT INTO tasks (project_id, title, description, task_type, priority, due_date, assigned_to, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')",
-            [projectId, title, description || null, taskType || null, priority || 'Medium', dueDate || null, assignedTo ? Number(assignedTo) : null]
+            [projectId, title, description || null, taskType || null, priority || 'Medium', formattedDueDate, assignedTo ? Number(assignedTo) : null]
         );
         const taskId = result.insertId;
 
@@ -714,6 +765,8 @@ export const createTask = async (req, res) => {
             "INSERT INTO task_history (task_id, action, details, changed_by) VALUES (?, 'create', ?, ?)",
             [taskId, `สร้างงาน: "${title}"`, createdBy || null]
         );
+
+        await checkAndUpdateProjectStatus(db, projectId);
 
         await logActivity(db, createdBy || null, 'Create Task Success', `Created task: ${title} under project ID: ${projectId}`);
         res.status(201).json({ message: 'Create Success', taskId });
@@ -735,6 +788,7 @@ export const updateTaskStatus = async (req, res) => {
         const { title, project_id, project_name, project_creator } = taskRows[0];
 
         await db.query('UPDATE tasks SET status = ? WHERE id = ?', [status, id]);
+        await checkAndUpdateProjectStatus(db, project_id);
         await db.query(
             "INSERT INTO task_history (task_id, action, details, changed_by) VALUES (?, 'status_change', ?, ?)",
             [id, `เปลี่ยนสถานะเป็น "${status}"`, userId || null]
@@ -774,6 +828,8 @@ export const updateTask = async (req, res) => {
         const oldTitle = oldTask.title;
         const oldStatus = oldTask.status;
 
+        const formattedDueDate = parseDueDate(dueDate) || (oldTask.due_date ? String(oldTask.due_date).split("T")[0] : null);
+
         await db.query(
             'UPDATE tasks SET title = ?, description = ?, task_type = ?, priority = ?, due_date = ?, assigned_to = ?, project_id = ?, status = ? WHERE id = ?',
             [
@@ -781,7 +837,7 @@ export const updateTask = async (req, res) => {
                 description || null,
                 taskType || null,
                 priority || 'Medium',
-                dueDate || null,
+                formattedDueDate,
                 assignedTo ? Number(assignedTo) : null,
                 projectId ? Number(projectId) : null,
                 status || 'Pending',
@@ -813,12 +869,12 @@ export const updateTask = async (req, res) => {
             );
         }
 
-        // Log general edit details if other details changed
+        const oldDueDateStr = oldTask.due_date ? parseDueDate(oldTask.due_date) : null;
         const detailsChanged = (title !== oldTask.title ||
-                                description !== oldTask.description ||
+                                (description || null) !== (oldTask.description || null) ||
                                 taskType !== oldTask.task_type ||
                                 priority !== oldTask.priority ||
-                                (dueDate && new Date(dueDate).toISOString().split('T')[0] !== (oldTask.due_date ? new Date(oldTask.due_date).toISOString().split('T')[0] : '')));
+                                formattedDueDate !== oldDueDateStr);
         if (detailsChanged) {
             await db.query(
                 "INSERT INTO task_history (task_id, action, details, changed_by) VALUES (?, 'edit_details', ?, ?)",
@@ -838,6 +894,8 @@ export const updateTask = async (req, res) => {
             );
         }
 
+        await checkAndUpdateProjectStatus(db, projectId || oldTask.project_id);
+
         res.status(200).json({ message: 'อัปเดตข้อมูลงานสำเร็จ / Task updated successfully' });
     } catch (error) {
         console.error('Error updating task:', error.message);
@@ -850,13 +908,14 @@ export const deleteTask = async (req, res) => {
     const { userId } = req.query;
     try {
         const db = await connectToDatabase();
-        const [taskRows] = await db.query('SELECT title FROM tasks WHERE id = ?', [id]);
+        const [taskRows] = await db.query('SELECT title, project_id FROM tasks WHERE id = ?', [id]);
         if (taskRows.length === 0) {
             return res.status(404).json({ message: 'ไม่พบข้อมูลงาน / Task not found' });
         }
-        const title = taskRows[0].title;
+        const { title, project_id } = taskRows[0];
 
         await db.query('UPDATE tasks SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?', [id]);
+        await checkAndUpdateProjectStatus(db, project_id);
         await logActivity(db, userId || null, 'Delete Task', `Soft deleted task "${title}" (ID: ${id})`);
         res.status(200).json({ message: 'ลบงานสำเร็จ / Task deleted successfully' });
     } catch (error) {

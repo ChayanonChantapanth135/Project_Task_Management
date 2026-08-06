@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { Modal } from "react-bootstrap";
 import axios from "axios";
 import { useLanguage } from "../../../lib/LanguageContext";
-import { formatDateTime } from "../../../lib/dateUtils";
+import { formatDateTime, formatDate } from "../../../lib/dateUtils";
+import SearchableUserSelect from "../../../components/SearchableUserSelect";
+import CustomDateInput from "../../../components/CustomDateInput";
 
 const ViewTaskModal = ({
   showViewTaskModal,
@@ -16,6 +18,7 @@ const ViewTaskModal = ({
   setSuccessMessage,
   setErrorMessage,
   fetchProjects,
+  users = [],
   t,
 }) => {
   const { language } = useLanguage();
@@ -25,6 +28,18 @@ const ViewTaskModal = ({
   const [newComment, setNewComment] = useState("");
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    taskType: "แปล",
+    customTaskType: "",
+    priority: "Medium",
+    dueDate: "",
+    assignedTo: "",
+    status: "Pending",
+  });
 
   const fetchComments = async () => {
     if (!selectedTask) return;
@@ -58,6 +73,38 @@ const ViewTaskModal = ({
 
   useEffect(() => {
     if (showViewTaskModal && selectedTask) {
+      const rawDate = selectedTask.dueDate || selectedTask.due_date || "";
+      let isoDueDate = "";
+      if (rawDate && rawDate !== "-") {
+        const str = String(rawDate).trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+          isoDueDate = str;
+        } else if (str.includes("T")) {
+          isoDueDate = str.split("T")[0];
+        } else if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) {
+          const [d, m, y] = str.split("/");
+          let yearNum = parseInt(y, 10);
+          if (yearNum > 2400) yearNum -= 543;
+          isoDueDate = `${yearNum}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+        }
+      }
+
+      const rawType = selectedTask.task_type || selectedTask.taskType || "";
+      const isKnownType = ["แปล", "ตัดต่อ", "อื่นๆ"].includes(rawType);
+
+      setFormData({
+        title: selectedTask.title || "",
+        description: selectedTask.description || "",
+        taskType: isKnownType ? rawType : rawType ? "อื่นๆ" : "แปล",
+        customTaskType: isKnownType ? "" : rawType,
+        priority: selectedTask.priority || "Medium",
+        dueDate: isoDueDate,
+        assignedTo: selectedTask.assigned_to || selectedTask.assignedTo || "",
+        status: selectedTask.status || "Pending",
+      });
+      setTempStatus(selectedTask.status || "Pending");
+      setIsEditing(false);
+
       fetchComments();
       fetchFiles();
       fetchStatusHistory();
@@ -99,6 +146,114 @@ const ViewTaskModal = ({
       console.error("Error uploading file:", err);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleSaveTaskDetails = async () => {
+    if (!selectedTask) return;
+    try {
+      if (isEditing) {
+        const typeValue =
+          formData.taskType === "อื่นๆ"
+            ? formData.customTaskType
+            : formData.taskType;
+
+        const payload = {
+          title: formData.title,
+          description: formData.description,
+          taskType: typeValue,
+          priority: formData.priority,
+          dueDate: formData.dueDate,
+          assignedTo: formData.assignedTo ? Number(formData.assignedTo) : null,
+          projectId: selectedProject?.id,
+          status: tempStatus,
+          userId: currentUser?.id,
+        };
+
+        await axios.put(`/auth/tasks/${selectedTask.id}`, payload);
+
+        const assignedUser = users.find(
+          (u) => Number(u.id) === Number(formData.assignedTo)
+        );
+        const assignedName = assignedUser
+          ? assignedUser.fullname || assignedUser.username
+          : "Unassigned";
+
+        if (selectedProject && selectedProject.tasks) {
+          const updatedTasks = selectedProject.tasks.map((tItem) =>
+            tItem.id === selectedTask.id
+              ? {
+                  ...tItem,
+                  title: formData.title,
+                  description: formData.description,
+                  task_type: typeValue,
+                  taskType: typeValue,
+                  priority: formData.priority,
+                  due_date: formData.dueDate,
+                  dueDate: formData.dueDate,
+                  assigned_to: formData.assignedTo,
+                  assigned_to_name: assignedName,
+                  status: tempStatus,
+                }
+              : tItem
+          );
+          const completed = updatedTasks.filter(
+            (tItem) => tItem.status && tItem.status.toLowerCase() === "completed"
+          ).length;
+          const progress =
+            updatedTasks.length > 0
+              ? Math.round((completed / updatedTasks.length) * 100)
+              : 0;
+          setSelectedProject((prev) => ({
+            ...prev,
+            tasks: updatedTasks,
+            progress,
+          }));
+        }
+
+        setSuccessMessage(
+          language === "th" ? "อัปเดตข้อมูลงานสำเร็จ" : "Task updated successfully"
+        );
+        setTimeout(() => setSuccessMessage(""), 5000);
+        setShowViewTaskModal(false);
+        if (fetchProjects) fetchProjects();
+      } else {
+        await axios.put(`/auth/tasks/${selectedTask.id}/status`, {
+          status: tempStatus,
+          userId: currentUser?.id,
+        });
+
+        if (selectedProject && selectedProject.tasks) {
+          const updatedTasks = selectedProject.tasks.map((tItem) =>
+            tItem.id === selectedTask.id ? { ...tItem, status: tempStatus } : tItem
+          );
+          const completed = updatedTasks.filter(
+            (tItem) => tItem.status && tItem.status.toLowerCase() === "completed"
+          ).length;
+          const progress =
+            updatedTasks.length > 0
+              ? Math.round((completed / updatedTasks.length) * 100)
+              : 0;
+          setSelectedProject((prev) => ({
+            ...prev,
+            tasks: updatedTasks,
+            progress,
+          }));
+        }
+
+        setSuccessMessage(
+          language === "th" ? "อัปเดตสถานะงานสำเร็จ" : "Status updated successfully"
+        );
+        setTimeout(() => setSuccessMessage(""), 5000);
+        setShowViewTaskModal(false);
+        if (fetchProjects) fetchProjects();
+      }
+    } catch (err) {
+      console.error("Failed to update task:", err);
+      setErrorMessage(
+        language === "th" ? "ไม่สามารถอัปเดตข้อมูลงานได้" : "Failed to update task"
+      );
+      setTimeout(() => setErrorMessage(""), 5000);
     }
   };
 
@@ -144,17 +299,39 @@ const ViewTaskModal = ({
     >
       <Modal.Body className="p-4" style={{ borderRadius: "1rem" }}>
         <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-          <h5 className="fw-bold mb-0 text-slate-900">🔍 {t("taskDetailsTitle")}</h5>
-          <button
-            className="btn-close"
-            onClick={() => setShowViewTaskModal(false)}
-          ></button>
+          <h5 className="fw-bold mb-0 text-slate-900 d-flex align-items-center gap-1.5">
+            {isEditing ? (
+              <>
+                <ion-icon name="create-outline" style={{ fontSize: "20px" }}></ion-icon>
+                <span>{language === "th" ? "แก้ไขข้อมูลงาน" : "Edit Task Info"}</span>
+              </>
+            ) : (
+              <>
+                <ion-icon name="search-outline" style={{ fontSize: "20px" }}></ion-icon>
+                <span>{t("taskDetailsTitle") || "Task Details"}</span>
+              </>
+            )}
+          </h5>
+          <div className="d-flex align-items-center gap-2">
+            {!isEditing && (
+              <button
+                type="button"
+                className="btn btn-sm btn-primary rounded-xl px-3 py-1 text-xs fw-bold text-white shadow-sm d-flex align-items-center gap-1"
+                onClick={() => setIsEditing(true)}
+              >
+                <ion-icon name="create-outline" style={{ fontSize: "15px" }}></ion-icon>
+                <span>{language === "th" ? "แก้ไขข้อมูล" : "Edit Task"}</span>
+              </button>
+            )}
+            <button
+              className="btn-close"
+              onClick={() => setShowViewTaskModal(false)}
+            ></button>
+          </div>
         </div>
 
         <div className="row g-4">
-          {/* Left Column: Task Details */}
           <div className="col-lg-6 border-end pe-lg-4">
-            {/* Project Name (Read Only) */}
             <div className="mb-3">
               <label className="form-label small fw-bold text-muted mb-1">
                 {t("taskProjectLabel")}
@@ -168,107 +345,202 @@ const ViewTaskModal = ({
               />
             </div>
 
-            {/* Title / Task Name */}
             <div className="mb-3">
               <label className="form-label small fw-bold text-muted mb-1">
                 {t("taskNameLabel")}
               </label>
-              <input
-                type="text"
-                className="form-control bg-light rounded-lg text-muted text-sm py-2"
-                value={selectedTask ? selectedTask.title : ""}
-                readOnly
-                disabled
-              />
+              {isEditing ? (
+                <input
+                  type="text"
+                  className="form-control rounded-lg text-sm py-2"
+                  value={formData.title}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, title: e.target.value }))
+                  }
+                  required
+                />
+              ) : (
+                <input
+                  type="text"
+                  className="form-control bg-light rounded-lg text-muted text-sm py-2"
+                  value={selectedTask ? selectedTask.title : ""}
+                  readOnly
+                  disabled
+                />
+              )}
             </div>
 
-            {/* Task Type */}
             <div className="mb-3">
               <label className="form-label small fw-bold text-muted mb-1">
                 {t("taskTypeLabel")}
               </label>
-              <input
-                type="text"
-                className="form-control bg-light rounded-lg text-muted text-sm py-2"
-                value={
-                  selectedTask
-                    ? formatTaskType(selectedTask.task_type || selectedTask.taskType)
-                    : ""
-                }
-                readOnly
-                disabled
-              />
+              {isEditing ? (
+                <>
+                  <select
+                    className="form-select rounded-lg text-sm py-2"
+                    value={formData.taskType}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, taskType: e.target.value }))
+                    }
+                  >
+                    <option value="แปล">{t("taskTypeTranslate")}</option>
+                    <option value="ตัดต่อ">{t("taskTypeVideoEdit")}</option>
+                    <option value="อื่นๆ">{t("taskTypeOthers")}</option>
+                  </select>
+                  {formData.taskType === "อื่นๆ" && (
+                    <input
+                      type="text"
+                      className="form-control rounded-lg text-sm py-2 mt-2"
+                      placeholder={t("customTaskTypePlaceholder")}
+                      value={formData.customTaskType}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          customTaskType: e.target.value,
+                        }))
+                      }
+                    />
+                  )}
+                </>
+              ) : (
+                <input
+                  type="text"
+                  className="form-control bg-light rounded-lg text-muted text-sm py-2"
+                  value={
+                    selectedTask
+                      ? formatTaskType(selectedTask.task_type || selectedTask.taskType)
+                      : ""
+                  }
+                  readOnly
+                  disabled
+                />
+              )}
             </div>
 
-            {/* Description */}
             <div className="mb-3">
               <label className="form-label small fw-bold text-muted mb-1">
                 {t("taskDescLabel")}
               </label>
-              <textarea
-                className="form-control bg-light rounded-lg text-muted text-sm py-2"
-                rows="3"
-                value={
-                  selectedTask
-                    ? selectedTask.description || t("noDescription")
-                    : ""
-                }
-                readOnly
-                disabled
-              />
+              {isEditing ? (
+                <textarea
+                  className="form-control rounded-lg text-sm py-2"
+                  rows="3"
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                />
+              ) : (
+                <textarea
+                  className="form-control bg-light rounded-lg text-muted text-sm py-2"
+                  rows="3"
+                  value={
+                    selectedTask
+                      ? selectedTask.description || t("noDescription")
+                      : ""
+                  }
+                  readOnly
+                  disabled
+                />
+              )}
             </div>
 
-            {/* Priority */}
             <div className="mb-3">
               <label className="form-label small fw-bold text-muted mb-1">
                 {t("taskPriorityLabel")}
               </label>
-              <input
-                type="text"
-                className="form-control bg-light rounded-lg text-muted text-sm py-2"
-                value={selectedTask ? formatPriority(selectedTask.priority) : ""}
-                readOnly
-                disabled
-              />
+              {isEditing ? (
+                <select
+                  className="form-select rounded-lg text-sm py-2"
+                  value={formData.priority}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, priority: e.target.value }))
+                  }
+                >
+                  <option value="High">{t("priorityHigh")}</option>
+                  <option value="Medium">{t("priorityMedium")}</option>
+                  <option value="Low">{t("priorityLow")}</option>
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  className="form-control bg-light rounded-lg text-muted text-sm py-2"
+                  value={selectedTask ? formatPriority(selectedTask.priority) : ""}
+                  readOnly
+                  disabled
+                />
+              )}
             </div>
 
-            {/* Due Date */}
-            <div className="mb-3">
+            <div className="mb-3" lang={language === "th" ? "th-TH" : "en-GB"}>
               <label className="form-label small fw-bold text-muted mb-1">
                 {t("taskDueDateLabel")}
               </label>
-              <input
-                type="text"
-                className="form-control bg-light rounded-lg text-muted text-sm py-2"
-                value={
-                  selectedTask
-                    ? selectedTask.dueDate || selectedTask.due_date || ""
-                    : ""
-                }
-                readOnly
-                disabled
-              />
+              {isEditing ? (
+                <CustomDateInput
+                  name="dueDate"
+                  value={formData.dueDate}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, dueDate: e.target.value }))
+                  }
+                />
+              ) : (
+                <input
+                  type="text"
+                  className="form-control bg-light rounded-lg text-muted text-sm py-2"
+                  value={
+                    selectedTask
+                      ? formatDate(selectedTask.dueDate || selectedTask.due_date, language)
+                      : ""
+                  }
+                  readOnly
+                  disabled
+                />
+              )}
             </div>
 
-            {/* Assignee */}
             <div className="mb-3">
               <label className="form-label small fw-bold text-muted mb-1">
                 {t("taskAssigneeLabel")}
               </label>
-              <input
-                type="text"
-                className="form-control bg-light rounded-lg text-muted text-sm py-2"
-                value={
-                  selectedTask
-                    ? selectedTask.assigned_to_name || t("noAssignee")
-                    : ""
-                }
-                readOnly
-                disabled
-              />
+              {isEditing ? (
+                <SearchableUserSelect
+                  users={users}
+                  value={formData.assignedTo}
+                  name="assignedTo"
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      assignedTo: e.target.value,
+                    }))
+                  }
+                  allowedRoles={[
+                    "manager",
+                    "project_manager",
+                    "team_leader",
+                    "translator",
+                    "video_editor",
+                  ]}
+                  placeholder={`-- ${t("selectAssignee") || "Select Assignee"} --`}
+                />
+              ) : (
+                <input
+                  type="text"
+                  className="form-control bg-light rounded-lg text-muted text-sm py-2"
+                  value={
+                    selectedTask
+                      ? selectedTask.assigned_to_name || t("noAssignee")
+                      : ""
+                  }
+                  readOnly
+                  disabled
+                />
+              )}
             </div>
 
-            {/* Task Status */}
             <div className="mb-3">
               <label className="form-label small fw-bold text-muted mb-1">
                 {t("taskStatusLabel")}
@@ -276,7 +548,10 @@ const ViewTaskModal = ({
               <select
                 className="form-select rounded-lg text-sm py-2"
                 value={tempStatus}
-                onChange={(e) => setTempStatus(e.target.value)}
+                onChange={(e) => {
+                  setTempStatus(e.target.value);
+                  setFormData((prev) => ({ ...prev, status: e.target.value }));
+                }}
               >
                 <option value="Pending">{t("taskStatusPending")}</option>
                 <option value="In Progress">{t("taskStatusInProgress")}</option>
@@ -285,60 +560,6 @@ const ViewTaskModal = ({
               </select>
             </div>
 
-            <div className="d-flex justify-content-end gap-2 pt-3 border-top mt-4">
-              <button
-                type="button"
-                className="btn btn-secondary px-4 py-2 rounded-lg text-xs"
-                onClick={() => setShowViewTaskModal(false)}
-              >
-                {t("cancelBtn")}
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary px-4 py-2 rounded-lg text-xs text-white"
-                onClick={async () => {
-                  try {
-                    await axios.put(`/auth/tasks/${selectedTask.id}/status`, {
-                      status: tempStatus,
-                      userId: currentUser?.id,
-                    });
-
-                    // Update task status inside selectedProject locally
-                    if (selectedProject && selectedProject.tasks) {
-                      const updatedTasks = selectedProject.tasks.map((t) =>
-                        t.id === selectedTask.id
-                          ? { ...t, status: tempStatus }
-                          : t
-                      );
-                      const completed = updatedTasks.filter(
-                        (t) =>
-                          t.status && t.status.toLowerCase() === "completed"
-                      ).length;
-                      const progress =
-                        updatedTasks.length > 0
-                          ? Math.round((completed / updatedTasks.length) * 100)
-                          : 0;
-                      setSelectedProject((prev) => ({
-                        ...prev,
-                        tasks: updatedTasks,
-                        progress,
-                      }));
-                    }
-
-                    setSuccessMessage("อัปเดตสถานะงานสำเร็จ");
-                    setTimeout(() => setSuccessMessage(""), 5000);
-                    setShowViewTaskModal(false);
-                    fetchProjects();
-                  } catch (err) {
-                    console.error("Failed to update task status:", err);
-                    setErrorMessage("ไม่สามารถอัปเดตสถานะงานได้");
-                    setTimeout(() => setErrorMessage(""), 5000);
-                  }
-                }}
-              >
-                {t("updateStatusBtn")}
-              </button>
-            </div>
           </div>
 
           {/* Right Column: Files, Comments, History */}
@@ -442,8 +663,9 @@ const ViewTaskModal = ({
 
             {/* ประวัติการเปลี่ยนสถานะ */}
             <div>
-              <span className="fw-bold text-slate-800 text-sm mb-2 d-block">
-                🕒 ประวัติการเปลี่ยนสถานะ
+              <span className="fw-bold text-slate-800 text-sm mb-2 d-flex align-items-center gap-1.5">
+                <ion-icon name="time-outline" style={{ fontSize: "18px" }}></ion-icon>
+                <span>{language === "th" ? "ประวัติการเปลี่ยนสถานะ" : "Status History"}</span>
               </span>
               
               <div className="border rounded-xl p-3 bg-slate-50 max-h-[160px] overflow-y-auto">
@@ -497,6 +719,80 @@ const ViewTaskModal = ({
                 )}
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Modal Footer at the bottom of Modal.Body (spans full width) */}
+        <div className="d-flex justify-content-between align-items-center gap-3 pt-3 border-top mt-4">
+          {currentUser?.role === "admin" && selectedTask ? (
+            <button
+              type="button"
+              className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 rounded-full text-xs font-bold whitespace-nowrap border border-red-500/30 transition-all shadow-sm d-inline-flex align-items-center gap-1"
+              onClick={async () => {
+                if (
+                  window.confirm(
+                    language === "th"
+                      ? "คุณต้องการลบงานนี้จริงหรือไม่?"
+                      : "Are you sure you want to delete this task?"
+                  )
+                ) {
+                  try {
+                    await axios.delete(`/auth/tasks/${selectedTask.id}?userId=${currentUser?.id}`);
+                    setSuccessMessage(language === "th" ? "ลบงานสำเร็จ" : "Task deleted successfully");
+                    setTimeout(() => setSuccessMessage(""), 5000);
+                    setShowViewTaskModal(false);
+                    if (fetchProjects) fetchProjects();
+                  } catch (err) {
+                    console.error("Failed to delete task:", err);
+                    setErrorMessage(language === "th" ? "ไม่สามารถลบงานได้" : "Failed to delete task");
+                    setTimeout(() => setErrorMessage(""), 5000);
+                  }
+                }
+              }}
+            >
+              <ion-icon name="trash-outline" style={{ fontSize: "15px" }}></ion-icon>
+              <span>{language === "th" ? "ลบงาน" : "Delete Task"}</span>
+            </button>
+          ) : (
+            <div />
+          )}
+
+          <div className="d-flex gap-2">
+            {isEditing ? (
+              <>
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full text-xs font-semibold whitespace-nowrap border border-white/10 transition-all"
+                  onClick={() => setIsEditing(false)}
+                >
+                  {language === "th" ? "ยกเลิก" : "Cancel"}
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-lg"
+                  onClick={handleSaveTaskDetails}
+                >
+                  {language === "th" ? "บันทึกข้อมูล" : "Save Changes"}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full text-xs font-semibold whitespace-nowrap border border-white/10 transition-all"
+                  onClick={() => setShowViewTaskModal(false)}
+                >
+                  {t("cancelBtn") || "Cancel"}
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-lg"
+                  onClick={handleSaveTaskDetails}
+                >
+                  {t("updateStatusBtn") || "Update Status"}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </Modal.Body>

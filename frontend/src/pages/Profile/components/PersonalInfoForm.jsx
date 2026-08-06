@@ -12,7 +12,8 @@ const PersonalInfoForm = ({
   return (
     <div className="glass-panel rounded-3xl p-6 shadow-2xl space-y-4">
       <h5 className="text-base font-bold text-teal-400 flex items-center gap-2 mb-2">
-        <i className="bi bi-person-gear"></i> {t("profilePersonalInfo")}
+        <ion-icon name="person-circle-outline" style={{ fontSize: "20px" }}></ion-icon>
+        <span>{t("profilePersonalInfo")}</span>
       </h5>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

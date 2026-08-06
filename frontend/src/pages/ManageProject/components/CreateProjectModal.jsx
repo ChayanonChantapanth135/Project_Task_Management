@@ -1,5 +1,8 @@
 import React from "react";
 import { Modal } from "react-bootstrap";
+import { useLanguage } from "../../../lib/LanguageContext";
+import SearchableUserSelect from "../../../components/SearchableUserSelect";
+import CustomDateInput from "../../../components/CustomDateInput";
 
 const CreateProjectModal = ({
   showCreateModal,
@@ -11,6 +14,7 @@ const CreateProjectModal = ({
   users = [],
   t,
 }) => {
+  const { language } = useLanguage();
   const userList = users && users.length > 0 ? users : teamLeaders;
 
   return (
@@ -21,7 +25,10 @@ const CreateProjectModal = ({
     >
       <Modal.Body className="p-4" style={{ borderRadius: "1rem" }}>
         <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-          <h5 className="fw-bold mb-0">🆕 {t("createProjectTitle")}</h5>
+          <h5 className="fw-bold mb-0 d-flex align-items-center gap-1.5">
+            <ion-icon name="folder-open-outline" style={{ fontSize: "20px" }}></ion-icon>
+            <span>{t("createProjectTitle")}</span>
+          </h5>
           <button
             className="btn-close"
             onClick={() => setShowCreateModal(false)}
@@ -59,13 +66,12 @@ const CreateProjectModal = ({
               <option value="Low">Low</option>
             </select>
           </div>
-          <div className="mb-3">
+          <div className="mb-3" lang={language === "th" ? "th-TH" : "en-GB"}>
             <label className="form-label small fw-bold">
               {t("modalProjectEndDate")} <span className="text-danger">*</span>
             </label>
-            <input
-              type="date"
-              className="form-control rounded-lg"
+            <CustomDateInput
+              name="endDate"
               value={formData.endDate}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, endDate: e.target.value }))
@@ -77,50 +83,20 @@ const CreateProjectModal = ({
             <label className="form-label small fw-bold">
               {t("modalProjectTeamLeader")} <span className="text-danger">*</span>
             </label>
-            <select
-              className="form-select rounded-lg"
+            <SearchableUserSelect
+              users={userList}
               value={formData.teamLeaderId}
+              name="teamLeaderId"
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
                   teamLeaderId: e.target.value,
                 }))
               }
+              allowedRoles={["manager", "project_manager", "team_leader", "translator", "video_editor"]}
+              placeholder={`-- ${t("modalProjectTeamLeader")} --`}
               required
-            >
-              <option value="">-- {t("modalProjectTeamLeader")} --</option>
-              <optgroup label="👑 Team Leader">
-                {userList
-                  .filter((u) => u.role === "team_leader" || (!u.role && teamLeaders.some((tl) => tl.id === u.id)))
-                  .map((leader) => (
-                    <option key={leader.id} value={leader.id}>
-                      {leader.fullname || leader.username}
-                    </option>
-                  ))}
-              </optgroup>
-              {userList.some((u) => u.role === "translator") && (
-                <optgroup label="🗣️ Translator">
-                  {userList
-                    .filter((u) => u.role === "translator")
-                    .map((leader) => (
-                      <option key={leader.id} value={leader.id}>
-                        {leader.fullname || leader.username}
-                      </option>
-                    ))}
-                </optgroup>
-              )}
-              {userList.some((u) => u.role === "video_editor") && (
-                <optgroup label="🎬 Video Editor">
-                  {userList
-                    .filter((u) => u.role === "video_editor")
-                    .map((leader) => (
-                      <option key={leader.id} value={leader.id}>
-                        {leader.fullname || leader.username}
-                      </option>
-                    ))}
-                </optgroup>
-              )}
-            </select>
+            />
           </div>
           <div className="d-flex justify-content-end gap-2 pt-3 border-top mt-4">
             <button

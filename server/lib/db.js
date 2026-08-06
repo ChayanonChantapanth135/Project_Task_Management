@@ -15,7 +15,8 @@ export const connectToDatabase = async () => {
         database: process.env.DB_NAME || 'myapp_db',
         waitForConnections: true,
         connectionLimit: 15,
-        queueLimit: 0
+        queueLimit: 0,
+        dateStrings: true
     })
   }
   return pool;

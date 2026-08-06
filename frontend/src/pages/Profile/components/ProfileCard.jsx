@@ -39,7 +39,7 @@ const ProfileCard = ({
           onClick={() => fileInputRef.current?.click()}
           title="Upload Image"
         >
-          <i className="bi bi-camera-fill text-sm"></i>
+          <ion-icon name="camera-outline" style={{ fontSize: "16px" }}></ion-icon>
         </button>
       </div>
 

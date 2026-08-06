@@ -1,6 +1,8 @@
 import React from "react";
 import { Modal } from "react-bootstrap";
 import SearchableUserSelect from "../../../components/SearchableUserSelect";
+import CustomDateInput from "../../../components/CustomDateInput";
+import { useLanguage } from "../../../lib/LanguageContext";
 
 const AddTaskModal = ({
   showAddTaskModal,
@@ -12,6 +14,7 @@ const AddTaskModal = ({
   handleAddTaskSubmit,
   t,
 }) => {
+  const { language } = useLanguage();
   return (
     <Modal
       show={showAddTaskModal}
@@ -20,8 +23,9 @@ const AddTaskModal = ({
     >
       <Modal.Body className="p-4" style={{ borderRadius: "1rem" }}>
         <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-          <h5 className="fw-bold mb-0">
-            📝 {t("createTaskTitle")}
+          <h5 className="fw-bold mb-0 d-flex align-items-center gap-1.5">
+            <ion-icon name="add-circle-outline" style={{ fontSize: "20px" }}></ion-icon>
+            <span>{t("createTaskTitle")}</span>
           </h5>
           <button
             className="btn-close"
@@ -148,13 +152,12 @@ const AddTaskModal = ({
           </div>
 
           {/* Due Date */}
-          <div className="mb-3">
+          <div className="mb-3" lang={language === "th" ? "th-TH" : "en-GB"}>
             <label className="form-label small fw-bold">
               {t("taskDueDateLabel")} <span className="text-danger">*</span>
             </label>
-            <input
-              type="date"
-              className="form-control rounded-lg"
+            <CustomDateInput
+              name="dueDate"
               value={taskFormData.dueDate}
               onChange={(e) =>
                 setTaskFormData((prev) => ({
@@ -180,7 +183,7 @@ const AddTaskModal = ({
                   assignedTo: e.target.value,
                 }))
               }
-              allowedRoles={["team_leader", "translator", "video_editor"]}
+              allowedRoles={["manager", "project_manager", "team_leader", "translator", "video_editor"]}
               placeholder={`-- ${t("selectAssignee")} --`}
               required
             />

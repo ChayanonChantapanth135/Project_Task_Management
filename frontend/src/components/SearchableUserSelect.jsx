@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 
 const roleLabels = {
-  team_leader: "👑 Team Leader",
-  translator: "🗣️ Translator",
-  video_editor: "🎬 Video Editor",
-  manager: "💼 Project Manager",
   admin: "🔑 Admin",
+  manager: "💼 Project Manager",
+  project_manager: "💼 Project Manager",
+  team_leader: "👑 Team Leader",
+  video_editor: "🎬 Video Editor",
+  translator: "🗣️ Translator",
 };
 
 export default function SearchableUserSelect({
@@ -16,6 +17,7 @@ export default function SearchableUserSelect({
   allowedRoles = null,
   required = false,
   className = "",
+  name = "assignedTo",
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -81,8 +83,17 @@ export default function SearchableUserSelect({
     return acc;
   }, {});
 
+  const roleOrder = ["admin", "manager", "project_manager", "team_leader", "video_editor", "translator"];
+  const sortedGroupEntries = Object.entries(grouped).sort(([roleA], [roleB]) => {
+    const indexA = roleOrder.indexOf(roleA);
+    const indexB = roleOrder.indexOf(roleB);
+    const orderA = indexA !== -1 ? indexA : 999;
+    const orderB = indexB !== -1 ? indexB : 999;
+    return orderA - orderB;
+  });
+
   const handleSelect = (userId) => {
-    onChange({ target: { name: "assignedTo", value: userId } });
+    onChange({ target: { name, value: userId } });
     setIsOpen(false);
   };
 
@@ -155,12 +166,12 @@ export default function SearchableUserSelect({
               -- Clear / Unassigned --
             </div>
 
-            {Object.keys(grouped).length === 0 ? (
+            {sortedGroupEntries.length === 0 ? (
               <div className="text-muted text-center py-3 text-sm">
                 No users found
               </div>
             ) : (
-              Object.entries(grouped).map(([role, list]) => (
+              sortedGroupEntries.map(([role, list]) => (
                 <div key={role}>
                   <div
                     className="bg-light px-3 py-1 text-xs fw-bold text-secondary text-uppercase border-top border-bottom"

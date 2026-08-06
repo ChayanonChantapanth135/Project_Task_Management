@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { getCurrentUser } from "../../../lib/auth";
 import { useLanguage } from "../../../lib/LanguageContext";
+import { safeDateString } from "../../../lib/dateUtils";
 
 export const useMyTasks = () => {
   const { language } = useLanguage();
@@ -84,8 +85,9 @@ export const useMyTasks = () => {
                 assignedTo: task.assigned_to || "",
                 status: normalizedStatus,
                 priority: normalizedPriority,
-                dueDate: formattedDueDate,
+                dueDate: task.due_date ? safeDateString(task.due_date) : "",
                 rawDueDate: rawDueDate,
+                displayDueDate: formattedDueDate,
                 description: task.description || "",
                 taskType: task.task_type || "",
               });

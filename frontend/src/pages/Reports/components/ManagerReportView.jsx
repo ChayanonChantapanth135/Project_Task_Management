@@ -1,5 +1,6 @@
 import React from "react";
 import { useLanguage } from "../../../lib/LanguageContext";
+import { formatDate } from "../../../lib/dateUtils";
 
 /* ── Reusable KPI Card ── */
 function KpiCard({ icon, iconGradient, label, value, valueColor = "text-white", accentColor }) {
@@ -46,7 +47,7 @@ function StatusPill({ status }) {
 }
 
 export default function ManagerReportView({ data }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { managedProjects, managedTasks, managerCompletionRate } = data;
   const onTrackCount = managedProjects.filter((p) => (p.status || "").toLowerCase() !== "delayed").length;
 
@@ -124,7 +125,7 @@ export default function ManagerReportView({ data }) {
                     {t("colTeamLeader")}:{" "}
                     <strong className="text-slate-300">{p.teamLeaderName || "-"}</strong>
                     <span className="mx-2 text-slate-600">|</span>
-                    {t("endDateLabel")}: {p.end_date ? p.end_date.split("T")[0] : "-"}
+                    {t("endDateLabel")}: {formatDate(p.end_date || p.endDate, language)}
                   </p>
                 </div>
 

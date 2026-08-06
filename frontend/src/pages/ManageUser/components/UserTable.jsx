@@ -1,17 +1,24 @@
 import React from "react";
 import { API_URL } from "../../../config";
 
+const formatRole = (role) => {
+  if (!role) return "-";
+  const r = String(role).toLowerCase().trim();
+  if (r === "admin") return "Admin";
+  if (r === "manager" || r === "project_manager" || r === "project manager") return "Project Manager";
+  if (r === "team_leader" || r === "team leader" || r === "tl") return "Team Leader";
+  if (r === "video_editor" || r === "video editor") return "Video Editor";
+  if (r === "translator") return "Translator";
+  return role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
 const getRoleBadgeStyle = (role) => {
-  switch (role) {
-    case "Admin":
-      return "bg-indigo-500/20 text-indigo-300";
-    case "Project Manager":
-      return "bg-pink-500/20 text-pink-300";
-    case "Team Leader":
-      return "bg-amber-500/20 text-amber-300";
-    default:
-      return "bg-slate-800 text-slate-300";
-  }
+  const r = (role || "").toLowerCase();
+  if (r.includes("admin")) return "bg-indigo-500/20 text-indigo-300";
+  if (r.includes("manager")) return "bg-pink-500/20 text-pink-300";
+  if (r.includes("leader") || r.includes("tl"))
+    return "bg-amber-500/20 text-amber-300";
+  return "bg-slate-800 text-slate-300";
 };
 
 const UserTable = ({
@@ -114,7 +121,7 @@ const UserTable = ({
                     <span
                       className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${getRoleBadgeStyle(user.role)}`}
                     >
-                      {user.role}
+                      {formatRole(user.role)}
                     </span>
                   </td>
                   <td className="py-4 px-4 text-center">

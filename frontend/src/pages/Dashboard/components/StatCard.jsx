@@ -4,10 +4,10 @@ import { Link } from "react-router-dom";
 /**
  * คอมโพเนนต์การ์ดสถิติ (StatCard Component) - Redesigned Glassmorphic StatCard
  */
-const StatCard = ({ title, value, subtitle, link, path, icon }) => {
+const StatCard = ({ title, value, subtitle, link, path, icon, glowColor = "bg-indigo-500/10 group-hover:bg-indigo-500/20" }) => {
   return (
     <div className="glass-card rounded-2xl p-6 text-white relative overflow-hidden group">
-      <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-500/10 rounded-full filter blur-xl group-hover:bg-indigo-500/20 transition-all pointer-events-none"></div>
+      <div className={`absolute -right-4 -bottom-4 w-24 h-24 rounded-full filter blur-xl transition-all pointer-events-none ${glowColor}`}></div>
       
       <div className="flex justify-between items-start">
         <div>

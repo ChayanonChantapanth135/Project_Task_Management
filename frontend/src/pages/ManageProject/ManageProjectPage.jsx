@@ -244,6 +244,7 @@ const ManageProjectPage = () => {
         setSuccessMessage={setSuccessMessage}
         setErrorMessage={setErrorMessage}
         fetchProjects={fetchProjects}
+        users={users}
         t={t}
       />
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useLanguage } from "../../../lib/LanguageContext";
 import { getCurrentUser } from "../../../lib/auth";
+import { safeDateString } from "../../../lib/dateUtils";
 
 export const useAllTasks = () => {
   const { language } = useLanguage();
@@ -55,11 +56,7 @@ export const useAllTasks = () => {
           project.tasks.forEach((task) => {
             let formattedDueDate = "-";
             if (task.due_date) {
-              try {
-                formattedDueDate = new Date(task.due_date).toISOString().split("T")[0];
-              } catch (e) {
-                formattedDueDate = task.due_date;
-              }
+              formattedDueDate = safeDateString(task.due_date);
             }
 
             let normalizedPriority = "Medium";

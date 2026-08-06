@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { getCurrentUser } from "../../../lib/auth";
+import { safeDateString } from "../../../lib/dateUtils";
 
 export const useProjectManagement = (t) => {
   const [currentUser, setCurrentUser] = useState({
@@ -92,12 +93,12 @@ export const useProjectManagement = (t) => {
       const response = await axios.get("/auth/projects");
       const formatted = response.data.map((p) => {
         if (p.end_date) {
-          p.endDate = new Date(p.end_date).toISOString().split("T")[0];
+          p.endDate = safeDateString(p.end_date);
         }
         if (p.tasks) {
           p.tasks = p.tasks.map((t) => {
             if (t.due_date) {
-              t.dueDate = new Date(t.due_date).toISOString().split("T")[0];
+              t.dueDate = safeDateString(t.due_date);
             }
             return t;
           });

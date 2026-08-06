@@ -306,40 +306,45 @@ const Header = () => {
                   <Dropdown.Item
                     as={Link}
                     to="/Profile"
-                    className="rounded-full px-3 py-2 text-slate-300 hover:text-white hover:bg-indigo-600/30 font-medium transition-colors bg-transparent"
+                    className="rounded-full px-3 py-2 text-slate-300 hover:text-white hover:bg-indigo-600/30 font-medium transition-colors bg-transparent d-flex align-items-center gap-2"
                   >
-                    👤 {t("profile")}
+                    <ion-icon name="person-outline" style={{ fontSize: "16px" }}></ion-icon>
+                    <span>{t("profile")}</span>
                   </Dropdown.Item>
                   {user?.role === "admin" && (
                     <Dropdown.Item
                       as={Link}
                       to="/MyTasks"
-                      className="rounded-full px-3 py-2 text-slate-300 hover:text-white hover:bg-indigo-600/30 font-medium transition-colors bg-transparent"
+                      className="rounded-full px-3 py-2 text-slate-300 hover:text-white hover:bg-indigo-600/30 font-medium transition-colors bg-transparent d-flex align-items-center gap-2"
                     >
-                      📋 {t("myTask")}
+                      <ion-icon name="clipboard-outline" style={{ fontSize: "16px" }}></ion-icon>
+                      <span>{t("myTask")}</span>
                     </Dropdown.Item>
                   )}
                   <Dropdown.Item
                     as={Link}
                     to="/MyActivity"
-                    className="rounded-full px-3 py-2 text-slate-300 hover:text-white hover:bg-indigo-600/30 font-medium transition-colors bg-transparent"
+                    className="rounded-full px-3 py-2 text-slate-300 hover:text-white hover:bg-indigo-600/30 font-medium transition-colors bg-transparent d-flex align-items-center gap-2"
                   >
-                    🕒 {t("myActivity")}
+                    <ion-icon name="time-outline" style={{ fontSize: "16px" }}></ion-icon>
+                    <span>{t("myActivity")}</span>
                   </Dropdown.Item>
                   <Dropdown.Item
                     as="button"
                     onClick={() => setShowThemeModal(true)}
-                    className="rounded-full px-3 py-2 text-slate-300 hover:text-white hover:bg-indigo-600/30 font-medium transition-colors w-full text-left bg-transparent"
+                    className="rounded-full px-3 py-2 text-slate-300 hover:text-white hover:bg-indigo-600/30 font-medium transition-colors w-full text-left bg-transparent d-flex align-items-center gap-2"
                   >
-                    🎨 {t("themes") || "Themes"}
+                    <ion-icon name="color-palette-outline" style={{ fontSize: "16px" }}></ion-icon>
+                    <span>{t("themes") || "Themes"}</span>
                   </Dropdown.Item>
                   <Dropdown.Divider className="my-1 border-white/5" />
                   <Dropdown.Item
                     as="button"
                     onClick={handleSignOut}
-                    className="rounded-full px-3 py-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 font-medium transition-colors w-full text-left bg-transparent"
+                    className="rounded-full px-3 py-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 font-medium transition-colors w-full text-left bg-transparent d-flex align-items-center gap-2"
                   >
-                    🚪 {t("signOut")}
+                    <ion-icon name="log-out-outline" style={{ fontSize: "16px" }}></ion-icon>
+                    <span>{t("signOut")}</span>
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
