@@ -6,6 +6,7 @@ import { signOut, getCurrentUser } from "../lib/auth";
 import { useLanguage } from "../lib/LanguageContext";
 import axios from "axios";
 import LanguageSwitcher from "./LanguageSwitcher";
+import NotificationBell from "./NotificationBell";
 import { API_URL } from "../config";
 
 /**
@@ -257,7 +258,8 @@ const Header = () => {
         )}
 
         {/* Right Section */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
+          {isLoggedIn && <NotificationBell />}
           <LanguageSwitcher variant="dark" />
 
           <div>

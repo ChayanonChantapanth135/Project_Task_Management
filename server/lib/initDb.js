@@ -147,7 +147,11 @@ export const initializeDatabase = async () => {
       CREATE TABLE IF NOT EXISTS notifications (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
+        title VARCHAR(255) NULL,
         message TEXT NOT NULL,
+        type VARCHAR(50) DEFAULT 'system',
+        link VARCHAR(255) DEFAULT NULL,
+        is_read TINYINT(1) DEFAULT 0,
         read_status BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -232,6 +236,10 @@ export const initializeDatabase = async () => {
       "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS due_date DATE DEFAULT NULL",
       "ALTER TABLE files ADD COLUMN IF NOT EXISTS task_id INT NULL",
       "ALTER TABLE comments ADD COLUMN IF NOT EXISTS task_id INT NULL",
+      "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS title VARCHAR(255) NULL",
+      "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'system'",
+      "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS link VARCHAR(255) DEFAULT NULL",
+      "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS is_read TINYINT(1) DEFAULT 0",
     ]
     for (const q of alterQueries) {
       try { await connection.query(q) } catch (e) { /* ignore if column already exists */ }

@@ -99,6 +99,46 @@ function formatPhoneNumber(phone) {
     return cleaned;
 }
 
+// Helper สำหรับส่งแจ้งเตือนเฉพาะผู้ใช้งานที่เกี่ยวข้องกับโปรเจกต์ (ผู้สร้าง, หัวหน้าทีม, ผู้รับผิดชอบงานในโปรเจกต์)
+async function notifyProjectMembers({ db, projectId, title, message, type = 'project', link = null, excludeUserId = null }) {
+  try {
+    if (!projectId) return;
+
+    // 1. ผู้สร้างโปรเจกต์
+    const [projRows] = await db.query('SELECT created_by FROM projects WHERE id = ?', [projectId]);
+    const creatorId = projRows[0]?.created_by;
+
+    // 2. หัวหน้าทีม (Team Leaders)
+    const [tlRows] = await db.query('SELECT user_id FROM project_team_leaders WHERE project_id = ?', [projectId]);
+    const teamLeaderIds = tlRows.map(r => r.user_id);
+
+    // 3. สมาชิกที่มีงานในโปรเจกต์นี้
+    const [taskAssigneeRows] = await db.query('SELECT DISTINCT assigned_to FROM tasks WHERE project_id = ? AND assigned_to IS NOT NULL', [projectId]);
+    const assigneeIds = taskAssigneeRows.map(r => r.assigned_to);
+
+    // รวบรวม ID ผู้เกี่ยวข้องทั้งหมดโดยไม่ซ้ำกัน
+    const memberIds = new Set();
+    if (creatorId) memberIds.add(Number(creatorId));
+    teamLeaderIds.forEach(id => memberIds.add(Number(id)));
+    assigneeIds.forEach(id => memberIds.add(Number(id)));
+
+    // ยกเว้นผู้ที่เป็นคนกดกระทำเอง
+    if (excludeUserId) {
+      memberIds.delete(Number(excludeUserId));
+    }
+
+    for (const targetUserId of memberIds) {
+      await db.query(
+        `INSERT INTO notifications (user_id, title, message, type, link, is_read, read_status) 
+         VALUES (?, ?, ?, ?, ?, 0, FALSE)`,
+        [targetUserId, title, message, type, link]
+      );
+    }
+  } catch (error) {
+    console.error("Error notifying project members:", error.message);
+  }
+}
+
 // --- AUTH CONTROLLERS ---
 
 export const login = async (req, res) => {
@@ -702,6 +742,16 @@ export const updateProject = async (req, res) => {
             await db.query("INSERT INTO project_team_leaders (project_id, user_id) VALUES (?, ?)", [id, teamLeaderId]);
         }
 
+        await notifyProjectMembers({
+            db,
+            projectId: id,
+            title: 'อัปเดตข้อมูลโปรเจกต์',
+            message: `โปรเจกต์ "${name}" มีการอัปเดตข้อมูลใหม่`,
+            type: 'project',
+            link: '/Projects',
+            excludeUserId: userId
+        });
+
         await logActivity(db, userId, 'Edit Project', `Edited project ID: ${id}`);
         res.status(200).json({ message: 'Project updated successfully' });
     } catch (error) {
@@ -762,15 +812,18 @@ export const createTask = async (req, res) => {
         );
         const taskId = result.insertId;
 
-        if (assignedTo) {
-            const [projRows] = await db.query('SELECT name FROM projects WHERE id = ?', [projectId]);
-            const projectName = projRows[0]?.name || `ID ${projectId}`;
-            const notifMessage = `คุณได้รับมอบหมายงานใหม่: "${title}" ในโปรเจกต์ "${projectName}"`;
-            await db.query(
-                "INSERT INTO notifications (user_id, message, read_status) VALUES (?, ?, FALSE)",
-                [Number(assignedTo), notifMessage]
-            );
-        }
+        const [projRows] = await db.query('SELECT name FROM projects WHERE id = ?', [projectId]);
+        const projectName = projRows[0]?.name || `ID ${projectId}`;
+
+        await notifyProjectMembers({
+            db,
+            projectId,
+            title: 'งานใหม่ในโปรเจกต์',
+            message: `มีงานใหม่ "${title}" ในโปรเจกต์ "${projectName}"`,
+            type: 'task',
+            link: '/MyTasks',
+            excludeUserId: createdBy
+        });
 
         await db.query(
             "INSERT INTO task_history (task_id, action, details, changed_by) VALUES (?, 'create', ?, ?)",
@@ -796,7 +849,7 @@ export const updateTaskStatus = async (req, res) => {
         if (taskRows.length === 0) {
             return res.status(404).json({ message: 'ไม่พบข้อมูลงาน / Task not found' });
         }
-        const { title, project_id, project_name, project_creator } = taskRows[0];
+        const { title, project_id, project_name } = taskRows[0];
 
         await db.query('UPDATE tasks SET status = ? WHERE id = ?', [status, id]);
         await checkAndUpdateProjectStatus(db, project_id);
@@ -810,13 +863,15 @@ export const updateTaskStatus = async (req, res) => {
         );
         await logActivity(db, userId || null, 'Update Task Status', `Updated task "${title}" status to "${status}"`);
 
-        if (project_creator && Number(project_creator) !== Number(userId)) {
-            const notifMessage = `งาน "${title}" ในโปรเจกต์ "${project_name}" ถูกอัปเดตสถานะเป็น "${status}"`;
-            await db.query(
-                "INSERT INTO notifications (user_id, message, read_status) VALUES (?, ?, FALSE)",
-                [Number(project_creator), notifMessage]
-            );
-        }
+        await notifyProjectMembers({
+            db,
+            projectId: project_id,
+            title: 'อัปเดตสถานะงาน',
+            message: `งาน "${title}" ในโปรเจกต์ "${project_name}" ถูกอัปเดตสถานะเป็น "${status}"`,
+            type: 'task',
+            link: '/AllTasks',
+            excludeUserId: userId
+        });
 
         res.status(200).json({ message: 'อัปเดตสถานะสำเร็จ / Status updated successfully' });
     } catch (error) {
@@ -900,8 +955,8 @@ export const updateTask = async (req, res) => {
             const projectName = projRows[0]?.name || `ID ${projectId}`;
             const notifMessage = `คุณได้รับมอบหมายงานใหม่: "${title}" ในโปรเจกต์ "${projectName}"`;
             await db.query(
-                "INSERT INTO notifications (user_id, message, read_status) VALUES (?, ?, FALSE)",
-                [Number(assignedTo), notifMessage]
+                "INSERT INTO notifications (user_id, title, message, type, link, is_read, read_status) VALUES (?, ?, ?, ?, ?, 0, FALSE)",
+                [Number(assignedTo), 'ได้รับมอบหมายงานใหม่', notifMessage, 'task', '/MyTasks']
             );
         }
 
@@ -1012,6 +1067,21 @@ export const createTaskComment = async (req, res) => {
             "INSERT INTO comments (task_id, user_id, comment) VALUES (?, ?, ?)",
             [id, userId, comment]
         );
+
+        const [taskRows] = await db.query('SELECT title, project_id FROM tasks WHERE id = ?', [id]);
+        if (taskRows.length > 0) {
+            const { title, project_id } = taskRows[0];
+            await notifyProjectMembers({
+                db,
+                projectId: project_id,
+                title: 'ความคิดเห็นใหม่ในงาน',
+                message: `มีความคิดเห็นใหม่ในงาน "${title}"`,
+                type: 'task',
+                link: '/MyTasks',
+                excludeUserId: userId
+            });
+        }
+
         res.status(201).json({ message: 'บันทึกความคิดเห็นสำเร็จ / Comment created successfully' });
     } catch (error) {
         console.error('Error creating comment:', error.message);

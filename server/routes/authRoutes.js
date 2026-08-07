@@ -1,6 +1,7 @@
 import express from 'express';
-import { upload, uploadTaskFileMiddleware } from '../middleware/authMiddleware.js';
+import { upload, uploadTaskFileMiddleware, verifyToken } from '../middleware/authMiddleware.js';
 import * as authCtrl from '../controllers/authController.js';
+import * as notificationCtrl from '../controllers/notificationController.js';
 
 const router = express.Router();
 
@@ -46,5 +47,12 @@ router.get('/activity-logs', authCtrl.getActivityLogs);
 router.post('/send-otp', authCtrl.sendOtp);
 router.post('/reset-password', authCtrl.resetPassword);
 router.post('/reset-password-first-time', authCtrl.resetPasswordFirstTime);
+
+// --- NOTIFICATION ROUTES ---
+router.get('/notifications', verifyToken, notificationCtrl.getUserNotifications);
+router.put('/notifications/read-all', verifyToken, notificationCtrl.markAllAsRead);
+router.put('/notifications/:id/read', verifyToken, notificationCtrl.markAsRead);
+router.delete('/notifications/clear-all', verifyToken, notificationCtrl.clearAllNotifications);
+router.delete('/notifications/:id', verifyToken, notificationCtrl.deleteNotification);
 
 export default router;

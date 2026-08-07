@@ -1,0 +1,327 @@
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { API_URL } from "../config";
+import { useLanguage } from "../lib/LanguageContext";
+
+/**
+ * คอมโพเนนต์การแจ้งเตือนในระบบ (In-App Notification Bell & Panel)
+ */
+const NotificationBell = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [filter, setFilter] = useState("all"); // 'all' | 'unread'
+  const [loading, setLoading] = useState(false);
+  const dropdownRef = useRef(null);
+  const navigate = useNavigate();
+  const { t } = useLanguage();
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("userToken");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
+  const fetchNotifications = async () => {
+    const token = localStorage.getItem("userToken");
+    if (!token) return;
+
+    try {
+      const res = await axios.get(`${API_URL}/auth/notifications`, {
+        headers: getAuthHeaders(),
+      });
+      setNotifications(res.data.notifications || []);
+      setUnreadCount(res.data.unreadCount || 0);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+
+    // Polling ทุกๆ 15 วินาที
+    const interval = setInterval(fetchNotifications, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // ปิด Popover เมื่อคลิกภายนอก
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleMarkAsRead = async (id, link) => {
+    try {
+      await axios.put(
+        `${API_URL}/auth/notifications/${id}/read`,
+        {},
+        { headers: getAuthHeaders() }
+      );
+      setNotifications((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, is_read: 1 } : item
+        )
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch (err) {
+      console.error("Failed to mark as read:", err);
+    }
+
+    if (link) {
+      setIsOpen(false);
+      navigate(link);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      setLoading(true);
+      await axios.put(
+        `${API_URL}/auth/notifications/read-all`,
+        {},
+        { headers: getAuthHeaders() }
+      );
+      setNotifications((prev) =>
+        prev.map((item) => ({ ...item, is_read: 1 }))
+      );
+      setUnreadCount(0);
+    } catch (err) {
+      console.error("Failed to mark all as read:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteNotification = async (e, id) => {
+    e.stopPropagation();
+    try {
+      await axios.delete(`${API_URL}/auth/notifications/${id}`, {
+        headers: getAuthHeaders(),
+      });
+      const targetItem = notifications.find((item) => item.id === id);
+      if (targetItem && !targetItem.is_read) {
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      }
+      setNotifications((prev) => prev.filter((item) => item.id !== id));
+    } catch (err) {
+      console.error("Failed to delete notification:", err);
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      setLoading(true);
+      await axios.delete(`${API_URL}/auth/notifications/clear-all`, {
+        headers: getAuthHeaders(),
+      });
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch (err) {
+      console.error("Failed to clear notifications:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatTimeAgo = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+
+    if (diffInSeconds < 60) return t("justNow") || "เพิ่งเมื่อครู่";
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} ${t("minutesAgo") || "นาทีที่แล้ว"}`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} ${t("hoursAgo") || "ชม.ที่แล้ว"}`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} ${t("daysAgo") || "วันที่แล้ว"}`;
+    return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  };
+
+  const getNotificationTitle = (item) => {
+    if (item.title === "งานใหม่ที่ได้รับมอบหมาย") return t("newTaskAssigned") || item.title;
+    if (item.title === "อัปเดตสถานะโปรเจกต์") return t("projectStatusUpdated") || item.title;
+    if (item.title === "แจ้งเตือนจากระบบ") return t("systemNotification") || item.title;
+    return item.title || t("systemNotification") || "แจ้งเตือนจากระบบ";
+  };
+
+  const filteredNotifications = notifications.filter((item) => {
+    if (filter === "unread") return !item.is_read;
+    return true;
+  });
+
+  const getNotificationIcon = (type) => {
+    switch (type) {
+      case "task":
+        return (
+          <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+        );
+      case "project":
+        return (
+          <div className="w-8 h-8 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+            </svg>
+          </div>
+        );
+      case "alert":
+        return (
+          <div className="w-8 h-8 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+        );
+      default:
+        return (
+          <div className="w-8 h-8 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      {/* Bell Trigger Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="relative p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all focus:outline-none flex items-center justify-center"
+        title={t("notifications") || "Notifications"}
+        aria-label="Notifications"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+          />
+        </svg>
+
+        {/* Badge counter */}
+        {unreadCount > 0 && (
+          <span className="absolute top-1 right-1 flex h-4 w-4">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-4 w-4 bg-gradient-to-r from-rose-500 to-pink-600 text-[10px] font-bold text-white items-center justify-center shadow-lg">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          </span>
+        )}
+      </button>
+
+      {/* Notifications Popover Drawer */}
+      {isOpen && (
+        <div className="absolute right-0 mt-3 w-80 sm:w-96 rounded-2xl bg-[#0f172a]/95 backdrop-blur-2xl border-0 shadow-2xl z-50 overflow-hidden animate-fade-in text-slate-200">
+          {/* Header */}
+          <div className="p-4 border-b border-slate-800/40 flex items-center justify-between bg-slate-900/50">
+            <h3 className="text-base font-bold text-white tracking-wide">
+              {t("notifications") || "การแจ้งเตือน"}
+            </h3>
+            {unreadCount > 0 && (
+              <button
+                onClick={handleMarkAllAsRead}
+                disabled={loading}
+                className="text-xs font-semibold text-teal-400 hover:text-teal-300 transition-colors bg-teal-500/10 hover:bg-teal-500/20 px-3 py-1.5 rounded-xl whitespace-nowrap"
+              >
+                {t("markAllAsRead") || "อ่านทั้งหมดแล้ว"}
+              </button>
+            )}
+          </div>
+
+          {/* Filter Tabs */}
+          <div className="flex border-b border-slate-800/40 bg-slate-900/30 px-3 py-2 gap-2 text-xs">
+            <button
+              onClick={() => setFilter("all")}
+              className={`px-3 py-1.5 rounded-xl font-semibold transition-all ${
+                filter === "all"
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800"
+              }`}
+            >
+              {t("all") || "ทั้งหมด"} ({notifications.length})
+            </button>
+            <button
+              onClick={() => setFilter("unread")}
+              className={`px-3 py-1.5 rounded-xl font-semibold transition-all ${
+                filter === "unread"
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800"
+              }`}
+            >
+              {t("unread") || "ยังไม่อ่าน"} ({unreadCount})
+            </button>
+          </div>
+
+          {/* Notification Items List */}
+          <div className="max-h-80 overflow-y-auto divide-y divide-slate-800/30 custom-scrollbar">
+            {filteredNotifications.length === 0 ? (
+              <div className="p-8 text-center text-slate-400">
+                <svg className="w-12 h-12 mx-auto mb-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <p className="text-sm font-medium">
+                  {t("noNotifications") || "ยังไม่มีการแจ้งเตือน"}
+                </p>
+              </div>
+            ) : (
+              filteredNotifications.map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => handleMarkAsRead(item.id, item.link)}
+                  className={`p-3.5 flex gap-3 transition-colors cursor-pointer relative group ${
+                    !item.is_read
+                      ? "bg-indigo-950/30 hover:bg-indigo-900/40"
+                      : "hover:bg-slate-800/40"
+                  }`}
+                >
+                  {/* Unread Glow Dot */}
+                  {!item.is_read && (
+                    <span className="absolute left-1.5 top-5 w-2 h-2 rounded-full bg-teal-400 shadow-sm shadow-teal-400"></span>
+                  )}
+
+                  {getNotificationIcon(item.type)}
+
+                  <div className="flex-1 min-w-0 pr-4">
+                    <h4 className={`text-xs font-semibold truncate ${!item.is_read ? "text-white" : "text-slate-300"}`}>
+                      {getNotificationTitle(item)}
+                    </h4>
+                    <p className="text-xs text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">
+                      {item.message}
+                    </p>
+                    <span className="text-[10px] text-slate-500 mt-1 block">
+                      {formatTimeAgo(item.created_at)}
+                    </span>
+                  </div>
+
+                  {/* Delete button */}
+                  <button
+                    onClick={(e) => handleDeleteNotification(e, item.id)}
+                    className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 transition-all p-1 self-start rounded-md hover:bg-slate-800"
+                    title={t("deleteNotification") || "ลบ"}
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default NotificationBell;
