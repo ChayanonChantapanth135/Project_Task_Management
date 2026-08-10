@@ -1205,26 +1205,41 @@ export const getDashboardStats = async (req, res) => {
 
             const [overdueRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE due_date < NOW() AND status != 'Completed' AND deleted_at IS NULL");
             overdueTaskCount = overdueRows[0].count;
-        } catch (e) {}
 
-        res.status(200).json({
-            users: userCount,
-            projects: projectCount,
-            tasks: taskCount,
-            overdueTasks: overdueTaskCount,
-            projectStatus: {
-                pending: pendingProjects,
-                inProgress: inProgressProjects,
-                review: reviewProjects,
-                completed: completedProjects
-            },
-            taskStatus: {
-                pending: pendingTasks,
-                inProgress: inProgressTasks,
-                reviewing: reviewingTasks,
-                completed: completedTasks
-            }
-        });
+            const [overdueProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE end_date < NOW() AND status != 'Completed' AND deleted_at IS NULL");
+            const overdueProjectCount = overdueProjRows[0].count;
+
+            return res.status(200).json({
+                users: userCount,
+                projects: projectCount,
+                tasks: taskCount,
+                overdueTasks: overdueTaskCount,
+                overdueProjects: overdueProjectCount,
+                projectStatus: {
+                    pending: pendingProjects,
+                    inProgress: inProgressProjects,
+                    review: reviewProjects,
+                    completed: completedProjects
+                },
+                taskStatus: {
+                    pending: pendingTasks,
+                    inProgress: inProgressTasks,
+                    reviewing: reviewingTasks,
+                    completed: completedTasks
+                }
+            });
+        } catch (innerError) {
+            console.error('Error in stats inner query:', innerError.message);
+            return res.status(200).json({
+                users: userCount,
+                projects: projectCount,
+                tasks: taskCount,
+                overdueTasks: 0,
+                overdueProjects: 0,
+                projectStatus: { pending: 0, inProgress: 0, review: 0, completed: 0 },
+                taskStatus: { pending: 0, inProgress: 0, reviewing: 0, completed: 0 }
+            });
+        }
     } catch (error) {
         console.error('Error fetching dashboard stats:', error.message);
         res.status(500).json({ message: error.message });
