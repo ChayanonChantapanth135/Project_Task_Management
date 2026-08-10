@@ -39,16 +39,16 @@ function deleteOldAvatar(avatarPath) {
 // Helper to log user activity
 async function logActivity(db, userId, action, details) {
     try {
-        // Prevent duplicate inserts from concurrent/race requests within 3 seconds
+        // Prevent duplicate inserts from concurrent/race requests within 10 seconds
         let recentLog = [];
         if (userId) {
             [recentLog] = await db.query(
-                "SELECT id FROM activity_logs WHERE user_id = ? AND action = ? AND details = ? AND created_at >= NOW() - INTERVAL 3 SECOND LIMIT 1",
+                "SELECT id FROM activity_logs WHERE user_id = ? AND action = ? AND details = ? AND created_at >= NOW() - INTERVAL 10 SECOND LIMIT 1",
                 [userId, action, details]
             );
         } else {
             [recentLog] = await db.query(
-                "SELECT id FROM activity_logs WHERE user_id IS NULL AND action = ? AND details = ? AND created_at >= NOW() - INTERVAL 3 SECOND LIMIT 1",
+                "SELECT id FROM activity_logs WHERE user_id IS NULL AND action = ? AND details = ? AND created_at >= NOW() - INTERVAL 10 SECOND LIMIT 1",
                 [action, details]
             );
         }

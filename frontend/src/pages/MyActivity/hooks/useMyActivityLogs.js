@@ -38,14 +38,16 @@ export const useMyActivityLogs = () => {
 
     let matchesAction = true;
     if (actionFilter !== "all") {
+      const act = log.action.toLowerCase();
       if (actionFilter === "project") {
-        matchesAction = log.action.toLowerCase().includes("project");
+        matchesAction = act.includes("project") || act.includes("task");
       } else if (actionFilter === "user") {
-        matchesAction = log.action.toLowerCase().includes("user");
+        matchesAction = act.includes("user");
       } else if (actionFilter === "system") {
         matchesAction =
-          !log.action.toLowerCase().includes("project") &&
-          !log.action.toLowerCase().includes("user");
+          !act.includes("project") &&
+          !act.includes("task") &&
+          !act.includes("user");
       }
     }
 

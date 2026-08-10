@@ -392,7 +392,7 @@ export const useUserManagement = (t, language = "en") => {
       });
 
       // Define role options & status options
-      const roleOptions = ["admin", "manager", "team_leader", "video_editor", "translator", "user"];
+      const roleOptions = ["admin", "manager", "team_leader", "video_editor", "translator"];
       const statusOptions = ["active", "suspended"];
 
       // Add dropdown validation for rows 2 to 100

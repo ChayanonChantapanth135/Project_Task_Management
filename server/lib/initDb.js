@@ -40,8 +40,7 @@ export const initializeDatabase = async () => {
         ['manager', 'Project Manager with access to create/manage own projects'],
         ['video_editor', 'Video Editor staff member'],
         ['translator', 'Translator staff member'],
-        ['team_leader', 'Team Leader leading project groups'],
-        ['user', 'Standard user / Team member']
+        ['team_leader', 'Team Leader leading project groups']
       ]
       for (const [name, desc] of defaultRoles) {
         await connection.query('INSERT INTO roles (role_name, description) VALUES (?, ?)', [name, desc])

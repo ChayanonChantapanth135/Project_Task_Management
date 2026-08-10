@@ -81,7 +81,7 @@ const ActivityTable = ({
                         <span
                           className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap inline-block ${badgeClass}`}
                         >
-                          {t(log.action)}
+                          {t(log.action) || log.action}
                         </span>
                       </td>
                       <td className="py-4 px-4 text-white font-medium text-xs text-left">

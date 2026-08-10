@@ -230,7 +230,6 @@ const UserModal = ({
                   <option value="team_leader">Team Leader</option>
                   <option value="video_editor">Video Editor</option>
                   <option value="translator">Translator</option>
-                  <option value="user">User</option>
                 </select>
               </div>
 
