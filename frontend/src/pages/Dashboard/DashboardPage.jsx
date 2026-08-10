@@ -89,14 +89,22 @@ const DashboardPage = () => {
 
   const myTasks = [];
   if (currentUser && projects && projects.length > 0) {
+    const userId = Number(currentUser.id);
+    const userFullname = (currentUser.fullname || currentUser.name || "").trim().toLowerCase();
+    const userName = (currentUser.name || "").trim().toLowerCase();
+
     projects.forEach((project) => {
       if (project.tasks && Array.isArray(project.tasks)) {
         project.tasks.forEach((task) => {
-          if (
-            task.assigned_to === currentUser.id ||
-            task.assigned_to_name === currentUser.fullname ||
-            task.assigned_to_name === currentUser.name
-          ) {
+          const taskAssigneeId = task.assigned_to ? Number(task.assigned_to) : null;
+          const taskAssigneeName = (task.assigned_to_name || "").trim().toLowerCase();
+
+          const isAssigned =
+            (taskAssigneeId !== null && taskAssigneeId === userId) ||
+            (userFullname && taskAssigneeName === userFullname) ||
+            (userName && taskAssigneeName === userName);
+
+          if (isAssigned) {
             myTasks.push({
               ...task,
               projectDueDate: project.end_date,
@@ -166,6 +174,7 @@ const DashboardPage = () => {
     const s = (t.status || "").toLowerCase();
     return s === "in progress" || s === "in_progress";
   }).length;
+  const myCompletedCount = myTasks.filter((t) => (t.status || "").toLowerCase() === "completed").length;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -179,6 +188,29 @@ const DashboardPage = () => {
     dueDate.setHours(0, 0, 0, 0);
     return dueDate < today;
   }).length;
+
+  const isManager = userRole === "manager" || userRole === "project_manager";
+
+  const managedProjects = projects.filter((p) => {
+    if (isAdmin) return true;
+    if (isManager) {
+      return (
+        p.created_by === currentUser?.id ||
+        p.manager_id === currentUser?.id ||
+        p.managerId === currentUser?.id
+      );
+    }
+    return false;
+  });
+
+  const managedTasks = [];
+  managedProjects.forEach((project) => {
+    if (project.tasks && Array.isArray(project.tasks)) {
+      project.tasks.forEach((task) => {
+        managedTasks.push(task);
+      });
+    }
+  });
 
   const statsCards = isAdmin
     ? [
@@ -210,6 +242,65 @@ const DashboardPage = () => {
           icon: "⚠️",
         },
       ]
+    : isManager
+    ? (() => {
+        const pendingP = managedProjects.filter((p) => (p.status || "").toLowerCase() === "pending").length;
+        const inProgressP = managedProjects.filter((p) => {
+          const s = (p.status || "").toLowerCase();
+          return s === "in progress" || s === "in_progress";
+        }).length;
+        const completedP = managedProjects.filter((p) => (p.status || "").toLowerCase() === "completed").length;
+        
+        const todayObj = new Date();
+        todayObj.setHours(0, 0, 0, 0);
+        const overdueP = managedProjects.filter((p) => {
+          const s = (p.status || "").toLowerCase();
+          if (s === "completed") return false;
+          const endD = p.end_date || p.endDate;
+          if (!endD) return false;
+          const d = new Date(endD);
+          d.setHours(0, 0, 0, 0);
+          return d < todayObj;
+        }).length;
+
+        return [
+          {
+            title: language === "th" ? "โปรเจกต์ทั้งหมดของฉัน" : "All My Projects",
+            value: managedProjects.length,
+            link: language === "th" ? "โปรเจกต์ของฉัน" : "My Project",
+            path: "/Projects",
+            icon: "📁",
+          },
+          {
+            title: t("pending") || "Pending",
+            value: pendingP,
+            link: language === "th" ? "โปรเจกต์ของฉัน" : "My Project",
+            path: "/Projects",
+            icon: "⏳",
+          },
+          {
+            title: t("inProgress") || "In Progress",
+            value: inProgressP,
+            link: language === "th" ? "โปรเจกต์ของฉัน" : "My Project",
+            path: "/Projects",
+            icon: "⚡",
+          },
+          {
+            title: t("completed") || "Completed",
+            value: completedP,
+            link: language === "th" ? "โปรเจกต์ของฉัน" : "My Project",
+            path: "/Projects",
+            icon: "✅",
+          },
+          {
+            title: language === "th" ? "โปรเจกต์เกินกำหนด" : "Overdue Projects",
+            value: overdueP,
+            link: language === "th" ? "โปรเจกต์ของฉัน" : "My Project",
+            path: "/Projects",
+            icon: "⚠️",
+          },
+        ];
+      })()
     : [
         {
           title: t("allMyTasks") || (language === "th" ? "งานทั้งหมดของฉัน" : "All My Tasks"),
@@ -231,6 +322,13 @@ const DashboardPage = () => {
           link: t("myTask") || "งานของฉัน",
           path: "/MyTasks",
           icon: "⚡",
+        },
+        {
+          title: t("completed") || "Completed",
+          value: myCompletedCount,
+          link: t("myTask") || "งานของฉัน",
+          path: "/MyTasks",
+          icon: "✅",
         },
         {
           title: t("overdueTasks") || "Overdue Tasks",
@@ -260,7 +358,7 @@ const DashboardPage = () => {
     }
   });
 
-  const currentProjectStatus = isAdminOrManager
+  const currentProjectStatus = isAdmin
     ? {
         pending: projects.filter((p) => (p.status || "").toLowerCase() === "pending").length,
         inProgress: projects.filter((p) => {
@@ -272,6 +370,19 @@ const DashboardPage = () => {
           return s === "review" || s === "reviewing";
         }).length,
         completed: projects.filter((p) => (p.status || "").toLowerCase() === "completed").length,
+      }
+    : isManager
+    ? {
+        pending: managedProjects.filter((p) => (p.status || "").toLowerCase() === "pending").length,
+        inProgress: managedProjects.filter((p) => {
+          const s = (p.status || "").toLowerCase();
+          return s === "in progress" || s === "in_progress";
+        }).length,
+        review: managedProjects.filter((p) => {
+          const s = (p.status || "").toLowerCase();
+          return s === "review" || s === "reviewing";
+        }).length,
+        completed: managedProjects.filter((p) => (p.status || "").toLowerCase() === "completed").length,
       }
     : isTeamLeader
     ? {
@@ -297,7 +408,7 @@ const DashboardPage = () => {
     });
   }
 
-  const currentTaskStatus = isAdminOrManager
+  const currentTaskStatus = isAdmin
     ? {
         pending: allTasksAcrossProjects.filter((t) => (t.status || "").toLowerCase() === "pending").length,
         inProgress: allTasksAcrossProjects.filter((t) => {
@@ -310,20 +421,18 @@ const DashboardPage = () => {
         }).length,
         completed: allTasksAcrossProjects.filter((t) => (t.status || "").toLowerCase() === "completed").length,
       }
-    : isTeamLeader
-    ? {
-        pending: tlTasks.filter((t) => (t.status || "").toLowerCase() === "pending").length,
-        inProgress: tlTasks.filter((t) => {
+    : {
+        pending: myTasks.filter((t) => (t.status || "").toLowerCase() === "pending").length,
+        inProgress: myTasks.filter((t) => {
           const s = (t.status || "").toLowerCase();
           return s === "in progress" || s === "in_progress";
         }).length,
-        reviewing: tlTasks.filter((t) => {
+        reviewing: myTasks.filter((t) => {
           const s = (t.status || "").toLowerCase();
           return s === "review" || s === "reviewing";
         }).length,
-        completed: tlTasks.filter((t) => (t.status || "").toLowerCase() === "completed").length,
-      }
-    : stats.taskStatus;
+        completed: myTasks.filter((t) => (t.status || "").toLowerCase() === "completed").length,
+      };
 
   const projectStatus = [
     {
@@ -387,7 +496,7 @@ const DashboardPage = () => {
 
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full animate-fade-in-up relative z-10">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className={`grid grid-cols-1 md:grid-cols-2 ${statsCards.length > 4 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-6 mb-8`}>
           {statsCards.map((card, index) => (
             <StatCard key={index} {...card} />
           ))}

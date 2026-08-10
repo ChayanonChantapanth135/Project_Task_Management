@@ -174,6 +174,7 @@ export const login = async (req, res) => {
                 expiresInSeconds: tokenExpiresInSeconds,
                 user: {
                     id: rows[0].id,
+                    fullname: rows[0].fullname,
                     name: rows[0].fullname,
                     email: rows[0].email,
                     role: rows[0].role || 'user',
@@ -189,6 +190,7 @@ export const login = async (req, res) => {
             expiresInSeconds: tokenExpiresInSeconds,
             user: {
                 id: rows[0].id,
+                fullname: rows[0].fullname,
                 name: rows[0].fullname,
                 email: rows[0].email,
                 role: rows[0].role || 'user',
@@ -224,6 +226,7 @@ export const refresh = async (req, res) => {
             expiresInSeconds: tokenExpiresInSeconds,
             user: {
                 id: rows[0].id,
+                fullname: rows[0].fullname,
                 name: rows[0].fullname,
                 email: rows[0].email,
                 role: rows[0].role || 'user',

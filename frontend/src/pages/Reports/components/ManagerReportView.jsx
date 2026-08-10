@@ -49,7 +49,18 @@ function StatusPill({ status }) {
 export default function ManagerReportView({ data }) {
   const { t, language } = useLanguage();
   const { managedProjects, managedTasks, managerCompletionRate } = data;
+  const [projectFilter, setProjectFilter] = React.useState("all"); // "active" | "completed" | "all"
+
   const onTrackCount = managedProjects.filter((p) => (p.status || "").toLowerCase() !== "delayed").length;
+  const activeProjects = managedProjects.filter((p) => (p.status || "").toLowerCase() !== "completed");
+  const completedProjects = managedProjects.filter((p) => (p.status || "").toLowerCase() === "completed");
+
+  const displayedProjects =
+    projectFilter === "active"
+      ? activeProjects
+      : projectFilter === "completed"
+      ? completedProjects
+      : managedProjects;
 
   return (
     <div className="space-y-8">
@@ -95,23 +106,59 @@ export default function ManagerReportView({ data }) {
           boxShadow: "0 16px 48px rgba(0,0,0,0.2)",
         }}
       >
-        <div className="mb-6">
-          <h3 className="text-lg font-bold text-white flex items-center gap-3">
-            <span className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
-              style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))" }}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h3 className="text-lg font-bold text-white flex items-center gap-3">
+              <span className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
+                style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))" }}
+              >
+                <svg className="w-4 h-4 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </span>
+              {t("managedProjectsProgressTitle")}
+            </h3>
+            <p className="text-xs text-slate-400 mt-1 ml-11">{t("managedProjectsProgressDesc")}</p>
+          </div>
+
+          {/* Filter Tabs */}
+          <div className="flex items-center bg-slate-900/60 p-1.5 rounded-2xl gap-1 shrink-0 text-xs">
+            <button
+              onClick={() => setProjectFilter("all")}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                projectFilter === "all"
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20"
+                  : "text-slate-400 hover:text-white"
+              }`}
             >
-              <svg className="w-4 h-4 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-            </span>
-            {t("managedProjectsProgressTitle")}
-          </h3>
-          <p className="text-xs text-slate-400 mt-1 ml-11">{t("managedProjectsProgressDesc")}</p>
+              {language === "th" ? `ทั้งหมด (${managedProjects.length})` : `All (${managedProjects.length})`}
+            </button>
+            <button
+              onClick={() => setProjectFilter("active")}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                projectFilter === "active"
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              {language === "th" ? `กำลังดำเนินการ (${activeProjects.length})` : `Active (${activeProjects.length})`}
+            </button>
+            <button
+              onClick={() => setProjectFilter("completed")}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                projectFilter === "completed"
+                  ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/20"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              {language === "th" ? `เสร็จสิ้น (${completedProjects.length})` : `Completed (${completedProjects.length})`}
+            </button>
+          </div>
         </div>
 
         <div className="space-y-4">
-          {managedProjects.length > 0 ? (
-            managedProjects.map((p) => (
+          {displayedProjects.length > 0 ? (
+            displayedProjects.map((p) => (
               <div key={p.id}
                 className="rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300 hover:bg-white/[0.03]"
                 style={{ background: "rgba(15,23,42,0.3)" }}
@@ -147,7 +194,7 @@ export default function ManagerReportView({ data }) {
             ))
           ) : (
             <div className="text-center py-12 text-slate-400 text-sm">
-              {t("noManagedProjectsText")}
+              {language === "th" ? "ไม่พบโครงการในหมวดหมู่นี้" : "No projects found in this category"}
             </div>
           )}
         </div>

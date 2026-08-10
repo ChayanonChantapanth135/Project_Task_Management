@@ -34,11 +34,22 @@ export const useMyTasks = () => {
       setAllProjects(projectRes.data.map(p => ({ id: p.id, name: p.name })));
       setAllUsers(userRes.data);
 
+      const userId = Number(user.id);
+      const userFullname = (user.fullname || user.name || "").trim().toLowerCase();
+      const userName = (user.name || "").trim().toLowerCase();
       const allUserTasks = [];
       projectRes.data.forEach((project) => {
         if (project.tasks && Array.isArray(project.tasks)) {
           project.tasks.forEach((task) => {
-            if (task.assigned_to === user.id || task.assigned_to_name === user.fullname) {
+            const taskAssigneeId = task.assigned_to ? Number(task.assigned_to) : null;
+            const taskAssigneeName = (task.assigned_to_name || "").trim().toLowerCase();
+
+            const isAssigned =
+              (taskAssigneeId !== null && taskAssigneeId === userId) ||
+              (userFullname && taskAssigneeName === userFullname) ||
+              (userName && taskAssigneeName === userName);
+
+            if (isAssigned) {
               let normalizedStatus = "Pending";
               if (task.status) {
                 const s = task.status.toLowerCase();

@@ -62,6 +62,7 @@ export const initializeDatabase = async () => {
         status ENUM('active','suspended') DEFAULT 'active',
         is_force_reset TINYINT(1) DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        deleted_at TIMESTAMP NULL DEFAULT NULL,
         FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE SET NULL
       )
     `)
@@ -72,12 +73,13 @@ export const initializeDatabase = async () => {
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         description TEXT NULL,
-        status ENUM('pending', 'in_progress', 'review', 'completed') DEFAULT 'pending',
+        status ENUM('Pending', 'In Progress', 'Reviewing', 'Completed') DEFAULT 'Pending',
         priority ENUM('Low', 'Medium', 'High') DEFAULT 'Medium',
         end_date DATE NULL,
         created_by INT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        deleted_at TIMESTAMP NULL DEFAULT NULL,
         FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
       )
     `)
@@ -106,6 +108,7 @@ export const initializeDatabase = async () => {
         assigned_to INT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        deleted_at TIMESTAMP NULL DEFAULT NULL,
         FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
         FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL
       )
@@ -240,13 +243,21 @@ export const initializeDatabase = async () => {
       "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'system'",
       "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS link VARCHAR(255) DEFAULT NULL",
       "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS is_read TINYINT(1) DEFAULT 0",
+      "ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL DEFAULT NULL",
+      "ALTER TABLE projects ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL DEFAULT NULL",
+      "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL DEFAULT NULL",
     ]
     for (const q of alterQueries) {
       try { await connection.query(q) } catch (e) { /* ignore if column already exists */ }
     }
 
     const alterProjectsQueries = [
-      "ALTER TABLE projects MODIFY COLUMN status ENUM('pending', 'in_progress', 'review', 'completed') DEFAULT 'pending'",
+      // Migrate old lowercase/underscore status values to PascalCase before altering ENUM
+      "UPDATE projects SET status = 'Pending' WHERE status = 'pending'",
+      "UPDATE projects SET status = 'In Progress' WHERE status = 'in_progress'",
+      "UPDATE projects SET status = 'Reviewing' WHERE status = 'review'",
+      "UPDATE projects SET status = 'Completed' WHERE status = 'completed'",
+      "ALTER TABLE projects MODIFY COLUMN status ENUM('Pending', 'In Progress', 'Reviewing', 'Completed') DEFAULT 'Pending'",
       "ALTER TABLE projects ADD COLUMN priority ENUM('Low', 'Medium', 'High') DEFAULT 'Medium'",
       "ALTER TABLE projects ADD COLUMN end_date DATE NULL",
       "ALTER TABLE projects ADD COLUMN created_by INT NULL",

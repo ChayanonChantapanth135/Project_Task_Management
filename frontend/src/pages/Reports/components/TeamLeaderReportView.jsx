@@ -63,7 +63,17 @@ function PriorityBadge({ priority }) {
 export default function TeamLeaderReportView({ data }) {
   const { t, language } = useLanguage();
   const { tlProjects, tlTasks, tlCompletionRate, tlOverdueCount } = data;
+  const [taskFilter, setTaskFilter] = React.useState("active"); // "active" | "completed" | "all"
+
   const activeTlTasks = tlTasks.filter((t) => (t.status || "").toLowerCase() !== "completed");
+  const completedTlTasks = tlTasks.filter((t) => (t.status || "").toLowerCase() === "completed");
+
+  const displayedTasks =
+    taskFilter === "active"
+      ? activeTlTasks
+      : taskFilter === "completed"
+      ? completedTlTasks
+      : tlTasks;
 
   return (
     <div className="space-y-8">
@@ -101,7 +111,7 @@ export default function TeamLeaderReportView({ data }) {
         />
       </div>
 
-      {/* ── Active Team Tasks Table ── */}
+      {/* ── Team Tasks Table ── */}
       <div className="rounded-3xl p-8"
         style={{
           background: "rgba(22,53,71,0.5)",
@@ -109,18 +119,54 @@ export default function TeamLeaderReportView({ data }) {
           boxShadow: "0 16px 48px rgba(0,0,0,0.2)",
         }}
       >
-        <div className="mb-6">
-          <h3 className="text-lg font-bold text-white flex items-center gap-3">
-            <span className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
-              style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))" }}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h3 className="text-lg font-bold text-white flex items-center gap-3">
+              <span className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
+                style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))" }}
+              >
+                <svg className="w-4 h-4 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+              </span>
+              {t("activeTeamTasksTitle") || "Team Tasks Execution"}
+            </h3>
+            <p className="text-xs text-slate-400 mt-1 ml-11">{t("activeTeamTasksDesc") || "Track tasks assigned to your team members"}</p>
+          </div>
+
+          {/* Filter Tabs */}
+          <div className="flex items-center bg-slate-900/60 p-1.5 rounded-2xl gap-1 shrink-0 text-xs">
+            <button
+              onClick={() => setTaskFilter("active")}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                taskFilter === "active"
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20"
+                  : "text-slate-400 hover:text-white"
+              }`}
             >
-              <svg className="w-4 h-4 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-              </svg>
-            </span>
-            {t("activeTeamTasksTitle")}
-          </h3>
-          <p className="text-xs text-slate-400 mt-1 ml-11">{t("activeTeamTasksDesc")}</p>
+              {language === "th" ? `กำลังดำเนินการ (${activeTlTasks.length})` : `Active (${activeTlTasks.length})`}
+            </button>
+            <button
+              onClick={() => setTaskFilter("completed")}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                taskFilter === "completed"
+                  ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/20"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              {language === "th" ? `เสร็จสิ้น (${completedTlTasks.length})` : `Completed (${completedTlTasks.length})`}
+            </button>
+            <button
+              onClick={() => setTaskFilter("all")}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                taskFilter === "all"
+                  ? "bg-slate-700 text-white"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              {language === "th" ? `ทั้งหมด (${tlTasks.length})` : `All (${tlTasks.length})`}
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -137,8 +183,8 @@ export default function TeamLeaderReportView({ data }) {
               </tr>
             </thead>
             <tbody className="text-sm">
-              {activeTlTasks.length > 0 ? (
-                activeTlTasks.map((tItem) => {
+              {displayedTasks.length > 0 ? (
+                displayedTasks.map((tItem) => {
                   const isOverdue = (() => {
                     const s = (tItem.status || "").toLowerCase();
                     if (s === "completed") return false;
@@ -173,7 +219,7 @@ export default function TeamLeaderReportView({ data }) {
               ) : (
                 <tr>
                   <td colSpan="5" className="text-center py-12 text-slate-400 text-sm">
-                    {t("noActiveTeamTasksText")}
+                    {language === "th" ? "ไม่พบรายการงานในหมวดหมู่นี้" : "No tasks found in this category"}
                   </td>
                 </tr>
               )}

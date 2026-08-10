@@ -73,10 +73,29 @@ const NotificationBell = () => {
       console.error("Failed to mark as read:", err);
     }
 
-    if (link) {
-      setIsOpen(false);
-      navigate(link);
+    // Determine the navigation target
+    let targetLink = link;
+    try {
+      const userData = localStorage.getItem("userData");
+      const user = userData ? JSON.parse(userData) : null;
+      const role = (user?.role || "").toLowerCase();
+      const isAdmin = role === "admin";
+
+      if (!targetLink) {
+        // Fallback: if no link, navigate based on notification type
+        targetLink = "/Dashboard";
+      }
+
+      // Non-admin users: redirect /AllTasks to /MyTasks
+      if (!isAdmin && targetLink === "/AllTasks") {
+        targetLink = "/MyTasks";
+      }
+    } catch (e) {
+      targetLink = link || "/Dashboard";
     }
+
+    setIsOpen(false);
+    navigate(targetLink);
   };
 
   const handleMarkAllAsRead = async () => {
@@ -240,7 +259,7 @@ const NotificationBell = () => {
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex border-b border-slate-800/40 bg-slate-900/30 px-3 py-2 gap-2 text-xs">
+          <div className="flex items-center border-b border-slate-800/40 bg-slate-900/30 px-3 py-2 gap-2 text-xs">
             <button
               onClick={() => setFilter("all")}
               className={`px-3 py-1.5 rounded-xl font-semibold transition-all ${
@@ -261,6 +280,19 @@ const NotificationBell = () => {
             >
               {t("unread") || "ยังไม่อ่าน"} ({unreadCount})
             </button>
+            {notifications.length > 0 && (
+              <button
+                onClick={handleClearAll}
+                disabled={loading}
+                className="ml-auto px-2.5 py-1.5 rounded-xl font-semibold text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 transition-all flex items-center gap-1 disabled:opacity-50"
+                title={t("clearAll") || "ล้างทั้งหมด"}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                {t("clearAll") || "ล้างทั้งหมด"}
+              </button>
+            )}
           </div>
 
           {/* Notification Items List */}

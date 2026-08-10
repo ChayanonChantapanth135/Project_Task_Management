@@ -59,7 +59,15 @@ const ProfileCard = ({
       {/* Badges */}
       <div className="flex flex-wrap gap-2 justify-center mb-6">
         <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-indigo-500/20 text-indigo-300">
-          🛡️ {user?.role}
+          🛡️ {(() => {
+            const r = String(user?.role || "").toLowerCase().trim();
+            if (r === "manager" || r === "project_manager" || r === "project manager") return "Project Manager";
+            if (r === "team_leader" || r === "team leader" || r === "tl") return "Team Leader";
+            if (r === "video_editor" || r === "video editor") return "Video Editor";
+            if (r === "translator") return "Translator";
+            if (r === "admin") return "Admin";
+            return (user?.role || "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+          })()}
         </span>
         <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-emerald-500/20 text-emerald-300">
           ✨ {user?.status === "active" ? "Active" : "Suspended"}
@@ -79,7 +87,17 @@ const ProfileCard = ({
           <span className="text-slate-400">
             {t("profileRoleLevel")}:
           </span>
-          <span className="capitalize">{user?.role}</span>
+          <span className="capitalize">
+            {(() => {
+              const r = String(user?.role || "").toLowerCase().trim();
+              if (r === "manager" || r === "project_manager" || r === "project manager") return "Project Manager";
+              if (r === "team_leader" || r === "team leader" || r === "tl") return "Team Leader";
+              if (r === "video_editor" || r === "video editor") return "Video Editor";
+              if (r === "translator") return "Translator";
+              if (r === "admin") return "Admin";
+              return (user?.role || "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+            })()}
+          </span>
         </div>
       </div>
     </div>
