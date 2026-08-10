@@ -33,6 +33,13 @@ const NotificationBell = () => {
       setNotifications(res.data.notifications || []);
       setUnreadCount(res.data.unreadCount || 0);
     } catch (error) {
+      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+        localStorage.removeItem('userToken');
+        localStorage.removeItem('userData');
+        localStorage.removeItem('userTokenExpiresAt');
+        window.dispatchEvent(new Event('authChanged'));
+        return;
+      }
       console.error("Failed to fetch notifications:", error);
     }
   };
