@@ -241,6 +241,7 @@ export const initializeDatabase = async () => {
       "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS title VARCHAR(255) NULL",
       "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'system'",
       "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS link VARCHAR(255) DEFAULT NULL",
+      "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS task_id INT NULL",
       "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS is_read TINYINT(1) DEFAULT 0",
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL DEFAULT NULL",
       "ALTER TABLE projects ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL DEFAULT NULL",

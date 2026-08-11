@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import { sendProjectCreationEmail, sendTaskCreationEmail, sendWelcomeUserEmail, sendOtpEmail } from '../utils/emailService.js';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -100,7 +101,7 @@ function formatPhoneNumber(phone) {
 }
 
 // Helper สำหรับส่งแจ้งเตือนเฉพาะผู้ใช้งานที่เกี่ยวข้องกับโปรเจกต์ (ผู้สร้าง, หัวหน้าทีม, ผู้รับผิดชอบงานในโปรเจกต์)
-async function notifyProjectMembers({ db, projectId, title, message, type = 'project', link = null, excludeUserId = null }) {
+async function notifyProjectMembers({ db, projectId, taskId = null, title, message, type = 'project', link = null, excludeUserId = null }) {
   try {
     if (!projectId) return;
 
@@ -129,9 +130,9 @@ async function notifyProjectMembers({ db, projectId, title, message, type = 'pro
 
     for (const targetUserId of memberIds) {
       await db.query(
-        `INSERT INTO notifications (user_id, title, message, type, link, is_read, read_status) 
-         VALUES (?, ?, ?, ?, ?, 0, FALSE)`,
-        [targetUserId, title, message, type, link]
+        `INSERT INTO notifications (user_id, task_id, title, message, type, link, is_read, read_status) 
+         VALUES (?, ?, ?, ?, ?, ?, 0, FALSE)`,
+        [targetUserId, taskId || null, title, message, type, link]
       );
     }
   } catch (error) {
@@ -317,42 +318,12 @@ export const createUser = async (req, res) => {
             [fullname, email, hashPassword, formattedPhone, sqlRole, sqlStatus, avatarUrl]
         );
 
-        const emailUser = (process.env.EMAIL_USER || 'chayanon.sent@gmail.com').replace(/['"]/g, '').trim();
-        const emailPass = (process.env.EMAIL_PASS || '').replace(/['"]/g, '').trim();
-
-        if (emailPass) {
-            try {
-                const transporter = nodemailer.createTransport({
-                    service: 'gmail',
-                    auth: { user: emailUser, pass: emailPass }
-                });
-
-                const mailOptions = {
-                    from: `"Project Management" <${emailUser}>`,
-                    to: email,
-                    subject: 'New Account Registration - Project Management',
-                    html: `
-                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                            <h2 style="color: #0d6efd; text-align: center;">Welcome to Project Management</h2>
-                            <p>Hello <b>${fullname}</b>,</p>
-                            <p>Your user account has been successfully created by the administrator. Here are your login details:</p>
-                            <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                                <p style="margin: 5px 0;"><b>Email:</b> ${email}</p>
-                                <p style="margin: 5px 0;"><b>Temporary Password:</b> <span style="font-size: 16px; font-weight: bold; color: #dc3545;">${password}</span></p>
-                            </div>
-                            <p style="color: #ea580c; font-weight: bold;">* You will be forced to reset your password on your first login for security purposes.</p>
-                            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-                            <p style="font-size: 12px; color: #777; text-align: center;">Please keep these credentials secure and confidential.</p>
-                        </div>
-                    `
-                };
-
-                await transporter.sendMail(mailOptions);
-                console.log(`[Welcome Email Sent] Email: ${email}`);
-            } catch (mailErr) {
-                console.error('Error sending welcome email:', mailErr.message);
-            }
-        }
+        // Send welcome email to new user via emailService
+        await sendWelcomeUserEmail({
+            recipientEmail: email,
+            recipientName: fullname,
+            tempPassword: password
+        });
 
         const { creatorId } = req.body;
         await logActivity(db, creatorId ? Number(creatorId) : null, 'Create User', `Created user: ${fullname} (${email})`);
@@ -720,6 +691,27 @@ export const createProject = async (req, res) => {
 
         if (teamLeaderId) {
             await db.query("INSERT INTO project_team_leaders (project_id, user_id) VALUES (?, ?)", [projectId, teamLeaderId]);
+
+            // Send email notification asynchronously to assigned Team Leader
+            (async () => {
+                try {
+                    const [tlRows] = await db.query("SELECT fullname, email FROM users WHERE id = ? AND deleted_at IS NULL", [teamLeaderId]);
+                    const [creatorRows] = createdBy ? await db.query("SELECT fullname FROM users WHERE id = ?", [createdBy]) : [[]];
+
+                    if (tlRows.length > 0 && tlRows[0].email) {
+                        await sendProjectCreationEmail({
+                            recipientEmail: tlRows[0].email,
+                            recipientName: tlRows[0].fullname,
+                            projectName: name,
+                            priority,
+                            endDate,
+                            creatorName: creatorRows[0]?.fullname || null
+                        });
+                    }
+                } catch (emailErr) {
+                    console.error("[Project Email Error]", emailErr.message);
+                }
+            })();
         }
 
         await logActivity(db, createdBy, 'Create New Project', `Created project: ${name}`);
@@ -821,6 +813,7 @@ export const createTask = async (req, res) => {
         await notifyProjectMembers({
             db,
             projectId,
+            taskId,
             title: 'งานใหม่ในโปรเจกต์',
             message: `มีงานใหม่ "${title}" ในโปรเจกต์ "${projectName}"`,
             type: 'task',
@@ -834,6 +827,61 @@ export const createTask = async (req, res) => {
         );
 
         await checkAndUpdateProjectStatus(db, projectId);
+
+        // Send email notifications asynchronously to task assignee and project team leader(s)
+        (async () => {
+            try {
+                const recipients = new Map();
+
+                if (assignedTo) {
+                    const [assigneeRows] = await db.query("SELECT id, fullname, email FROM users WHERE id = ? AND deleted_at IS NULL", [assignedTo]);
+                    if (assigneeRows.length > 0 && assigneeRows[0].email) {
+                        recipients.set(Number(assigneeRows[0].id), {
+                            email: assigneeRows[0].email,
+                            fullname: assigneeRows[0].fullname,
+                            roleLabel: 'Task Assignee'
+                        });
+                    }
+                }
+
+                const [tlRows] = await db.query(
+                    `SELECT u.id, u.fullname, u.email 
+                     FROM project_team_leaders ptl 
+                     JOIN users u ON ptl.user_id = u.id 
+                     WHERE ptl.project_id = ? AND u.deleted_at IS NULL`,
+                    [projectId]
+                );
+
+                for (const tl of tlRows) {
+                    if (tl.email && !recipients.has(Number(tl.id))) {
+                        recipients.set(Number(tl.id), {
+                            email: tl.email,
+                            fullname: tl.fullname,
+                            roleLabel: 'Project Team Leader'
+                        });
+                    }
+                }
+
+                const [creatorRows] = createdBy ? await db.query("SELECT fullname FROM users WHERE id = ?", [createdBy]) : [[]];
+
+                for (const [, info] of recipients) {
+                    await sendTaskCreationEmail({
+                        recipientEmail: info.email,
+                        recipientName: info.fullname,
+                        taskTitle: title,
+                        projectName: projectName,
+                        priority: priority || 'Medium',
+                        taskType: taskType || null,
+                        dueDate: formattedDueDate,
+                        description: description || null,
+                        creatorName: creatorRows[0]?.fullname || null,
+                        roleLabel: info.roleLabel
+                    });
+                }
+            } catch (emailErr) {
+                console.error("[Task Email Error]", emailErr.message);
+            }
+        })();
 
         await logActivity(db, createdBy || null, 'Create Task Success', `Created task: ${title} under project ID: ${projectId}`);
         res.status(201).json({ message: 'Create Success', taskId });
@@ -1301,38 +1349,12 @@ export const sendOtp = async (req, res) => {
 
         console.log(`[OTP Sent] Email: ${email}, Code: ${otpCode}`);
 
-        const emailUser = (process.env.EMAIL_USER || 'chayanon.sent@gmail.com').replace(/['"]/g, '').trim();
-        const emailPass = (process.env.EMAIL_PASS || '').replace(/['"]/g, '').trim();
-
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: { user: emailUser, pass: emailPass }
+        // Send OTP email via emailService
+        await sendOtpEmail({
+            recipientEmail: email,
+            recipientName: fullname,
+            otpCode: otpCode
         });
-
-        const mailOptions = {
-            from: `"Project Management" <${emailUser}>`,
-            to: email,
-            subject: 'OTP Verification Code - Project Management',
-            html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                    <h2 style="color: #0d6efd; text-align: center;">OTP Verification</h2>
-                    <p>Hello <b>${fullname}</b>,</p>
-                    <p>You requested a one-time password (OTP) to reset your account password.</p>
-                    <div style="background-color: #f9f9f9; padding: 15px; text-align: center; border-radius: 8px; margin: 20px 0;">
-                        <span style="font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #1a1a2e;">${otpCode}</span>
-                    </div>
-                    <p style="color: #ea580c; font-weight: bold;">* This OTP code will expire in 3 minutes and can only be used once.</p>
-                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-                    <p style="font-size: 12px; color: #777; text-align: center;">If you did not request this, you can safely ignore this email.</p>
-                </div>
-            `
-        };
-
-        if (emailPass) {
-            await transporter.sendMail(mailOptions);
-        } else {
-            console.warn('[Warning] EMAIL_PASS is not configured in .env. Skipping real email delivery, showing OTP on console/frontend.');
-        }
 
         res.status(200).json({ 
             message: 'ส่งรหัส OTP เรียบร้อยแล้ว (OTP sent successfully)',

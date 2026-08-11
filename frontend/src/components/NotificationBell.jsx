@@ -76,6 +76,7 @@ const NotificationBell = () => {
         )
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
+      window.dispatchEvent(new Event("taskStatusUpdated"));
     } catch (err) {
       console.error("Failed to mark as read:", err);
     }
@@ -117,6 +118,7 @@ const NotificationBell = () => {
         prev.map((item) => ({ ...item, is_read: 1 }))
       );
       setUnreadCount(0);
+      window.dispatchEvent(new Event("taskStatusUpdated"));
     } catch (err) {
       console.error("Failed to mark all as read:", err);
     } finally {

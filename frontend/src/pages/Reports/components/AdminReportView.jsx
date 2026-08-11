@@ -178,8 +178,10 @@ const formatRole = (role) => {
   if (!role) return "-";
   const r = String(role).toLowerCase().trim();
   if (r === "admin") return "Admin";
-  if (r === "manager" || r === "project_manager" || r === "project manager") return "Project Manager";
-  if (r === "team_leader" || r === "team leader" || r === "tl") return "Team Leader";
+  if (r === "manager" || r === "project_manager" || r === "project manager")
+    return "Project Manager";
+  if (r === "team_leader" || r === "team leader" || r === "tl")
+    return "Team Leader";
   if (r === "video_editor" || r === "video editor") return "Video Editor";
   if (r === "translator") return "Translator";
   return role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());

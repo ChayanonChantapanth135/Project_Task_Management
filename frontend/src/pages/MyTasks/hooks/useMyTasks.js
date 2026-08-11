@@ -117,6 +117,13 @@ export const useMyTasks = () => {
 
   useEffect(() => {
     loadData();
+
+    const handleStatusUpdate = () => {
+      loadData();
+    };
+
+    window.addEventListener("taskStatusUpdated", handleStatusUpdate);
+    return () => window.removeEventListener("taskStatusUpdated", handleStatusUpdate);
   }, []);
 
   const handleUpdateTask = async (updatedDetails) => {

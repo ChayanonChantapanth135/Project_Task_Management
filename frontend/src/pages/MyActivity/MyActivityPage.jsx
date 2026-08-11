@@ -61,11 +61,44 @@ const MyActivityPage = () => {
             <p className="text-xs text-slate-400 mt-1">{t("myActivitySubtitle") || "View and track your own historical actions and logs"}</p>
           </div>
           <button
-            className="px-5 py-2.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-2 transition-all"
             onClick={fetchLogs}
-            title={t("refreshBtn") || "Refresh"}
+            disabled={loading}
+            className="group px-5 py-2.5 rounded-2xl text-xs font-bold transition-all duration-300 flex items-center gap-2"
+            style={{
+              background: "rgba(30,41,59,0.7)",
+              color: "#94a3b8",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(30,41,59,0.9)";
+              e.currentTarget.style.color = "#e2e8f0";
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "rgba(30,41,59,0.7)";
+              e.currentTarget.style.color = "#94a3b8";
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
+            }}
+            title={t("refreshDataBtn") || t("refreshBtn") || "Refresh"}
           >
-            <span>⭮</span> {t("refreshBtn") || "รีเฟรชข้อมูล"}
+            <svg
+              className={`w-3.5 h-3.5 ${
+                loading
+                  ? "animate-spin text-teal-400"
+                  : "group-hover:rotate-180 transition-transform duration-500"
+              }`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            {t("refreshDataBtn") || t("refreshBtn") || "รีเฟรชข้อมูล"}
           </button>
         </div>
 

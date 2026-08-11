@@ -61,7 +61,7 @@ function CompletionRing({ rate, gradientFrom = "#6366f1", gradientTo = "#a855f7"
           </defs>
           <path
             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-            fill="none" stroke="rgba(30,41,59,0.6)" strokeWidth="3.2"
+            fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3.2"
           />
           <path
             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -69,7 +69,6 @@ function CompletionRing({ rate, gradientFrom = "#6366f1", gradientTo = "#a855f7"
             strokeLinecap="round" strokeDasharray={`${rate}, 100`}
             style={{
               transition: "stroke-dasharray 1.2s cubic-bezier(0.4,0,0.2,1)",
-              filter: `drop-shadow(0 0 8px ${glowColor})`,
             }}
           />
         </svg>

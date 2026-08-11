@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { useLanguage } from "../../lib/LanguageContext";
@@ -19,6 +20,7 @@ import { getCurrentUser } from "../../lib/auth";
  * คอมโพเนนต์หน้าแดชบอร์ดสรุปผล (DashboardPage Component) - Redesigned Dark Luxe Glassmorphism Theme
  */
 const DashboardPage = () => {
+  const navigate = useNavigate();
   const { t, language } = useLanguage();
   const pageRef = useRef(null);
   const blob1Ref = useRef(null);
@@ -142,6 +144,8 @@ const DashboardPage = () => {
           if (isAssigned) {
             myTasks.push({
               ...task,
+              projectName: project.name,
+              projectId: project.id,
               projectDueDate: project.end_date,
             });
           }
@@ -181,6 +185,13 @@ const DashboardPage = () => {
               title: project.name,
               date: project.end_date ? project.end_date.split("T")[0] : "",
               color: color,
+              extendedProps: {
+                type: "project",
+                projectId: project.id,
+                projectName: project.name,
+                status: project.status,
+                priority: project.priority,
+              },
             };
           })
           .filter((event) => event.date)
@@ -201,6 +212,15 @@ const DashboardPage = () => {
               title: task.title,
               date: taskDate ? taskDate.split("T")[0] : "",
               color: color,
+              extendedProps: {
+                type: "task",
+                taskId: task.id,
+                taskTitle: task.title,
+                projectName: task.projectName || task.project,
+                projectId: task.projectId,
+                status: task.status,
+                priority: task.priority,
+              },
             };
           })
           .filter((event) => event.date);
@@ -732,14 +752,46 @@ const DashboardPage = () => {
               events={calendarEvents}
               eventClick={(info) => {
                 info.jsEvent.preventDefault();
+                const props = info.event.extendedProps || {};
+                const isTask = props.type === "task";
+                const isProject = props.type === "project";
+
+                const projectName = props.projectName || "";
+                const dateStr = info.event.startStr || "";
+                const eventTitle = info.event.title || "";
+
                 Swal.fire({
-                  title: info.event.title,
-                  html: `<p><b>${t("dueDate") || "กำหนดส่ง"}:</b> ${info.event.startStr}</p>`,
+                  title: isTask ? `📋 ${eventTitle}` : `📁 ${eventTitle}`,
+                  html: `
+                    <div style="font-family: inherit; text-align: center; color: #cbd5e1; font-size: 14px; margin-top: 6px;">
+                      ${isTask && projectName ? `<p style="margin: 6px 0; color: #94a3b8;"><b>${t("project") || "โปรเจกต์"}:</b> <span style="color: #e2e8f0; font-weight: bold;">${projectName}</span></p>` : ""}
+                      <p style="margin: 6px 0; color: #94a3b8;"><b>${t("dueDate") || "กำหนดส่ง"}:</b> <span style="color: #f43f5e; font-weight: bold;">${dateStr}</span></p>
+                    </div>
+                  `,
                   icon: "info",
-                  confirmButtonText: t("close") || "ปิด",
-                  confirmButtonColor: "#6366f1",
+                  showConfirmButton: true,
+                  confirmButtonText: isTask
+                    ? (language === "th" ? "📌 ไปที่งานนี้ (My Tasks)" : "📌 Go to My Tasks")
+                    : (language === "th" ? "📁 ไปที่โปรเจกต์นี้ (Projects)" : "📁 Go to Projects"),
+                  confirmButtonColor: "#0d9488",
+                  showDenyButton: !isTask,
+                  denyButtonText: language === "th" ? "📋 ดูงานทั้งหมด (All Tasks)" : "📋 Go to All Tasks",
+                  denyButtonColor: "#6366f1",
+                  showCancelButton: true,
+                  cancelButtonText: t("close") || (language === "th" ? "ปิด" : "Close"),
+                  cancelButtonColor: "#475569",
                   background: "#0f172a",
                   color: "#ffffff",
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    if (isTask) {
+                      navigate("/MyTasks");
+                    } else {
+                      navigate("/Projects");
+                    }
+                  } else if (result.isDenied) {
+                    navigate("/AllTasks");
+                  }
                 });
               }}
               height="auto"

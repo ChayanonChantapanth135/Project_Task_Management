@@ -253,7 +253,7 @@ const translations = {
     // Activity Page
     activityLogsTitle: "System Activity Logs",
     activityLogsSubtitle: "Monitor and track all system transaction logs",
-    searchActivityPlaceholder: "Search username or details...",
+    searchActivityPlaceholder: "Search details...",
     allActivities: "All Activities",
     aboutProjects: "About Projects & Tasks",
     aboutUsers: "About Users",
@@ -714,7 +714,7 @@ const translations = {
     activityLogsTitle: "บันทึกกิจกรรมของระบบ",
     activityLogsSubtitle:
       "ตรวจสอบและติดตามประวัติการทำรายการกิจกรรมทั้งหมดของระบบ",
-    searchActivityPlaceholder: "ค้นหาชื่อผู้ใช้หรือรายละเอียด...",
+    searchActivityPlaceholder: "ค้นหารายละเอียด...",
     allActivities: "กิจกรรมทั้งหมด",
     aboutProjects: "เกี่ยวกับโปรเจกต์และงาน",
     aboutUsers: "เกี่ยวกับผู้ใช้งาน",

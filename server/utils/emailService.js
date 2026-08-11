@@ -1,0 +1,267 @@
+import nodemailer from 'nodemailer';
+
+/**
+ * Get configured Nodemailer transporter instance
+ */
+function getTransporter() {
+  const emailUser = (process.env.EMAIL_USER || 'chayanon.sent@gmail.com').replace(/['"]/g, '').trim();
+  const emailPass = (process.env.EMAIL_PASS || '').replace(/['"]/g, '').trim();
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: emailUser, pass: emailPass }
+  });
+
+  return { transporter, emailUser, emailPass };
+}
+
+/**
+ * Format date string into English format (e.g. 12 Aug 2026)
+ */
+function formatDateEn(dateStr) {
+  if (!dateStr) return 'N/A';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return String(dateStr);
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+/**
+ * Send email when a new project is created (English version)
+ */
+export async function sendProjectCreationEmail({ recipientEmail, recipientName, projectName, priority, endDate, creatorName }) {
+  if (!recipientEmail) return;
+
+  try {
+    const { transporter, emailUser, emailPass } = getTransporter();
+
+    const mailOptions = {
+      from: `"Project Management System" <${emailUser}>`,
+      to: recipientEmail,
+      subject: `[Project Management] You have been assigned as Team Leader for: ${projectName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background-color: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0;">
+          <div style="background: linear-gradient(135deg, #0f172a, #1e293b); padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #38bdf8; margin: 0; font-size: 20px;">📌 New Project Assigned</h2>
+            <p style="color: #94a3b8; font-size: 13px; margin-top: 6px;">You have been assigned as the Team Leader for this project</p>
+          </div>
+
+          <p style="color: #334155; font-size: 15px;">Hello <b>${recipientName || 'Team Leader'}</b>,</p>
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            A new project has been created in the system and assigned to you as <b>Team Leader</b>. Here are the details:
+          </p>
+
+          <div style="background-color: #ffffff; padding: 18px; border-radius: 12px; border-left: 4px solid #0284c7; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px; color: #334155;">
+              <tr>
+                <td style="padding: 6px 0; font-weight: bold; width: 130px;">Project Name:</td>
+                <td style="padding: 6px 0; color: #0f172a; font-weight: bold;">${projectName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-weight: bold;">Priority:</td>
+                <td style="padding: 6px 0;"><span style="background-color: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${priority || 'Medium'}</span></td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-weight: bold;">End Date:</td>
+                <td style="padding: 6px 0; color: #e11d48; font-weight: bold;">${formatDateEn(endDate)}</td>
+              </tr>
+              ${creatorName ? `
+              <tr>
+                <td style="padding: 6px 0; font-weight: bold;">Created By:</td>
+                <td style="padding: 6px 0;">${creatorName}</td>
+              </tr>` : ''}
+            </table>
+          </div>
+
+          <p style="font-size: 13px; color: #64748b; text-align: center; margin-top: 24px;">
+            Please log in to the system to view details and manage sub-tasks for this project.
+          </p>
+          
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+          <p style="font-size: 11px; color: #94a3b8; text-align: center;">This is an automated email notification from Project Management System.</p>
+        </div>
+      `
+    };
+
+    if (emailPass) {
+      await transporter.sendMail(mailOptions);
+      console.log(`[Email Sent] Project creation email sent to: ${recipientEmail} for project: "${projectName}"`);
+    } else {
+      console.warn(`[Email Warning] EMAIL_PASS is not configured in .env. Skipped actual SMTP send for project "${projectName}" to ${recipientEmail}.`);
+    }
+  } catch (error) {
+    console.error(`[Email Error] Failed to send project creation email to ${recipientEmail}:`, error.message);
+  }
+}
+
+/**
+ * Send email when a new task is created (English version)
+ */
+export async function sendTaskCreationEmail({ recipientEmail, recipientName, taskTitle, projectName, priority, taskType, dueDate, description, creatorName, roleLabel }) {
+  if (!recipientEmail) return;
+
+  try {
+    const { transporter, emailUser, emailPass } = getTransporter();
+
+    const mailOptions = {
+      from: `"Project Management System" <${emailUser}>`,
+      to: recipientEmail,
+      subject: `[Project Management] New Task Assigned: ${taskTitle} (Project: ${projectName || 'General'})`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background-color: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0;">
+          <div style="background: linear-gradient(135deg, #0d9488, #14b8a6); padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #ffffff; margin: 0; font-size: 20px;">📋 New Task Created</h2>
+            <p style="color: #ccfbf1; font-size: 13px; margin-top: 6px;">New Task Notification for ${roleLabel || 'Member'}</p>
+          </div>
+
+          <p style="color: #334155; font-size: 15px;">Hello <b>${recipientName || 'Member'}</b>,</p>
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            A new task <b>"${taskTitle}"</b> has been added to project <b>"${projectName || 'General'}"</b>. Here are the task details:
+          </p>
+
+          <div style="background-color: #ffffff; padding: 18px; border-radius: 12px; border-left: 4px solid #14b8a6; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px; color: #334155;">
+              <tr>
+                <td style="padding: 6px 0; font-weight: bold; width: 130px;">Task Title:</td>
+                <td style="padding: 6px 0; color: #0f172a; font-weight: bold;">${taskTitle}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-weight: bold;">Project:</td>
+                <td style="padding: 6px 0;">${projectName || '-'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-weight: bold;">Task Type:</td>
+                <td style="padding: 6px 0;">${taskType || '-'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-weight: bold;">Priority:</td>
+                <td style="padding: 6px 0;"><span style="background-color: #fef3c7; color: #b45309; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${priority || 'Medium'}</span></td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-weight: bold;">Due Date:</td>
+                <td style="padding: 6px 0; color: #e11d48; font-weight: bold;">${formatDateEn(dueDate)}</td>
+              </tr>
+              ${description ? `
+              <tr>
+                <td style="padding: 6px 0; font-weight: bold; vertical-align: top;">Description:</td>
+                <td style="padding: 6px 0; color: #475569;">${description}</td>
+              </tr>` : ''}
+            </table>
+          </div>
+
+          <p style="font-size: 13px; color: #64748b; text-align: center; margin-top: 24px;">
+            Please log in to the system and go to <b>"My Tasks"</b> to track and update the task status.
+          </p>
+          
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+          <p style="font-size: 11px; color: #94a3b8; text-align: center;">This is an automated email notification from Project Management System.</p>
+        </div>
+      `
+    };
+
+    if (emailPass) {
+      await transporter.sendMail(mailOptions);
+      console.log(`[Email Sent] Task creation email sent to: ${recipientEmail} for task: "${taskTitle}"`);
+    } else {
+      console.warn(`[Email Warning] EMAIL_PASS is not configured in .env. Skipped actual SMTP send for task "${taskTitle}" to ${recipientEmail}.`);
+    }
+  } catch (error) {
+    console.error(`[Email Error] Failed to send task creation email to ${recipientEmail}:`, error.message);
+  }
+}
+
+/**
+ * Send welcome email with temporary password when a new user is created
+ */
+export async function sendWelcomeUserEmail({ recipientEmail, recipientName, tempPassword }) {
+  if (!recipientEmail) return;
+
+  try {
+    const { transporter, emailUser, emailPass } = getTransporter();
+
+    const mailOptions = {
+      from: `"Project Management System" <${emailUser}>`,
+      to: recipientEmail,
+      subject: 'New Account Registration - Project Management',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background-color: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0;">
+          <div style="background: linear-gradient(135deg, #0d6efd, #0284c7); padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #ffffff; margin: 0; font-size: 20px;">Welcome to Project Management</h2>
+            <p style="color: #e0f2fe; font-size: 13px; margin-top: 6px;">Your user account has been successfully created</p>
+          </div>
+
+          <p style="color: #334155; font-size: 15px;">Hello <b>${recipientName || 'User'}</b>,</p>
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            Your account has been created by the administrator. Here are your login credentials:
+          </p>
+
+          <div style="background-color: #ffffff; padding: 18px; border-radius: 12px; border-left: 4px solid #0d6efd; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <p style="margin: 6px 0; color: #334155;"><b>Email:</b> ${recipientEmail}</p>
+            <p style="margin: 6px 0; color: #334155;"><b>Temporary Password:</b> <span style="font-size: 16px; font-weight: bold; color: #dc3545;">${tempPassword}</span></p>
+          </div>
+
+          <p style="color: #ea580c; font-weight: bold; font-size: 13px;">* You will be prompted to reset your password upon first login for security purposes.</p>
+
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+          <p style="font-size: 11px; color: #94a3b8; text-align: center;">Please keep these credentials secure and confidential.</p>
+        </div>
+      `
+    };
+
+    if (emailPass) {
+      await transporter.sendMail(mailOptions);
+      console.log(`[Welcome Email Sent] Email sent to: ${recipientEmail}`);
+    } else {
+      console.warn(`[Email Warning] EMAIL_PASS is not configured in .env. Skipped sending welcome email to ${recipientEmail}.`);
+    }
+  } catch (error) {
+    console.error(`[Email Error] Failed to send welcome email to ${recipientEmail}:`, error.message);
+  }
+}
+
+/**
+ * Send OTP verification email for password reset
+ */
+export async function sendOtpEmail({ recipientEmail, recipientName, otpCode }) {
+  if (!recipientEmail) return;
+
+  try {
+    const { transporter, emailUser, emailPass } = getTransporter();
+
+    const mailOptions = {
+      from: `"Project Management System" <${emailUser}>`,
+      to: recipientEmail,
+      subject: 'OTP Verification Code - Project Management',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background-color: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0;">
+          <div style="background: linear-gradient(135deg, #0d6efd, #2563eb); padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #ffffff; margin: 0; font-size: 20px;">🔑 OTP Verification</h2>
+            <p style="color: #dbeafe; font-size: 13px; margin-top: 6px;">Password Reset Verification Code</p>
+          </div>
+
+          <p style="color: #334155; font-size: 15px;">Hello <b>${recipientName || 'User'}</b>,</p>
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            You requested a One-Time Password (OTP) to reset your account password.
+          </p>
+
+          <div style="background-color: #ffffff; padding: 20px; text-align: center; border-radius: 12px; border: 1px solid #cbd5e1; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <span style="font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #0f172a;">${otpCode}</span>
+          </div>
+
+          <p style="color: #ea580c; font-weight: bold; font-size: 13px; text-align: center;">* This OTP code will expire in 3 minutes and can only be used once.</p>
+
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+          <p style="font-size: 11px; color: #94a3b8; text-align: center;">If you did not request this email, please ignore it.</p>
+        </div>
+      `
+    };
+
+    if (emailPass) {
+      await transporter.sendMail(mailOptions);
+      console.log(`[OTP Email Sent] Email sent to: ${recipientEmail}, OTP: ${otpCode}`);
+    } else {
+      console.warn(`[Email Warning] EMAIL_PASS is not configured in .env. Skipping real email delivery, showing OTP on console/frontend.`);
+    }
+  } catch (error) {
+    console.error(`[Email Error] Failed to send OTP email to ${recipientEmail}:`, error.message);
+  }
+}
