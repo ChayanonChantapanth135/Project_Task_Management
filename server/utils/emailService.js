@@ -1,4 +1,27 @@
 import nodemailer from 'nodemailer';
+import { connectToDatabase } from '../lib/db.js';
+
+/**
+ * Helper to log email activity to DB table `activity_logs`
+ */
+async function logEmailActivity({ recipientEmail, action, details, userId = null }) {
+  try {
+    const db = await connectToDatabase();
+    let finalUserId = userId;
+    if (!finalUserId && recipientEmail) {
+      const [users] = await db.query('SELECT id FROM users WHERE email = ? LIMIT 1', [recipientEmail]);
+      if (users && users.length > 0) {
+        finalUserId = users[0].id;
+      }
+    }
+    await db.query(
+      'INSERT INTO activity_logs (user_id, action, details) VALUES (?, ?, ?)',
+      [finalUserId || null, action, details]
+    );
+  } catch (err) {
+    console.error('[Email Log DB Error] Failed to save email activity log:', err.message);
+  }
+}
 
 /**
  * Get configured Nodemailer transporter instance
@@ -16,7 +39,7 @@ function getTransporter() {
 }
 
 /**
- * Format date string into English format (e.g. 12 Aug 2026)
+ * Format date string into English format
  */
 function formatDateEn(dateStr) {
   if (!dateStr) return 'N/A';
@@ -26,7 +49,7 @@ function formatDateEn(dateStr) {
 }
 
 /**
- * Send email when a new project is created (English version)
+ * Send email when a new project is created 
  */
 export async function sendProjectCreationEmail({ recipientEmail, recipientName, projectName, priority, endDate, creatorName }) {
   if (!recipientEmail) return;
@@ -91,11 +114,26 @@ export async function sendProjectCreationEmail({ recipientEmail, recipientName, 
     if (emailPass) {
       await transporter.sendMail(mailOptions);
       console.log(`[Email Sent] Project creation email sent to: ${recipientEmail} for project: "${projectName}"`);
+      await logEmailActivity({
+        recipientEmail,
+        action: 'Send Email (Project Creation)',
+        details: `Sent project assignment email to ${recipientEmail} for project "${projectName}"`
+      });
     } else {
       console.warn(`[Email Warning] EMAIL_PASS is not configured in .env. Skipped actual SMTP send for project "${projectName}" to ${recipientEmail}.`);
+      await logEmailActivity({
+        recipientEmail,
+        action: 'Send Email Warning (Project Creation)',
+        details: `Skipped actual SMTP send (missing EMAIL_PASS) to ${recipientEmail} for project "${projectName}"`
+      });
     }
   } catch (error) {
     console.error(`[Email Error] Failed to send project creation email to ${recipientEmail}:`, error.message);
+    await logEmailActivity({
+      recipientEmail,
+      action: 'Send Email Failed (Project Creation)',
+      details: `Failed to send project creation email to ${recipientEmail}: ${error.message}`
+    });
   }
 }
 
@@ -173,11 +211,26 @@ export async function sendTaskCreationEmail({ recipientEmail, recipientName, tas
     if (emailPass) {
       await transporter.sendMail(mailOptions);
       console.log(`[Email Sent] Task creation email sent to: ${recipientEmail} for task: "${taskTitle}"`);
+      await logEmailActivity({
+        recipientEmail,
+        action: 'Send Email (Task Creation)',
+        details: `Sent task assignment email to ${recipientEmail} for task "${taskTitle}"`
+      });
     } else {
       console.warn(`[Email Warning] EMAIL_PASS is not configured in .env. Skipped actual SMTP send for task "${taskTitle}" to ${recipientEmail}.`);
+      await logEmailActivity({
+        recipientEmail,
+        action: 'Send Email Warning (Task Creation)',
+        details: `Skipped actual SMTP send (missing EMAIL_PASS) to ${recipientEmail} for task "${taskTitle}"`
+      });
     }
   } catch (error) {
     console.error(`[Email Error] Failed to send task creation email to ${recipientEmail}:`, error.message);
+    await logEmailActivity({
+      recipientEmail,
+      action: 'Send Email Failed (Task Creation)',
+      details: `Failed to send task creation email to ${recipientEmail}: ${error.message}`
+    });
   }
 }
 
@@ -222,11 +275,26 @@ export async function sendWelcomeUserEmail({ recipientEmail, recipientName, temp
     if (emailPass) {
       await transporter.sendMail(mailOptions);
       console.log(`[Welcome Email Sent] Email sent to: ${recipientEmail}`);
+      await logEmailActivity({
+        recipientEmail,
+        action: 'Send Email (Welcome User)',
+        details: `Sent welcome account email with temporary password to ${recipientEmail}`
+      });
     } else {
       console.warn(`[Email Warning] EMAIL_PASS is not configured in .env. Skipped sending welcome email to ${recipientEmail}.`);
+      await logEmailActivity({
+        recipientEmail,
+        action: 'Send Email Warning (Welcome User)',
+        details: `Skipped actual SMTP send (missing EMAIL_PASS) welcome email to ${recipientEmail}`
+      });
     }
   } catch (error) {
     console.error(`[Email Error] Failed to send welcome email to ${recipientEmail}:`, error.message);
+    await logEmailActivity({
+      recipientEmail,
+      action: 'Send Email Failed (Welcome User)',
+      details: `Failed to send welcome email to ${recipientEmail}: ${error.message}`
+    });
   }
 }
 
@@ -270,10 +338,26 @@ export async function sendOtpEmail({ recipientEmail, recipientName, otpCode }) {
     if (emailPass) {
       await transporter.sendMail(mailOptions);
       console.log(`[OTP Email Sent] Email sent to: ${recipientEmail}, OTP: ${otpCode}`);
+      await logEmailActivity({
+        recipientEmail,
+        action: 'Send Email (OTP)',
+        details: `Sent OTP verification code email to ${recipientEmail}`
+      });
     } else {
       console.warn(`[Email Warning] EMAIL_PASS is not configured in .env. Skipping real email delivery, showing OTP on console/frontend.`);
+      await logEmailActivity({
+        recipientEmail,
+        action: 'Send Email Warning (OTP)',
+        details: `Skipped actual SMTP send (missing EMAIL_PASS) for OTP to ${recipientEmail}`
+      });
     }
   } catch (error) {
     console.error(`[Email Error] Failed to send OTP email to ${recipientEmail}:`, error.message);
+    await logEmailActivity({
+      recipientEmail,
+      action: 'Send Email Failed (OTP)',
+      details: `Failed to send OTP email to ${recipientEmail}: ${error.message}`
+    });
   }
 }
+

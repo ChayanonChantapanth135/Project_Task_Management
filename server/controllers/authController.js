@@ -828,7 +828,7 @@ export const createTask = async (req, res) => {
 
         await checkAndUpdateProjectStatus(db, projectId);
 
-        // Send email notifications asynchronously to task assignee and project team leader(s)
+        // Send email notifications asynchronously to task assignee
         (async () => {
             try {
                 const recipients = new Map();
@@ -840,24 +840,6 @@ export const createTask = async (req, res) => {
                             email: assigneeRows[0].email,
                             fullname: assigneeRows[0].fullname,
                             roleLabel: 'Task Assignee'
-                        });
-                    }
-                }
-
-                const [tlRows] = await db.query(
-                    `SELECT u.id, u.fullname, u.email 
-                     FROM project_team_leaders ptl 
-                     JOIN users u ON ptl.user_id = u.id 
-                     WHERE ptl.project_id = ? AND u.deleted_at IS NULL`,
-                    [projectId]
-                );
-
-                for (const tl of tlRows) {
-                    if (tl.email && !recipients.has(Number(tl.id))) {
-                        recipients.set(Number(tl.id), {
-                            email: tl.email,
-                            fullname: tl.fullname,
-                            roleLabel: 'Project Team Leader'
                         });
                     }
                 }
