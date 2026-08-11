@@ -72,7 +72,13 @@ export async function sendProjectCreationEmail({ recipientEmail, recipientName, 
             </table>
           </div>
 
-          <p style="font-size: 13px; color: #64748b; text-align: center; margin-top: 24px;">
+          <div style="text-align: center; margin: 24px 0 16px 0;">
+            <a href="${process.env.APP_URL || 'http://localhost:5173'}/projects" style="background-color: #0284c7; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.3);">
+              🔗 View Project
+            </a>
+          </div>
+
+          <p style="font-size: 13px; color: #64748b; text-align: center; margin-top: 16px;">
             Please log in to the system to view details and manage sub-tasks for this project.
           </p>
           
@@ -148,8 +154,14 @@ export async function sendTaskCreationEmail({ recipientEmail, recipientName, tas
             </table>
           </div>
 
-          <p style="font-size: 13px; color: #64748b; text-align: center; margin-top: 24px;">
-            Please log in to the system and go to <b>"My Tasks"</b> to track and update the task status.
+          <div style="text-align: center; margin: 24px 0 16px 0;">
+            <a href="${process.env.APP_URL || 'http://localhost:5173'}/my-tasks" style="background-color: #0d9488; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block; box-shadow: 0 2px 4px rgba(13, 148, 136, 0.3);">
+              📋 Go to My Tasks
+            </a>
+          </div>
+
+          <p style="font-size: 13px; color: #64748b; text-align: center; margin-top: 16px;">
+            Please log in to the system to track and update the task status.
           </p>
           
           <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
