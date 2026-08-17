@@ -4,9 +4,10 @@ const roleLabels = {
   admin: "🔑 Admin",
   manager: "💼 Project Manager",
   project_manager: "💼 Project Manager",
-  team_leader: "👑 Team Leader",
-  video_editor: "🎬 Video Editor",
-  translator: "🗣️ Translator",
+  storyboard: "📝 Storyboard",
+  animation: "🎬 Animation",
+  designer: "🎨 Designer",
+  programmer: "💻 Programmer",
 };
 
 export default function SearchableUserSelect({
@@ -83,7 +84,7 @@ export default function SearchableUserSelect({
     return acc;
   }, {});
 
-  const roleOrder = ["admin", "manager", "project_manager", "team_leader", "video_editor", "translator"];
+  const roleOrder = ["admin", "manager", "project_manager", "storyboard", "animation", "designer", "programmer"];
   const sortedGroupEntries = Object.entries(grouped).sort(([roleA], [roleB]) => {
     const indexA = roleOrder.indexOf(roleA);
     const indexB = roleOrder.indexOf(roleB);

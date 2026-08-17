@@ -136,12 +136,29 @@ export const useProjectManagement = (t) => {
   }, []);
 
   const filteredProjects = projects.filter((p) => {
-    if (roleSimulation === "manager") {
-      if (p.created_by !== currentUser.id) return false;
-    } else if (roleSimulation === "team_leader") {
-      if (p.teamLeaderId !== currentUser.id && p.created_by !== currentUser.id)
+    const role = (currentUser?.role || roleSimulation || "").toLowerCase().trim().replace(/\s+/g, "_");
+    const userId = Number(currentUser?.id);
+
+    if (role === "admin") {
+      // Admin sees everything
+    } else if (role === "manager" || role === "project_manager") {
+      // Manager sees projects created by them or where they are designated manager/leader
+      const isCreator = Number(p.created_by) === userId;
+      const isLeader = Number(p.teamLeaderId) === userId;
+      if (!isCreator && !isLeader) return false;
+    } else {
+      // Staff roles (storyboard, animation, designer, programmer, etc.)
+      // Can only see projects that are relevant to them (they have a task assigned or are assigned to the project)
+      const isLeader = Number(p.teamLeaderId) === userId;
+      const isCreator = Number(p.created_by) === userId;
+      const hasAssignedTask = p.tasks && Array.isArray(p.tasks) && p.tasks.some(
+        (t) => Number(t.assigned_to) === userId || Number(t.assignedTo) === userId
+      );
+      if (!isLeader && !isCreator && !hasAssignedTask) {
         return false;
+      }
     }
+
     if (searchQuery) {
       return p.name.toLowerCase().includes(searchQuery.toLowerCase());
     }

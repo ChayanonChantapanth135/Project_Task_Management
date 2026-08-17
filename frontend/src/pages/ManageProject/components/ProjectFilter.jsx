@@ -6,6 +6,7 @@ const ProjectFilter = ({
   viewMode,
   setViewMode,
   handleOpenCreate,
+  canCreate = true,
   t,
 }) => {
   return (
@@ -50,13 +51,15 @@ const ProjectFilter = ({
           </button>
         </div>
 
-        {/* Create Button */}
-        <button
-          className="px-6 py-2.5 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold text-xs glow-button"
-          onClick={handleOpenCreate}
-        >
-          {t("createProjectBtn")}
-        </button>
+        {/* Create Button (Admin & PM only) */}
+        {canCreate && (
+          <button
+            className="px-6 py-2.5 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold text-xs glow-button"
+            onClick={handleOpenCreate}
+          >
+            {t("createProjectBtn")}
+          </button>
+        )}
       </div>
     </div>
   );

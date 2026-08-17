@@ -180,10 +180,10 @@ const formatRole = (role) => {
   if (r === "admin") return "Admin";
   if (r === "manager" || r === "project_manager" || r === "project manager")
     return "Project Manager";
-  if (r === "team_leader" || r === "team leader" || r === "tl")
-    return "Team Leader";
-  if (r === "video_editor" || r === "video editor") return "Video Editor";
-  if (r === "translator") return "Translator";
+  if (r === "storyboard") return "Storyboard";
+  if (r === "animation") return "Animation";
+  if (r === "designer") return "Designer";
+  if (r === "programmer") return "Programmer";
   return role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 };
 
@@ -191,8 +191,10 @@ const getRoleBadgeStyle = (role) => {
   const r = (role || "").toLowerCase();
   if (r.includes("admin")) return "bg-indigo-500/20 text-indigo-300";
   if (r.includes("manager")) return "bg-pink-500/20 text-pink-300";
-  if (r.includes("leader") || r.includes("tl"))
-    return "bg-amber-500/20 text-amber-300";
+  if (r.includes("storyboard")) return "bg-amber-500/20 text-amber-300";
+  if (r.includes("animation")) return "bg-emerald-500/20 text-emerald-300";
+  if (r.includes("designer")) return "bg-purple-500/20 text-purple-300";
+  if (r.includes("programmer")) return "bg-cyan-500/20 text-cyan-300";
   return "bg-slate-800 text-slate-300";
 };
 
@@ -612,14 +614,17 @@ export default function AdminReportView({ data }) {
                   <option value="Project Manager" className="bg-[#153648]">
                     Project Manager
                   </option>
-                  <option value="Team Leader" className="bg-[#153648]">
-                    Team Leader
+                  <option value="Storyboard" className="bg-[#153648]">
+                    Storyboard
                   </option>
-                  <option value="Video Editor" className="bg-[#153648]">
-                    Video Editor
+                  <option value="Animation" className="bg-[#153648]">
+                    Animation
                   </option>
-                  <option value="Translator" className="bg-[#153648]">
-                    Translator
+                  <option value="Designer" className="bg-[#153648]">
+                    Designer
+                  </option>
+                  <option value="Programmer" className="bg-[#153648]">
+                    Programmer
                   </option>
                 </select>
                 <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">

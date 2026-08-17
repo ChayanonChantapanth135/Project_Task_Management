@@ -62,9 +62,10 @@ const ProfileCard = ({
           🛡️ {(() => {
             const r = String(user?.role || "").toLowerCase().trim();
             if (r === "manager" || r === "project_manager" || r === "project manager") return "Project Manager";
-            if (r === "team_leader" || r === "team leader" || r === "tl") return "Team Leader";
-            if (r === "video_editor" || r === "video editor") return "Video Editor";
-            if (r === "translator") return "Translator";
+            if (r === "storyboard") return "Storyboard";
+            if (r === "animation") return "Animation";
+            if (r === "designer") return "Designer";
+            if (r === "programmer") return "Programmer";
             if (r === "admin") return "Admin";
             return (user?.role || "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
           })()}
@@ -91,9 +92,10 @@ const ProfileCard = ({
             {(() => {
               const r = String(user?.role || "").toLowerCase().trim();
               if (r === "manager" || r === "project_manager" || r === "project manager") return "Project Manager";
-              if (r === "team_leader" || r === "team leader" || r === "tl") return "Team Leader";
-              if (r === "video_editor" || r === "video editor") return "Video Editor";
-              if (r === "translator") return "Translator";
+              if (r === "storyboard") return "Storyboard";
+              if (r === "animation") return "Animation";
+              if (r === "designer") return "Designer";
+              if (r === "programmer") return "Programmer";
               if (r === "admin") return "Admin";
               return (user?.role || "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
             })()}

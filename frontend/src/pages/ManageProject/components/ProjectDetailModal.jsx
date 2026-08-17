@@ -11,6 +11,7 @@ const ProjectDetailModal = ({
   setTempStatus,
   setShowViewTaskModal,
   setShowAddTaskModal,
+  canManage = true,
   t,
 }) => {
   const { language } = useLanguage();
@@ -199,18 +200,20 @@ const ProjectDetailModal = ({
               </div>
             </div>
 
-            <div className="d-flex gap-2 justify-content-end border-top pt-3">
-              <button
-                type="button"
-                className="btn btn-primary px-4 py-2 rounded-lg"
-                onClick={() => {
-                  setShowDetailModal(false);
-                  setShowAddTaskModal(true);
-                }}
-              >
-                + {t("Add Task")}
-              </button>
-            </div>
+            {canManage && (
+              <div className="d-flex gap-2 justify-content-end border-top pt-3">
+                <button
+                  type="button"
+                  className="btn btn-primary px-4 py-2 rounded-lg"
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    setShowAddTaskModal(true);
+                  }}
+                >
+                  + {t("Add Task")}
+                </button>
+              </div>
+            )}
           </>
         )}
       </Modal.Body>

@@ -38,9 +38,10 @@ export const initializeDatabase = async () => {
       const defaultRoles = [
         ['admin', 'System Administrator with full access'],
         ['manager', 'Project Manager with access to create/manage own projects'],
-        ['video_editor', 'Video Editor staff member'],
-        ['translator', 'Translator staff member'],
-        ['team_leader', 'Team Leader leading project groups']
+        ['storyboard', 'Storyboard creator and visual planner'],
+        ['animation', 'Animator and motion designer'],
+        ['designer', 'Graphic and UI/UX Designer'],
+        ['programmer', 'Software engineer and developer']
       ]
       for (const [name, desc] of defaultRoles) {
         await connection.query('INSERT INTO roles (role_name, description) VALUES (?, ?)', [name, desc])
@@ -55,7 +56,7 @@ export const initializeDatabase = async () => {
         fullname VARCHAR(255) NOT NULL,
         email VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
-        role ENUM('admin','manager','video_editor','translator','team_leader','user') DEFAULT 'user',
+        role ENUM('admin','manager','storyboard','animation','designer','programmer') DEFAULT 'storyboard',
         role_id INT NULL,
         avatar VARCHAR(512) DEFAULT NULL,
         status ENUM('active','suspended') DEFAULT 'active',
@@ -228,7 +229,7 @@ export const initializeDatabase = async () => {
     // Safely add missing columns to existing tables
     const alterQueries = [
       "ALTER TABLE users CHANGE COLUMN username fullname VARCHAR(255) NOT NULL",
-      "ALTER TABLE users ADD COLUMN IF NOT EXISTS role ENUM('admin','manager','video_editor','translator','team_leader','user') DEFAULT 'user'",
+      "ALTER TABLE users ADD COLUMN IF NOT EXISTS role ENUM('admin','manager','storyboard','animation','designer','programmer') DEFAULT 'storyboard'",
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS role_id INT NULL",
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR(512) DEFAULT NULL",
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS status ENUM('active','suspended') DEFAULT 'active'",

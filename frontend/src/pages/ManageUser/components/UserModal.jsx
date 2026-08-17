@@ -227,9 +227,10 @@ const UserModal = ({
                 >
                   <option value="admin">Admin</option>
                   <option value="manager">Project Manager</option>
-                  <option value="team_leader">Team Leader</option>
-                  <option value="video_editor">Video Editor</option>
-                  <option value="translator">Translator</option>
+                  <option value="storyboard">Storyboard</option>
+                  <option value="animation">Animation</option>
+                  <option value="designer">Designer</option>
+                  <option value="programmer">Programmer</option>
                 </select>
               </div>
 

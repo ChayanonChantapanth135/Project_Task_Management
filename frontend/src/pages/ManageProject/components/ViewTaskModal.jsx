@@ -22,6 +22,9 @@ const ViewTaskModal = ({
   t,
 }) => {
   const { language } = useLanguage();
+  const userRole = (currentUser?.role || "").toLowerCase().trim().replace(/\s+/g, "_");
+  const canManage = userRole === "admin" || userRole === "manager" || userRole === "project_manager";
+
   const [comments, setComments] = useState([]);
   const [files, setFiles] = useState([]);
   const [statusHistory, setStatusHistory] = useState([]);
@@ -313,7 +316,7 @@ const ViewTaskModal = ({
             )}
           </h5>
           <div className="d-flex align-items-center gap-2">
-            {!isEditing && (
+            {!isEditing && canManage && (
               <button
                 type="button"
                 className="btn btn-sm btn-primary rounded-xl px-3 py-1 text-xs fw-bold text-white shadow-sm d-flex align-items-center gap-1"
@@ -520,9 +523,10 @@ const ViewTaskModal = ({
                   allowedRoles={[
                     "manager",
                     "project_manager",
-                    "team_leader",
-                    "translator",
-                    "video_editor",
+                    "storyboard",
+                    "animation",
+                    "designer",
+                    "programmer",
                   ]}
                   placeholder={`-- ${t("selectAssignee") || "Select Assignee"} --`}
                 />

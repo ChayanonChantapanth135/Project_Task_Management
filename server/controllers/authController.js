@@ -298,13 +298,14 @@ export const createUser = async (req, res) => {
         const hashPassword = await bcrypt.hash(password, 10);
         const formattedPhone = formatPhoneNumber(phone);
         
-        let sqlRole = 'user';
+        let sqlRole = 'storyboard';
         const normRole = (role || '').trim().toLowerCase();
         if (normRole === 'admin') sqlRole = 'admin';
-        else if (normRole === 'project manager' || normRole === 'manager') sqlRole = 'manager';
-        else if (normRole === 'team leader' || normRole === 'team_leader') sqlRole = 'team_leader';
-        else if (normRole === 'video editor' || normRole === 'video_editor') sqlRole = 'video_editor';
-        else if (normRole === 'translator') sqlRole = 'translator';
+        else if (normRole === 'project manager' || normRole === 'manager' || normRole === 'project_manager') sqlRole = 'manager';
+        else if (normRole === 'storyboard') sqlRole = 'storyboard';
+        else if (normRole === 'animation') sqlRole = 'animation';
+        else if (normRole === 'designer') sqlRole = 'designer';
+        else if (normRole === 'programmer') sqlRole = 'programmer';
 
         const sqlStatus = status === 'suspended' ? 'suspended' : 'active';
 
@@ -367,13 +368,14 @@ export const updateUser = async (req, res) => {
         let query = 'UPDATE users SET fullname = ?, email = ?, phone = ?, role = ?, status = ?';
         let params = [fullname, email, formattedPhone, role, status || 'active'];
         
-        let sqlRole = 'user';
+        let sqlRole = 'storyboard';
         const normRole = (role || '').trim().toLowerCase();
         if (normRole === 'admin') sqlRole = 'admin';
-        else if (normRole === 'project manager' || normRole === 'manager') sqlRole = 'manager';
-        else if (normRole === 'team leader' || normRole === 'team_leader') sqlRole = 'team_leader';
-        else if (normRole === 'video editor' || normRole === 'video_editor') sqlRole = 'video_editor';
-        else if (normRole === 'translator') sqlRole = 'translator';
+        else if (normRole === 'project manager' || normRole === 'manager' || normRole === 'project_manager') sqlRole = 'manager';
+        else if (normRole === 'storyboard') sqlRole = 'storyboard';
+        else if (normRole === 'animation') sqlRole = 'animation';
+        else if (normRole === 'designer') sqlRole = 'designer';
+        else if (normRole === 'programmer') sqlRole = 'programmer';
         
         params[3] = sqlRole;
 
@@ -514,11 +516,12 @@ export const importUsers = async (req, res) => {
         const normalizeRole = (role) => {
             const r = (role || '').trim().toLowerCase();
             if (r === 'admin') return 'admin';
-            if (r === 'project manager' || r === 'manager') return 'manager';
-            if (r === 'team leader' || r === 'team_leader') return 'team_leader';
-            if (r === 'video editor' || r === 'video_editor') return 'video_editor';
-            if (r === 'translator') return 'translator';
-            return 'user';
+            if (r === 'project manager' || r === 'manager' || r === 'project_manager') return 'manager';
+            if (r === 'storyboard') return 'storyboard';
+            if (r === 'animation') return 'animation';
+            if (r === 'designer') return 'designer';
+            if (r === 'programmer') return 'programmer';
+            return 'storyboard';
         };
 
         for (const item of users) {

@@ -8,6 +8,7 @@ const ProjectTable = ({
   handleViewDetails,
   handleOpenEdit,
   handleOpenDelete,
+  canManage = true,
 }) => {
   return (
     <div className="glass-panel rounded-3xl p-6 shadow-2xl overflow-hidden">
@@ -136,18 +137,22 @@ const ProjectTable = ({
                       >
                         {t("viewBtn")}
                       </button>
-                      <button
-                        className="px-3 py-1.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 text-xs font-medium transition-colors"
-                        onClick={() => handleOpenEdit(project)}
-                      >
-                        {t("editBtn")}
-                      </button>
-                      <button
-                        className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-xs font-medium transition-colors"
-                        onClick={() => handleOpenDelete(project)}
-                      >
-                        {t("deleteBtn")}
-                      </button>
+                      {canManage && (
+                        <>
+                          <button
+                            className="px-3 py-1.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 text-xs font-medium transition-colors"
+                            onClick={() => handleOpenEdit(project)}
+                          >
+                            {t("editBtn")}
+                          </button>
+                          <button
+                            className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-xs font-medium transition-colors"
+                            onClick={() => handleOpenDelete(project)}
+                          >
+                            {t("deleteBtn")}
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>

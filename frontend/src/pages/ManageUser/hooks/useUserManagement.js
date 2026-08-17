@@ -64,12 +64,13 @@ export const useUserManagement = (t, language = "en") => {
             .toUpperCase()
             .slice(0, 2) || "U";
 
-        let displayRole = "User";
+        let displayRole = "Storyboard";
         if (u.role === "admin") displayRole = "Admin";
-        else if (u.role === "manager") displayRole = "Project Manager";
-        else if (u.role === "team_leader") displayRole = "Team Leader";
-        else if (u.role === "video_editor") displayRole = "Video Editor";
-        else if (u.role === "translator") displayRole = "Translator";
+        else if (u.role === "manager" || u.role === "project_manager") displayRole = "Project Manager";
+        else if (u.role === "storyboard") displayRole = "Storyboard";
+        else if (u.role === "animation") displayRole = "Animation";
+        else if (u.role === "designer") displayRole = "Designer";
+        else if (u.role === "programmer") displayRole = "Programmer";
 
         return {
           id: u.id,
@@ -127,7 +128,7 @@ export const useUserManagement = (t, language = "en") => {
       firstName: "",
       lastName: "",
       phone: "",
-      role: "user",
+      role: "storyboard",
       isActive: true,
     });
     setAvatarFile(null);
@@ -144,12 +145,13 @@ export const useUserManagement = (t, language = "en") => {
     const firstName = nameParts[0] || "";
     const lastName = nameParts.slice(1).join(" ") || "";
 
-    let dbRole = "user";
+    let dbRole = "storyboard";
     if (user.role === "Admin") dbRole = "admin";
     else if (user.role === "Project Manager") dbRole = "manager";
-    else if (user.role === "Team Leader") dbRole = "team_leader";
-    else if (user.role === "Video Editor") dbRole = "video_editor";
-    else if (user.role === "Translator") dbRole = "translator";
+    else if (user.role === "Storyboard") dbRole = "storyboard";
+    else if (user.role === "Animation") dbRole = "animation";
+    else if (user.role === "Designer") dbRole = "designer";
+    else if (user.role === "Programmer") dbRole = "programmer";
 
     setFormData({
       email: user.email,
@@ -376,12 +378,13 @@ export const useUserManagement = (t, language = "en") => {
 
       // Add user rows
       users.forEach((u) => {
-        let rawRole = "user";
+        let rawRole = "storyboard";
         if (u.role === "Admin") rawRole = "admin";
         else if (u.role === "Project Manager") rawRole = "manager";
-        else if (u.role === "Team Leader") rawRole = "team_leader";
-        else if (u.role === "Video Editor") rawRole = "video_editor";
-        else if (u.role === "Translator") rawRole = "translator";
+        else if (u.role === "Storyboard") rawRole = "storyboard";
+        else if (u.role === "Animation") rawRole = "animation";
+        else if (u.role === "Designer") rawRole = "designer";
+        else if (u.role === "Programmer") rawRole = "programmer";
 
         worksheet.addRow({
           fullname: u.name || "",
@@ -392,7 +395,7 @@ export const useUserManagement = (t, language = "en") => {
       });
 
       // Define role options & status options
-      const roleOptions = ["admin", "manager", "team_leader", "video_editor", "translator"];
+      const roleOptions = ["admin", "manager", "storyboard", "animation", "designer", "programmer"];
       const statusOptions = ["active", "suspended"];
 
       // Add dropdown validation for rows 2 to 100

@@ -80,6 +80,9 @@ const ManageProjectPage = () => {
     handleAddTaskSubmit,
   } = useProjectManagement(t);
 
+  const userRole = (currentUser?.role || "").toLowerCase().trim().replace(/\s+/g, "_");
+  const canManage = userRole === "admin" || userRole === "manager" || userRole === "project_manager";
+
   return (
     <div ref={pageRef} className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans selection:bg-teal-500 selection:text-white relative overflow-hidden">
       {/* GSAP Animated Ambient Orbs */}
@@ -122,6 +125,7 @@ const ManageProjectPage = () => {
           viewMode={viewMode}
           setViewMode={setViewMode}
           handleOpenCreate={() => setShowCreateModal(true)}
+          canCreate={canManage}
           t={t}
         />
 
@@ -134,6 +138,7 @@ const ManageProjectPage = () => {
             handleViewDetails={handleViewDetails}
             handleOpenEdit={handleOpenEdit}
             handleOpenDelete={handleOpenDelete}
+            canManage={canManage}
           />
         ) : (
           /* Grid Card View */
@@ -147,6 +152,7 @@ const ManageProjectPage = () => {
                   handleViewDetails={handleViewDetails}
                   handleOpenEdit={handleOpenEdit}
                   handleOpenDelete={handleOpenDelete}
+                  canManage={canManage}
                 />
               ))
             ) : (
@@ -196,6 +202,7 @@ const ManageProjectPage = () => {
         setTempStatus={setTempStatus}
         setShowViewTaskModal={setShowViewTaskModal}
         setShowAddTaskModal={setShowAddTaskModal}
+        canManage={canManage}
         t={t}
       />
 

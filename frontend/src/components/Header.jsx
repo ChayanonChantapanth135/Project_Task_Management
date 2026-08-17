@@ -222,18 +222,16 @@ const Header = () => {
                 {t("manageUsers")}
               </Link>
             )}
-            {["admin", "manager", "project_manager", "team_leader"].includes(user?.role?.toLowerCase().replace(/\s+/g, "_")) && (
-              <Link
-                to="/Projects"
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all no-underline ${
-                  isActive("/projects")
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/25"
-                    : "text-slate-300 hover:text-white hover:bg-white/5"
-                }`}
-              >
-                {t("projects")}
-              </Link>
-            )}
+            <Link
+              to="/Projects"
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all no-underline ${
+                isActive("/projects")
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/25"
+                  : "text-slate-300 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              {t("projects")}
+            </Link>
             <Link
               to={user?.role === "admin" ? "/AllTasks" : "/MyTasks"}
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all no-underline ${
@@ -303,9 +301,10 @@ const Header = () => {
                         {(() => {
                           const r = String(user.role).toLowerCase().trim();
                           if (r === "manager" || r === "project_manager" || r === "project manager") return "Project Manager";
-                          if (r === "team_leader" || r === "team leader" || r === "tl") return "Team Leader";
-                          if (r === "video_editor" || r === "video editor") return "Video Editor";
-                          if (r === "translator") return "Translator";
+                          if (r === "storyboard") return "Storyboard";
+                          if (r === "animation") return "Animation";
+                          if (r === "designer") return "Designer";
+                          if (r === "programmer") return "Programmer";
                           if (r === "admin") return "Admin";
                           return user.role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
                         })()}
@@ -425,20 +424,18 @@ const Header = () => {
                   </Dropdown.Item>
                 )}
 
-                {["admin", "manager", "project_manager", "team_leader"].includes(user?.role?.toLowerCase().replace(/\s+/g, "_")) && (
-                  <Dropdown.Item
-                    as={Link}
-                    to="/Projects"
-                    className={`rounded-xl px-3 py-2.5 font-bold text-sm transition-all flex items-center gap-3 no-underline mt-1 ${
-                      isActive("/projects")
-                        ? "bg-gradient-to-r from-teal-500 to-indigo-600 text-white shadow-md"
-                        : "text-slate-200 hover:bg-slate-800/80 hover:text-white bg-transparent"
-                    }`}
-                  >
-                    <span className="text-base">📂</span>
-                    <span className="whitespace-nowrap">{t("projects")}</span>
-                  </Dropdown.Item>
-                )}
+                <Dropdown.Item
+                  as={Link}
+                  to="/Projects"
+                  className={`rounded-xl px-3 py-2.5 font-bold text-sm transition-all flex items-center gap-3 no-underline mt-1 ${
+                    isActive("/projects")
+                      ? "bg-gradient-to-r from-teal-500 to-indigo-600 text-white shadow-md"
+                      : "text-slate-200 hover:bg-slate-800/80 hover:text-white bg-transparent"
+                  }`}
+                >
+                  <span className="text-base">📂</span>
+                  <span className="whitespace-nowrap">{t("projects")}</span>
+                </Dropdown.Item>
 
                 <Dropdown.Item
                   as={Link}

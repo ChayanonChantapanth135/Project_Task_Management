@@ -171,14 +171,17 @@ const ManageUserPage = () => {
                 <option value="Project Manager" className="bg-slate-900">
                   Project Manager
                 </option>
-                <option value="Team Leader" className="bg-slate-900">
-                  Team Leader
+                <option value="Storyboard" className="bg-slate-900">
+                  Storyboard
                 </option>
-                <option value="Video Editor" className="bg-slate-900">
-                  Video Editor
+                <option value="Animation" className="bg-slate-900">
+                  Animation
                 </option>
-                <option value="Translator" className="bg-slate-900">
-                  Translator
+                <option value="Designer" className="bg-slate-900">
+                  Designer
+                </option>
+                <option value="Programmer" className="bg-slate-900">
+                  Programmer
                 </option>
               </select>
               <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
