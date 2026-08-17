@@ -33,11 +33,14 @@ const NotificationBell = () => {
       setNotifications(res.data.notifications || []);
       setUnreadCount(res.data.unreadCount || 0);
     } catch (error) {
-      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-        localStorage.removeItem('userToken');
-        localStorage.removeItem('userData');
-        localStorage.removeItem('userTokenExpiresAt');
-        window.dispatchEvent(new Event('authChanged'));
+      if (
+        error.response &&
+        (error.response.status === 401 || error.response.status === 403)
+      ) {
+        localStorage.removeItem("userToken");
+        localStorage.removeItem("userData");
+        localStorage.removeItem("userTokenExpiresAt");
+        window.dispatchEvent(new Event("authChanged"));
         return;
       }
       console.error("Failed to fetch notifications:", error);
@@ -68,12 +71,10 @@ const NotificationBell = () => {
       await axios.put(
         `${API_URL}/auth/notifications/${id}/read`,
         {},
-        { headers: getAuthHeaders() }
+        { headers: getAuthHeaders() },
       );
       setNotifications((prev) =>
-        prev.map((item) =>
-          item.id === id ? { ...item, is_read: 1 } : item
-        )
+        prev.map((item) => (item.id === id ? { ...item, is_read: 1 } : item)),
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
       window.dispatchEvent(new Event("taskStatusUpdated"));
@@ -112,11 +113,9 @@ const NotificationBell = () => {
       await axios.put(
         `${API_URL}/auth/notifications/read-all`,
         {},
-        { headers: getAuthHeaders() }
+        { headers: getAuthHeaders() },
       );
-      setNotifications((prev) =>
-        prev.map((item) => ({ ...item, is_read: 1 }))
-      );
+      setNotifications((prev) => prev.map((item) => ({ ...item, is_read: 1 })));
       setUnreadCount(0);
       window.dispatchEvent(new Event("taskStatusUpdated"));
     } catch (err) {
@@ -164,17 +163,123 @@ const NotificationBell = () => {
     const diffInSeconds = Math.floor((now - date) / 1000);
 
     if (diffInSeconds < 60) return t("justNow") || "เพิ่งเมื่อครู่";
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} ${t("minutesAgo") || "นาทีที่แล้ว"}`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} ${t("hoursAgo") || "ชม.ที่แล้ว"}`;
-    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} ${t("daysAgo") || "วันที่แล้ว"}`;
-    return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    if (diffInSeconds < 3600)
+      return `${Math.floor(diffInSeconds / 60)} ${t("minutesAgo") || "นาทีที่แล้ว"}`;
+    if (diffInSeconds < 86400)
+      return `${Math.floor(diffInSeconds / 3600)} ${t("hoursAgo") || "ชม.ที่แล้ว"}`;
+    if (diffInSeconds < 604800)
+      return `${Math.floor(diffInSeconds / 86400)} ${t("daysAgo") || "วันที่แล้ว"}`;
+    return date.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+    });
   };
 
   const getNotificationTitle = (item) => {
-    if (item.title === "งานใหม่ที่ได้รับมอบหมาย") return t("newTaskAssigned") || item.title;
-    if (item.title === "อัปเดตสถานะโปรเจกต์") return t("projectStatusUpdated") || item.title;
-    if (item.title === "แจ้งเตือนจากระบบ") return t("systemNotification") || item.title;
-    return item.title || t("systemNotification") || "แจ้งเตือนจากระบบ";
+    const title = (item.title || "").trim();
+    if (/Team Leader/i.test(title)) {
+      return t("notifAssignedTeamLeader");
+    }
+    if (/งานใหม่ในโปรเจกต์|New Task in Project/i.test(title)) {
+      return t("notifNewTaskInProject");
+    }
+    if (
+      /งานใหม่ที่ได้รับมอบหมาย|ได้รับมอบหมายงานใหม่|New Task Assigned/i.test(
+        title,
+      )
+    ) {
+      return t("newTaskAssigned");
+    }
+    if (/อัปเดตสถานะงาน|Task Status Updated/i.test(title)) {
+      return t("notifTaskStatusUpdated");
+    }
+    if (/อัปเดตข้อมูลโปรเจกต์|Project Updated/i.test(title)) {
+      return t("notifProjectUpdated");
+    }
+    if (/อัปเดตสถานะโปรเจกต์|Project Status Updated/i.test(title)) {
+      return t("projectStatusUpdated");
+    }
+    if (/ความคิดเห็นใหม่ในงาน|New Comment on Task/i.test(title)) {
+      return t("notifNewComment");
+    }
+    if (/แจ้งเตือนจากระบบ|System Notification/i.test(title)) {
+      return t("systemNotification");
+    }
+    return title || t("systemNotification");
+  };
+
+  const getNotificationMessage = (item) => {
+    const msg = (item.message || "").trim();
+
+    // 1. Team Leader: คุณได้รับมอบหมายให้เป็นหัวหน้าโปรเจกต์ "ProjectName"
+    const tlMatch = msg.match(
+      /(?:คุณได้รับมอบหมายให้เป็นหัวหน้าโปรเจกต์|You have been assigned as Team Leader for project)\s*["“'`](.*?)["”'`]/i,
+    );
+    if (tlMatch) {
+      return t("notifAssignedTeamLeaderMsg").replace("{project}", tlMatch[1]);
+    }
+
+    // 2. New Task in Project: มีงานใหม่ "TaskName" ในโปรเจกต์ "ProjectName"
+    const newTaskProjMatch = msg.match(
+      /(?:มีงานใหม่|New task)\s*["“'`](.*?)["”'`]\s*(?:ในโปรเจกต์|in project)\s*["“'`](.*?)["”'`]/i,
+    );
+    if (newTaskProjMatch) {
+      return t("notifNewTaskInProjectMsg")
+        .replace("{task}", newTaskProjMatch[1])
+        .replace("{project}", newTaskProjMatch[2]);
+    }
+
+    // 3. New Task Assigned: คุณได้รับมอบหมายงานใหม่: "TaskName" ในโปรเจกต์ "ProjectName"
+    const assignedTaskMatch = msg.match(
+      /(?:คุณได้รับมอบหมายงาน(?:ใหม่)?[:\s]*|You have been assigned a new task[:\s]*)\s*["“'`](.*?)["”'`]\s*(?:ในโปรเจกต์|in project)\s*["“'`](.*?)["”'`]/i,
+    );
+    if (assignedTaskMatch) {
+      return t("notifNewTaskAssignedMsg")
+        .replace("{task}", assignedTaskMatch[1])
+        .replace("{project}", assignedTaskMatch[2]);
+    }
+
+    // 4. Task status updated: งาน "TaskName" ในโปรเจกต์ "ProjectName" ถูกอัปเดตสถานะเป็น "Status"
+    const taskStatusMatch = msg.match(
+      /(?:งาน|Task)\s*["“'`](.*?)["”'`]\s*(?:ในโปรเจกต์|in project)\s*["“'`](.*?)["”'`]\s*(?:ถูกอัปเดตสถานะเป็น|status changed to)\s*["“'`](.*?)["”'`]/i,
+    );
+    if (taskStatusMatch) {
+      let statusVal = taskStatusMatch[3];
+      if (/Pending|รอดำเนินการ/i.test(statusVal))
+        statusVal = t("statusPending") || statusVal;
+      else if (/In Progress|กำลังดำเนินการ/i.test(statusVal))
+        statusVal = t("statusInProgress") || statusVal;
+      else if (/Reviewing|รอตรวจสอบ/i.test(statusVal))
+        statusVal = t("statusReview") || statusVal;
+      else if (/Completed|เสร็จสิ้น|เสร็จสมบูรณ์/i.test(statusVal))
+        statusVal = t("statusCompleted") || statusVal;
+
+      return t("notifTaskStatusUpdatedMsg")
+        .replace("{task}", taskStatusMatch[1])
+        .replace("{project}", taskStatusMatch[2])
+        .replace("{status}", statusVal);
+    }
+
+    // 5. Project updated: โปรเจกต์ "ProjectName" มีการอัปเดตข้อมูลใหม่
+    const projUpdateMatch = msg.match(
+      /(?:โปรเจกต์|Project)\s*["“'`](.*?)["”'`]\s*(?:มีการอัปเดตข้อมูลใหม่|has been updated)/i,
+    );
+    if (projUpdateMatch) {
+      return t("notifProjectUpdatedMsg").replace(
+        "{project}",
+        projUpdateMatch[1],
+      );
+    }
+
+    // 6. Comment: มีความคิดเห็นใหม่ในงาน "TaskName"
+    const commentMatch = msg.match(
+      /(?:มีความคิดเห็นใหม่ในงาน|New comment on task)\s*["“'`](.*?)["”'`]/i,
+    );
+    if (commentMatch) {
+      return t("notifNewCommentMsg").replace("{task}", commentMatch[1]);
+    }
+
+    return msg;
   };
 
   const filteredNotifications = notifications.filter((item) => {
@@ -187,32 +292,72 @@ const NotificationBell = () => {
       case "task":
         return (
           <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
             </svg>
           </div>
         );
       case "project":
         return (
           <div className="w-8 h-8 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+              />
             </svg>
           </div>
         );
       case "alert":
         return (
           <div className="w-8 h-8 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
             </svg>
           </div>
         );
       default:
         return (
           <div className="w-8 h-8 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center shrink-0">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
         );
@@ -228,7 +373,12 @@ const NotificationBell = () => {
         title={t("notifications") || "Notifications"}
         aria-label="Notifications"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -296,8 +446,18 @@ const NotificationBell = () => {
                 className="ml-auto px-2.5 py-1.5 rounded-xl font-semibold text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 transition-all flex items-center gap-1 disabled:opacity-50"
                 title={t("clearAll") || "ล้างทั้งหมด"}
               >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
                 </svg>
                 {t("clearAll") || "ล้างทั้งหมด"}
               </button>
@@ -308,8 +468,18 @@ const NotificationBell = () => {
           <div className="max-h-80 overflow-y-auto divide-y divide-slate-800/30 custom-scrollbar">
             {filteredNotifications.length === 0 ? (
               <div className="p-8 text-center text-slate-400">
-                <svg className="w-12 h-12 mx-auto mb-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                <svg
+                  className="w-12 h-12 mx-auto mb-3 text-slate-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.5"
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                  />
                 </svg>
                 <p className="text-sm font-medium">
                   {t("noNotifications") || "ยังไม่มีการแจ้งเตือน"}
@@ -334,11 +504,13 @@ const NotificationBell = () => {
                   {getNotificationIcon(item.type)}
 
                   <div className="flex-1 min-w-0 pr-4">
-                    <h4 className={`text-xs font-semibold truncate ${!item.is_read ? "text-white" : "text-slate-300"}`}>
+                    <h4
+                      className={`text-xs font-semibold truncate ${!item.is_read ? "text-white" : "text-slate-300"}`}
+                    >
                       {getNotificationTitle(item)}
                     </h4>
                     <p className="text-xs text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">
-                      {item.message}
+                      {getNotificationMessage(item)}
                     </p>
                     <span className="text-[10px] text-slate-500 mt-1 block">
                       {formatTimeAgo(item.created_at)}
@@ -351,8 +523,18 @@ const NotificationBell = () => {
                     className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 transition-all p-1 self-start rounded-md hover:bg-slate-800"
                     title={t("deleteNotification") || "ลบ"}
                   >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>

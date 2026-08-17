@@ -203,6 +203,7 @@ const ManageProjectPage = () => {
         setShowViewTaskModal={setShowViewTaskModal}
         setShowAddTaskModal={setShowAddTaskModal}
         canManage={canManage}
+        currentUser={currentUser}
         t={t}
       />
 

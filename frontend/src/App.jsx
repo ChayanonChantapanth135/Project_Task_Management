@@ -80,7 +80,7 @@ function App() {
           <Route
             path="/ManageUsers"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["admin"]}>
                 <ManageUsers />
               </ProtectedRoute>
             }
@@ -96,7 +96,7 @@ function App() {
           <Route
             path="/AllTasks"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["admin"]}>
                 <AllTasks />
               </ProtectedRoute>
             }

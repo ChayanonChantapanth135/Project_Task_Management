@@ -131,7 +131,7 @@ async function notifyProjectMembers({ db, projectId, taskId = null, title, messa
     for (const targetUserId of memberIds) {
       await db.query(
         `INSERT INTO notifications (user_id, task_id, title, message, type, link, is_read, read_status) 
-         VALUES (?, ?, ?, ?, ?, ?, 0, FALSE)`,
+         VALUES (?, ?, ?, ?, ?, ?, 0, 0)`,
         [targetUserId, taskId || null, title, message, type, link]
       );
     }
@@ -695,6 +695,21 @@ export const createProject = async (req, res) => {
         if (teamLeaderId) {
             await db.query("INSERT INTO project_team_leaders (project_id, user_id) VALUES (?, ?)", [projectId, teamLeaderId]);
 
+            // Create in-app notification for Team Leader
+            try {
+                await db.query(
+                    `INSERT INTO notifications (user_id, title, message, type, link, is_read, read_status) 
+                     VALUES (?, ?, ?, 'project', '/Projects', 0, 0)`,
+                    [
+                        teamLeaderId,
+                        'คุณได้รับมอบหมายเป็น Team Leader',
+                        `คุณได้รับมอบหมายให้เป็นหัวหน้าโปรเจกต์ "${name}"`
+                    ]
+                );
+            } catch (notifErr) {
+                console.error("[Team Leader In-App Notification Error]", notifErr.message);
+            }
+
             // Send email notification asynchronously to assigned Team Leader
             (async () => {
                 try {
@@ -730,6 +745,11 @@ export const updateProject = async (req, res) => {
     const { name, status, priority, endDate, teamLeaderId, userId } = req.body;
     try {
         const db = await connectToDatabase();
+        
+        // Check existing Team Leader before updating
+        const [oldTlRows] = await db.query("SELECT user_id FROM project_team_leaders WHERE project_id = ?", [id]);
+        const oldTeamLeaderId = oldTlRows[0]?.user_id;
+
         await db.query(
             "UPDATE projects SET name = ?, status = ?, priority = ?, end_date = ? WHERE id = ?",
             [name, status, priority, endDate, id]
@@ -738,6 +758,44 @@ export const updateProject = async (req, res) => {
         await db.query("DELETE FROM project_team_leaders WHERE project_id = ?", [id]);
         if (teamLeaderId) {
             await db.query("INSERT INTO project_team_leaders (project_id, user_id) VALUES (?, ?)", [id, teamLeaderId]);
+
+            // If a new Team Leader is assigned (or changed)
+            if (Number(teamLeaderId) !== Number(oldTeamLeaderId)) {
+                try {
+                    await db.query(
+                        `INSERT INTO notifications (user_id, title, message, type, link, is_read, read_status) 
+                         VALUES (?, ?, ?, 'project', '/Projects', 0, 0)`,
+                        [
+                            teamLeaderId,
+                            'คุณได้รับมอบหมายเป็น Team Leader',
+                            `คุณได้รับมอบหมายให้เป็นหัวหน้าโปรเจกต์ "${name}"`
+                        ]
+                    );
+                } catch (tlNotifErr) {
+                    console.error("[Team Leader In-App Notif Error on Edit]", tlNotifErr.message);
+                }
+
+                // Send email notification to new Team Leader
+                (async () => {
+                    try {
+                        const [tlRows] = await db.query("SELECT fullname, email FROM users WHERE id = ? AND deleted_at IS NULL", [teamLeaderId]);
+                        const [updaterRows] = userId ? await db.query("SELECT fullname FROM users WHERE id = ?", [userId]) : [[]];
+
+                        if (tlRows.length > 0 && tlRows[0].email) {
+                            await sendProjectCreationEmail({
+                                recipientEmail: tlRows[0].email,
+                                recipientName: tlRows[0].fullname,
+                                projectName: name,
+                                priority,
+                                endDate,
+                                creatorName: updaterRows[0]?.fullname || null
+                            });
+                        }
+                    } catch (emailErr) {
+                        console.error("[Project Edit Email Error]", emailErr.message);
+                    }
+                })();
+            }
         }
 
         await notifyProjectMembers({

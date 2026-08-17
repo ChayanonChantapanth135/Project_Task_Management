@@ -12,9 +12,14 @@ const ProjectDetailModal = ({
   setShowViewTaskModal,
   setShowAddTaskModal,
   canManage = true,
+  currentUser,
   t,
 }) => {
   const { language } = useLanguage();
+  const isTeamLeaderOfProject =
+    Number(selectedProject?.teamLeaderId) === Number(currentUser?.id) ||
+    Number(selectedProject?.team_leader_id) === Number(currentUser?.id);
+  const canAddTask = canManage || isTeamLeaderOfProject;
 
   const getTaskStyle = (task) => {
     if (task.status === "Completed") return {};
@@ -200,7 +205,7 @@ const ProjectDetailModal = ({
               </div>
             </div>
 
-            {canManage && (
+            {canAddTask && (
               <div className="d-flex gap-2 justify-content-end border-top pt-3">
                 <button
                   type="button"
