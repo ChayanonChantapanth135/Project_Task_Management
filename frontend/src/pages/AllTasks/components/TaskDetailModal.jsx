@@ -168,9 +168,13 @@ const TaskDetailModal = ({
 
   const formatTaskType = (type) => {
     if (!type) return "";
-    if (type === "แปล") return t("taskTypeTranslate") || "Translate";
-    if (type === "ตัดต่อ") return t("taskTypeVideoEdit") || "Video Edit";
-    if (type === "อื่นๆ") return t("taskTypeOthers") || "Others";
+    if (type === "แปล" || type === "Translate") return t("taskTypeTranslate") || "Translate";
+    if (type === "สตอรี่บอร์ด" || type === "Storyboard & Script") return t("taskTypeStoryboard") || "Storyboard & Script";
+    if (type === "ออกแบบ" || type === "Graphic & Design") return t("taskTypeGraphicDesign") || "Graphic & Design";
+    if (type === "อนิเมชัน" || type === "Animation") return t("taskTypeAnimation") || "Animation";
+    if (type === "ตัดต่อ" || type === "Video Editing" || type === "Video Edit") return t("taskTypeVideoEdit") || "Video Edit";
+    if (type === "พัฒนาโปรแกรม" || type === "Development") return t("taskTypeDevelopment") || "Development";
+    if (type === "อื่นๆ" || type === "Others") return t("taskTypeOthers") || "Others";
     return type;
   };
 
@@ -317,9 +321,13 @@ const TaskDetailModal = ({
                   onChange={handleInputChange}
                 >
                   <option value="แปล">{t("taskTypeTranslate") || "แปล"}</option>
+                  <option value="สตอรี่บอร์ด">{t("taskTypeStoryboard") || "สตอรี่บอร์ด"}</option>
+                  <option value="ออกแบบ">{t("taskTypeGraphicDesign") || "ออกแบบ"}</option>
+                  <option value="อนิเมชัน">{t("taskTypeAnimation") || "อนิเมชัน"}</option>
                   <option value="ตัดต่อ">
                     {t("taskTypeVideoEdit") || "ตัดต่อ"}
                   </option>
+                  <option value="พัฒนาโปรแกรม">{t("taskTypeDevelopment") || "พัฒนาโปรแกรม"}</option>
                   <option value="อื่นๆ">
                     {t("taskTypeOthers") || "อื่นๆ"}
                   </option>

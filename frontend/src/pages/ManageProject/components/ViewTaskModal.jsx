@@ -262,9 +262,13 @@ const ViewTaskModal = ({
 
   const formatTaskType = (type) => {
     if (!type) return "";
-    if (type === "แปล") return t("taskTypeTranslate");
-    if (type === "ตัดต่อ") return t("taskTypeVideoEdit");
-    if (type === "อื่นๆ") return t("taskTypeOthers");
+    if (type === "แปล" || type === "Translate") return t("taskTypeTranslate");
+    if (type === "สตอรี่บอร์ด" || type === "Storyboard & Script") return t("taskTypeStoryboard");
+    if (type === "ออกแบบ" || type === "Graphic & Design") return t("taskTypeGraphicDesign");
+    if (type === "อนิเมชัน" || type === "Animation") return t("taskTypeAnimation");
+    if (type === "ตัดต่อ" || type === "Video Editing" || type === "Video Edit") return t("taskTypeVideoEdit");
+    if (type === "พัฒนาโปรแกรม" || type === "Development") return t("taskTypeDevelopment");
+    if (type === "อื่นๆ" || type === "Others") return t("taskTypeOthers");
     return type;
   };
 
@@ -387,7 +391,11 @@ const ViewTaskModal = ({
                     }
                   >
                     <option value="แปล">{t("taskTypeTranslate")}</option>
+                    <option value="สตอรี่บอร์ด">{t("taskTypeStoryboard")}</option>
+                    <option value="ออกแบบ">{t("taskTypeGraphicDesign")}</option>
+                    <option value="อนิเมชัน">{t("taskTypeAnimation")}</option>
                     <option value="ตัดต่อ">{t("taskTypeVideoEdit")}</option>
+                    <option value="พัฒนาโปรแกรม">{t("taskTypeDevelopment")}</option>
                     <option value="อื่นๆ">{t("taskTypeOthers")}</option>
                   </select>
                   {formData.taskType === "อื่นๆ" && (

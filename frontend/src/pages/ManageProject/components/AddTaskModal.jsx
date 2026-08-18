@@ -83,7 +83,11 @@ const AddTaskModal = ({
               required
             >
               <option value="แปล">{t("taskTypeTranslate")}</option>
+              <option value="สตอรี่บอร์ด">{t("taskTypeStoryboard")}</option>
+              <option value="ออกแบบ">{t("taskTypeGraphicDesign")}</option>
+              <option value="อนิเมชัน">{t("taskTypeAnimation")}</option>
               <option value="ตัดต่อ">{t("taskTypeVideoEdit")}</option>
+              <option value="พัฒนาโปรแกรม">{t("taskTypeDevelopment")}</option>
               <option value="อื่นๆ">{t("taskTypeOthers")}</option>
             </select>
           </div>

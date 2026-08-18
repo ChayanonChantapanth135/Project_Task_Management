@@ -219,6 +219,18 @@ export const useReportsData = () => {
       const type = (t.taskType || t.task_type || "").toLowerCase().trim();
       return type === "แปล" || type === "translate" || type === "translation";
     }).length,
+    storyboard: myTasks.filter((t) => {
+      const type = (t.taskType || t.task_type || "").toLowerCase().trim();
+      return type === "สตอรี่บอร์ด" || type.includes("storyboard") || type.includes("script") || type === "บท";
+    }).length,
+    graphicDesign: myTasks.filter((t) => {
+      const type = (t.taskType || t.task_type || "").toLowerCase().trim();
+      return type === "ออกแบบ" || type.includes("design") || type.includes("graphic") || type.includes("ภาพ");
+    }).length,
+    animation: myTasks.filter((t) => {
+      const type = (t.taskType || t.task_type || "").toLowerCase().trim();
+      return type === "อนิเมชัน" || type.includes("animat");
+    }).length,
     videoEdit: myTasks.filter((t) => {
       const type = (t.taskType || t.task_type || "").toLowerCase().trim();
       return (
@@ -232,22 +244,22 @@ export const useReportsData = () => {
         type.includes("ตัดต่อ")
       );
     }).length,
+    development: myTasks.filter((t) => {
+      const type = (t.taskType || t.task_type || "").toLowerCase().trim();
+      return type === "พัฒนาโปรแกรม" || type.includes("dev") || type.includes("code") || type.includes("program");
+    }).length,
     others: myTasks.filter((t) => {
       const raw = (t.taskType || t.task_type || "").trim();
       if (!raw) return false;
       const type = raw.toLowerCase();
-      const isTranslate = type === "แปล" || type === "translate" || type === "translation";
-      const isVideo = (
-        type === "ตัดต่อ" ||
-        type === "video edit" ||
-        type === "video editing" ||
-        type === "video editor" ||
-        type === "edit video" ||
-        type === "ตัดต่อวิดีโอ" ||
-        type.includes("video") ||
-        type.includes("ตัดต่อ")
-      );
-      return !isTranslate && !isVideo;
+      const isKnown = 
+        type === "แปล" || type === "translate" || type === "translation" ||
+        type === "สตอรี่บอร์ด" || type.includes("storyboard") || type.includes("script") || type === "บท" ||
+        type === "ออกแบบ" || type.includes("design") || type.includes("graphic") || type.includes("ภาพ") ||
+        type === "อนิเมชัน" || type.includes("animat") ||
+        type === "ตัดต่อ" || type.includes("video") || type.includes("ตัดต่อ") ||
+        type === "พัฒนาโปรแกรม" || type.includes("dev") || type.includes("code") || type.includes("program");
+      return !isKnown;
     }).length,
   };
 

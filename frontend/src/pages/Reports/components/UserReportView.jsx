@@ -95,9 +95,13 @@ export default function UserReportView({ data }) {
 
   const formatTaskType = (type) => {
     if (!type) return "-";
-    if (type === "แปล") return t("taskTypeTranslate") || "Translate";
-    if (type === "ตัดต่อ") return t("taskTypeVideoEdit") || "Video Edit";
-    if (type === "อื่นๆ") return t("taskTypeOthers") || "Others";
+    if (type === "แปล" || type === "Translate") return t("taskTypeTranslate") || "Translate";
+    if (type === "สตอรี่บอร์ด" || type === "Storyboard & Script") return t("taskTypeStoryboard") || "Storyboard & Script";
+    if (type === "ออกแบบ" || type === "Graphic & Design") return t("taskTypeGraphicDesign") || "Graphic & Design";
+    if (type === "อนิเมชัน" || type === "Animation") return t("taskTypeAnimation") || "Animation";
+    if (type === "ตัดต่อ" || type === "Video Editing" || type === "Video Edit") return t("taskTypeVideoEdit") || "Video Edit";
+    if (type === "พัฒนาโปรแกรม" || type === "Development") return t("taskTypeDevelopment") || "Development";
+    if (type === "อื่นๆ" || type === "Others") return t("taskTypeOthers") || "Others";
     return type;
   };
 
@@ -188,11 +192,11 @@ export default function UserReportView({ data }) {
             <p className="text-xs text-slate-400 mt-1 ml-11">{t("workloadDistributionTypeDesc")}</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {[
+          {(() => {
+            const allTypes = [
               {
                 label: t("taskTypeTranslate"),
-                count: myTaskTypeCounts.translate,
+                count: myTaskTypeCounts.translate || 0,
                 icon: (
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
@@ -203,8 +207,45 @@ export default function UserReportView({ data }) {
                 borderColor: "rgba(20,184,166,0.2)",
               },
               {
+                label: t("taskTypeStoryboard"),
+                count: myTaskTypeCounts.storyboard || 0,
+                icon: (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                  </svg>
+                ),
+                color: "#f59e0b",
+                bg: "rgba(245,158,11,0.08)",
+                borderColor: "rgba(245,158,11,0.2)",
+              },
+              {
+                label: t("taskTypeGraphicDesign"),
+                count: myTaskTypeCounts.graphicDesign || 0,
+                icon: (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                  </svg>
+                ),
+                color: "#ec4899",
+                bg: "rgba(236,72,153,0.08)",
+                borderColor: "rgba(236,72,153,0.2)",
+              },
+              {
+                label: t("taskTypeAnimation"),
+                count: myTaskTypeCounts.animation || 0,
+                icon: (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ),
+                color: "#06b6d4",
+                bg: "rgba(6,182,212,0.08)",
+                borderColor: "rgba(6,182,212,0.2)",
+              },
+              {
                 label: t("taskTypeVideoEdit"),
-                count: myTaskTypeCounts.videoEdit,
+                count: myTaskTypeCounts.videoEdit || 0,
                 icon: (
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
@@ -215,8 +256,20 @@ export default function UserReportView({ data }) {
                 borderColor: "rgba(99,102,241,0.2)",
               },
               {
+                label: t("taskTypeDevelopment"),
+                count: myTaskTypeCounts.development || 0,
+                icon: (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                  </svg>
+                ),
+                color: "#10b981",
+                bg: "rgba(16,185,129,0.08)",
+                borderColor: "rgba(16,185,129,0.2)",
+              },
+              {
                 label: t("taskTypeOthers"),
-                count: myTaskTypeCounts.others,
+                count: myTaskTypeCounts.others || 0,
                 icon: (
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
@@ -226,21 +279,51 @@ export default function UserReportView({ data }) {
                 bg: "rgba(168,85,247,0.08)",
                 borderColor: "rgba(168,85,247,0.2)",
               },
-            ].map((item, i) => (
-              <div key={i}
-                className="rounded-2xl p-6 text-center transition-all duration-300 hover:-translate-y-1"
-                style={{ background: item.bg, border: `1px solid ${item.borderColor}` }}
+            ];
+
+            const activeTypes = allTypes.filter((item) => item.count > 0);
+            const displayTypes = activeTypes.length > 0 ? activeTypes : allTypes;
+
+            return (
+              <div
+                className={`grid gap-5 ${
+                  displayTypes.length === 1
+                    ? "grid-cols-1 max-w-xs mx-auto"
+                    : displayTypes.length === 2
+                    ? "grid-cols-1 sm:grid-cols-2 max-w-lg mx-auto"
+                    : displayTypes.length === 3
+                    ? "grid-cols-1 sm:grid-cols-3"
+                    : displayTypes.length === 4
+                    ? "grid-cols-2 sm:grid-cols-4"
+                    : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
+                }`}
               >
-                <div className="w-12 h-12 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-                  style={{ color: item.color, background: `${item.bg}` }}
-                >
-                  {item.icon}
-                </div>
-                <p className="text-3xl font-black" style={{ color: item.color }}>{item.count}</p>
-                <p className="text-[10px] font-bold uppercase tracking-wider mt-2" style={{ color: item.color, opacity: 0.7 }}>{item.label}</p>
+                {displayTypes.map((item, i) => (
+                  <div
+                    key={i}
+                    className="rounded-2xl p-6 text-center transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between items-center"
+                    style={{ background: item.bg, border: `1px solid ${item.borderColor}` }}
+                  >
+                    <div
+                      className="w-12 h-12 rounded-2xl mb-4 flex items-center justify-center"
+                      style={{ color: item.color, background: `${item.bg}` }}
+                    >
+                      {item.icon}
+                    </div>
+                    <p className="text-3xl font-black" style={{ color: item.color }}>
+                      {item.count}
+                    </p>
+                    <p
+                      className="text-xs font-bold uppercase tracking-wider mt-2"
+                      style={{ color: item.color, opacity: 0.85 }}
+                    >
+                      {item.label}
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
         </div>
       </div>
 

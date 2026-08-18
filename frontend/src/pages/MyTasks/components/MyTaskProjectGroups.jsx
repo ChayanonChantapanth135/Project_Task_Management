@@ -132,8 +132,16 @@ export default function MyTaskProjectGroups({
                     if (!type) return "-";
                     if (type === "แปล" || type === "Translate")
                       return t("taskTypeTranslate");
-                    if (type === "ตัดต่อ" || type === "Video Edit")
+                    if (type === "สตอรี่บอร์ด" || type === "Storyboard & Script")
+                      return t("taskTypeStoryboard");
+                    if (type === "ออกแบบ" || type === "Graphic & Design")
+                      return t("taskTypeGraphicDesign");
+                    if (type === "อนิเมชัน" || type === "Animation")
+                      return t("taskTypeAnimation");
+                    if (type === "ตัดต่อ" || type === "Video Editing" || type === "Video Edit")
                       return t("taskTypeVideoEdit");
+                    if (type === "พัฒนาโปรแกรม" || type === "Development")
+                      return t("taskTypeDevelopment");
                     if (type === "อื่นๆ" || type === "Others")
                       return t("taskTypeOthers");
                     return type;
