@@ -193,6 +193,9 @@ const NotificationBell = () => {
     if (/อัปเดตสถานะงาน|Task Status Updated/i.test(title)) {
       return t("notifTaskStatusUpdated");
     }
+    if (/โปรเจกต์รอตรวจสอบ|Project Reviewing/i.test(title)) {
+      return t("notifProjectReviewing");
+    }
     if (/อัปเดตข้อมูลโปรเจกต์|Project Updated/i.test(title)) {
       return t("notifProjectUpdated");
     }
@@ -260,7 +263,18 @@ const NotificationBell = () => {
         .replace("{status}", statusVal);
     }
 
-    // 5. Project updated: โปรเจกต์ "ProjectName" มีการอัปเดตข้อมูลใหม่
+    // 5. Project Reviewing: โปรเจกต์ "ProjectName" มีสถานะเป็น Reviewing (รอตรวจสอบ)
+    const projReviewingMatch = msg.match(
+      /(?:โปรเจกต์|Project)\s*["“'`](.*?)["”'`]\s*(?:มีสถานะเป็น Reviewing \(รอตรวจสอบ\)|is currently reviewing|has status reviewing)/i,
+    );
+    if (projReviewingMatch) {
+      return t("notifProjectReviewingMsg").replace(
+        "{project}",
+        projReviewingMatch[1],
+      );
+    }
+
+    // 6. Project updated: โปรเจกต์ "ProjectName" มีการอัปเดตข้อมูลใหม่
     const projUpdateMatch = msg.match(
       /(?:โปรเจกต์|Project)\s*["“'`](.*?)["”'`]\s*(?:มีการอัปเดตข้อมูลใหม่|has been updated)/i,
     );
@@ -271,7 +285,7 @@ const NotificationBell = () => {
       );
     }
 
-    // 6. Comment: มีความคิดเห็นใหม่ในงาน "TaskName"
+    // 7. Comment: มีความคิดเห็นใหม่ในงาน "TaskName"
     const commentMatch = msg.match(
       /(?:มีความคิดเห็นใหม่ในงาน|New comment on task)\s*["“'`](.*?)["”'`]/i,
     );

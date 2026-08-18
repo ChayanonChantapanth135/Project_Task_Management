@@ -96,11 +96,20 @@ const ProjectDetailModal = ({
                 </div>
                 <div className="mb-3">
                   <span className="text-muted small d-block">
+                    {t("projectDetailsManager")}
+                  </span>
+                  <span className="text-indigo-600 font-semibold d-flex align-items-center gap-1">
+                    <ion-icon name="briefcase-outline" style={{ fontSize: "16px" }}></ion-icon>
+                    <span>{selectedProject.projectManagerName || selectedProject.created_by_name || selectedProject.project_manager_name || "-"}</span>
+                  </span>
+                </div>
+                <div className="mb-3">
+                  <span className="text-muted small d-block">
                     {t("projectDetailsLeader")}
                   </span>
                   <span className="text-primary fw-bold d-flex align-items-center gap-1">
                     <ion-icon name="person-outline" style={{ fontSize: "16px" }}></ion-icon>
-                    <span>{selectedProject.teamLeaderName}</span>
+                    <span>{selectedProject.teamLeaderName || selectedProject.team_leader_name || "-"}</span>
                   </span>
                 </div>
               </div>

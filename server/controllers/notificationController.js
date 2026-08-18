@@ -95,12 +95,45 @@ export const markAsRead = async (req, res) => {
             const completedCount = tasks.filter(t => t.status && t.status.toLowerCase() === 'completed').length;
             const progress = Math.round((completedCount / tasks.length) * 100);
 
+            const [projRows] = await db.query("SELECT status FROM projects WHERE id = ?", [taskRows[0].project_id]);
+            const oldStatus = projRows[0]?.status;
+
+            let newStatus = 'In Progress';
             if (hasReviewing) {
-              await db.query("UPDATE projects SET status = 'Reviewing' WHERE id = ?", [taskRows[0].project_id]);
+              newStatus = 'Reviewing';
             } else if (progress === 100) {
-              await db.query("UPDATE projects SET status = 'Completed' WHERE id = ?", [taskRows[0].project_id]);
-            } else {
-              await db.query("UPDATE projects SET status = 'In Progress' WHERE id = ?", [taskRows[0].project_id]);
+              newStatus = 'Completed';
+            }
+
+            if (newStatus !== oldStatus) {
+              await db.query("UPDATE projects SET status = ? WHERE id = ?", [newStatus, taskRows[0].project_id]);
+              if (newStatus === 'Reviewing') {
+                // Send reviewing notifications
+                try {
+                  const pId = taskRows[0].project_id;
+                  const [pData] = await db.query("SELECT name, created_by FROM projects WHERE id = ?", [pId]);
+                  const pName = pData[0]?.name || `ID ${pId}`;
+                  const pCreator = pData[0]?.created_by;
+
+                  const targetIds = new Set();
+                  if (pCreator) targetIds.add(Number(pCreator));
+                  const [mRows] = await db.query("SELECT id FROM users WHERE role = 'manager' AND deleted_at IS NULL");
+                  mRows.forEach(m => targetIds.add(Number(m.id)));
+                  const [tlRows] = await db.query("SELECT user_id FROM project_team_leaders WHERE project_id = ?", [pId]);
+                  tlRows.forEach(tl => targetIds.add(Number(tl.user_id)));
+
+                  for (const uid of targetIds) {
+                    const title = 'โปรเจกต์รอตรวจสอบ';
+                    const message = `โปรเจกต์ "${pName}" มีสถานะเป็น Reviewing (รอตรวจสอบ)`;
+                    const [recent] = await db.query("SELECT id FROM notifications WHERE user_id = ? AND title = ? AND message = ? AND created_at >= NOW() - INTERVAL 1 MINUTE", [uid, title, message]);
+                    if (recent.length === 0) {
+                      await db.query("INSERT INTO notifications (user_id, title, message, type, link, is_read, read_status) VALUES (?, ?, ?, 'project', '/Projects', 0, 0)", [uid, title, message]);
+                    }
+                  }
+                } catch (notifErr) {
+                  console.error("Error sending project reviewing notif in markAsRead:", notifErr);
+                }
+              }
             }
           }
         }

@@ -604,9 +604,68 @@ export const getTeamLeaders = async (req, res) => {
     }
 };
 
-const checkAndUpdateProjectStatus = async (db, projectId) => {
+// Helper ส่งแจ้งเตือนเมื่อโปรเจกต์มีสถานะเป็น Reviewing (ส่งให้ Team Leader และ Project Manager / Creator)
+async function notifyProjectReviewing({ db, projectId, excludeUserId = null }) {
+    try {
+        if (!projectId) return;
+
+        // 1. ดึงข้อมูลโปรเจกต์
+        const [projRows] = await db.query('SELECT name, created_by FROM projects WHERE id = ? AND deleted_at IS NULL', [projectId]);
+        if (projRows.length === 0) return;
+        const projectName = projRows[0].name;
+        const creatorId = projRows[0].created_by;
+
+        const targetUserIds = new Set();
+
+        // 2. ผู้สร้างโปรเจกต์ (Project Creator / Manager)
+        if (creatorId) {
+            targetUserIds.add(Number(creatorId));
+        }
+
+        // 3. ผู้ใช้ทั้งหมดที่มี Role เป็น 'manager'
+        const [managerRows] = await db.query("SELECT id FROM users WHERE role = 'manager' AND deleted_at IS NULL");
+        managerRows.forEach(m => targetUserIds.add(Number(m.id)));
+
+        // 4. Team Leaders ของโปรเจกต์นี้
+        const [tlRows] = await db.query('SELECT user_id FROM project_team_leaders WHERE project_id = ?', [projectId]);
+        tlRows.forEach(tl => targetUserIds.add(Number(tl.user_id)));
+
+        // ยกเว้นผู้ที่ทำการเปลี่ยนสถานะเอง (ถ้ามี)
+        if (excludeUserId) {
+            targetUserIds.delete(Number(excludeUserId));
+        }
+
+        const title = 'โปรเจกต์รอตรวจสอบ';
+        const message = `โปรเจกต์ "${projectName}" มีสถานะเป็น Reviewing (รอตรวจสอบ)`;
+        const type = 'project';
+        const link = '/Projects';
+
+        for (const uid of targetUserIds) {
+            // ป้องกันการยิงแจ้งเตือนซ้ำซ้อนในเวลาไล่เลี่ยกัน (ภายใน 1 นาที)
+            const [recentNotif] = await db.query(
+                `SELECT id FROM notifications 
+                 WHERE user_id = ? AND title = ? AND message = ? AND created_at >= NOW() - INTERVAL 1 MINUTE`,
+                [uid, title, message]
+            );
+            if (recentNotif.length === 0) {
+                await db.query(
+                    `INSERT INTO notifications (user_id, title, message, type, link, is_read, read_status) 
+                     VALUES (?, ?, ?, ?, ?, 0, 0)`,
+                    [uid, title, message, type, link]
+                );
+            }
+        }
+    } catch (err) {
+        console.error("Error sending project reviewing notification:", err.message);
+    }
+}
+
+const checkAndUpdateProjectStatus = async (db, projectId, changedByUserId = null) => {
     if (!projectId) return;
     try {
+        const [projRows] = await db.query("SELECT status FROM projects WHERE id = ? AND deleted_at IS NULL", [projectId]);
+        const oldStatus = projRows[0]?.status;
+
         const [tasks] = await db.query(
             "SELECT status FROM tasks WHERE project_id = ? AND deleted_at IS NULL",
             [projectId]
@@ -616,12 +675,18 @@ const checkAndUpdateProjectStatus = async (db, projectId) => {
             const completedCount = tasks.filter(t => t.status && t.status.toLowerCase() === 'completed').length;
             const progress = Math.round((completedCount / tasks.length) * 100);
 
+            let newStatus = 'In Progress';
             if (hasReviewing) {
-                await db.query("UPDATE projects SET status = 'Reviewing' WHERE id = ?", [projectId]);
+                newStatus = 'Reviewing';
             } else if (progress === 100) {
-                await db.query("UPDATE projects SET status = 'Completed' WHERE id = ?", [projectId]);
-            } else {
-                await db.query("UPDATE projects SET status = 'In Progress' WHERE id = ?", [projectId]);
+                newStatus = 'Completed';
+            }
+
+            if (newStatus !== oldStatus) {
+                await db.query("UPDATE projects SET status = ? WHERE id = ?", [newStatus, projectId]);
+                if (newStatus === 'Reviewing') {
+                    await notifyProjectReviewing({ db, projectId, excludeUserId: changedByUserId });
+                }
             }
         }
     } catch (err) {
@@ -633,10 +698,13 @@ export const getProjects = async (req, res) => {
     try {
         const db = await connectToDatabase();
         const [projects] = await db.query(`
-            SELECT p.*, u.id AS teamLeaderId, u.fullname AS teamLeaderName
+            SELECT p.*, 
+                   u.id AS teamLeaderId, u.fullname AS teamLeaderName,
+                   creator.id AS projectManagerId, creator.fullname AS projectManagerName
             FROM projects p
             LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id
             LEFT JOIN users u ON ptl.user_id = u.id
+            LEFT JOIN users creator ON p.created_by = creator.id
             WHERE p.deleted_at IS NULL
             ORDER BY p.created_at DESC
         `);
@@ -658,6 +726,7 @@ export const getProjects = async (req, res) => {
                     if (p.status !== 'Reviewing') {
                         p.status = 'Reviewing';
                         await db.query("UPDATE projects SET status = 'Reviewing' WHERE id = ?", [p.id]);
+                        await notifyProjectReviewing({ db, projectId: p.id });
                     }
                 } else if (p.progress === 100) {
                     if (p.status !== 'Completed') {
@@ -798,15 +867,19 @@ export const updateProject = async (req, res) => {
             }
         }
 
-        await notifyProjectMembers({
-            db,
-            projectId: id,
-            title: 'อัปเดตข้อมูลโปรเจกต์',
-            message: `โปรเจกต์ "${name}" มีการอัปเดตข้อมูลใหม่`,
-            type: 'project',
-            link: '/Projects',
-            excludeUserId: userId
-        });
+        if (status === 'Reviewing') {
+            await notifyProjectReviewing({ db, projectId: id, excludeUserId: userId });
+        } else {
+            await notifyProjectMembers({
+                db,
+                projectId: id,
+                title: 'อัปเดตข้อมูลโปรเจกต์',
+                message: `โปรเจกต์ "${name}" มีการอัปเดตข้อมูลใหม่`,
+                type: 'project',
+                link: '/Projects',
+                excludeUserId: userId
+            });
+        }
 
         await logActivity(db, userId, 'Edit Project', `Edited project ID: ${id}`);
         res.status(200).json({ message: 'Project updated successfully' });
