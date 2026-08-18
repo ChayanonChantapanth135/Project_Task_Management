@@ -32,6 +32,7 @@ const translations = {
     currentPasswordRequired: "Please enter your current password",
     profileUpdateFailed: "Failed to update profile. Please try again.",
     myTask: "My Task",
+    personalTask: "Personal Tasks",
     myActivity: "My Activity",
     myActivitySubtitle: "View and track your personal activity history",
     signOut: "Sign Out",
@@ -52,18 +53,22 @@ const translations = {
     projectStatusUpdated: "Project Status Updated",
     systemNotification: "System Notification",
     notifAssignedTeamLeader: "Assigned as Team Leader",
-    notifAssignedTeamLeaderMsg: 'You have been assigned as Team Leader for project "{project}"',
+    notifAssignedTeamLeaderMsg:
+      'You have been assigned as Team Leader for project "{project}"',
     notifNewTaskInProject: "New Task in Project",
     notifNewTaskInProjectMsg: 'New task "{task}" in project "{project}"',
-    notifNewTaskAssignedMsg: 'You have been assigned a new task: "{task}" in project "{project}"',
+    notifNewTaskAssignedMsg:
+      'You have been assigned a new task: "{task}" in project "{project}"',
     notifTaskStatusUpdated: "Task Status Updated",
-    notifTaskStatusUpdatedMsg: 'Task "{task}" in project "{project}" status changed to "{status}"',
+    notifTaskStatusUpdatedMsg:
+      'Task "{task}" in project "{project}" status changed to "{status}"',
     notifProjectUpdated: "Project Updated",
     notifProjectUpdatedMsg: 'Project "{project}" has been updated',
     notifProjectReviewing: "Project Reviewing",
     notifProjectReviewingMsg: 'Project "{project}" is currently reviewing',
     notifNewComment: "New Comment on Task",
     notifNewCommentMsg: 'New comment on task "{task}"',
+    personalTask: "Personal Tasks",
 
     // Login Page
     loginTitle: "Login",
@@ -506,6 +511,7 @@ const translations = {
     profileUpdateFailed:
       "เกิดข้อผิดพลาดในการอัปเดตข้อมูลโปรไฟล์ กรุณาลองใหม่อีกครั้ง",
     myTask: "งานของฉัน",
+    personalTask: "งานส่วนตัว",
     myActivity: "กิจกรรมของฉัน",
     myActivitySubtitle: "ดูประวัติกิจกรรมการทำงานส่วนตัวของคุณ",
     signOut: "ออกจากระบบ",
@@ -526,18 +532,23 @@ const translations = {
     projectStatusUpdated: "อัปเดตสถานะโปรเจกต์",
     systemNotification: "แจ้งเตือนจากระบบ",
     notifAssignedTeamLeader: "คุณได้รับมอบหมายเป็น Team Leader",
-    notifAssignedTeamLeaderMsg: 'คุณได้รับมอบหมายให้เป็นหัวหน้าโปรเจกต์ "{project}"',
+    notifAssignedTeamLeaderMsg:
+      'คุณได้รับมอบหมายให้เป็นหัวหน้าโปรเจกต์ "{project}"',
     notifNewTaskInProject: "งานใหม่ในโปรเจกต์",
     notifNewTaskInProjectMsg: 'มีงานใหม่ "{task}" ในโปรเจกต์ "{project}"',
-    notifNewTaskAssignedMsg: 'คุณได้รับมอบหมายงานใหม่: "{task}" ในโปรเจกต์ "{project}"',
+    notifNewTaskAssignedMsg:
+      'คุณได้รับมอบหมายงานใหม่: "{task}" ในโปรเจกต์ "{project}"',
     notifTaskStatusUpdated: "อัปเดตสถานะงาน",
-    notifTaskStatusUpdatedMsg: 'งาน "{task}" ในโปรเจกต์ "{project}" ถูกอัปเดตสถานะเป็น "{status}"',
+    notifTaskStatusUpdatedMsg:
+      'งาน "{task}" ในโปรเจกต์ "{project}" ถูกอัปเดตสถานะเป็น "{status}"',
     notifProjectUpdated: "อัปเดตข้อมูลโปรเจกต์",
     notifProjectUpdatedMsg: 'โปรเจกต์ "{project}" มีการอัปเดตข้อมูลใหม่',
     notifProjectReviewing: "โปรเจกต์รอตรวจสอบ",
-    notifProjectReviewingMsg: 'โปรเจกต์ "{project}" มีสถานะเป็นรอการตรวจสอบ (Reviewing)',
+    notifProjectReviewingMsg:
+      'โปรเจกต์ "{project}" มีสถานะเป็นรอการตรวจสอบ (Reviewing)',
     notifNewComment: "ความคิดเห็นใหม่ในงาน",
     notifNewCommentMsg: 'มีความคิดเห็นใหม่ในงาน "{task}"',
+    personalTask: "งานส่วนตัว",
 
     // Login Page
     loginTitle: "เข้าสู่ระบบ",

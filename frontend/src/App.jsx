@@ -19,11 +19,16 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import SessionTimeoutHandler from "./components/SessionTimeoutHandler";
 import ResetPassword from "./pages/ResetPassword/ResetPasswordPage";
 import ResetPasswordFirstTime from "./pages/ResetPasswordFirstTime/ResetPasswordFirstTimePage";
+import PersonalTask from "./pages/PersonalTask/PersonalTaskPage";
+
 
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => {
-    if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
+    if (
+      typeof window !== "undefined" &&
+      "scrollRestoration" in window.history
+    ) {
       window.history.scrollRestoration = "manual";
     }
     window.scrollTo(0, 0);
@@ -49,7 +54,10 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/ResetPassword" element={<ResetPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/reset-password-first-time" element={<ResetPasswordFirstTime />} />
+          <Route
+            path="/reset-password-first-time"
+            element={<ResetPasswordFirstTime />}
+          />
           {/* <Route path='/register' element={<Register />} /> */}
 
           {/* Protected Routes */}
@@ -82,6 +90,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <ManageUsers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/PersonalTask"
+            element={
+              <ProtectedRoute>
+                <PersonalTask />
               </ProtectedRoute>
             }
           />
@@ -132,5 +148,3 @@ function App() {
 }
 
 export default App;
-
-
