@@ -42,6 +42,7 @@ router.get('/tasks/:id/status-history', authCtrl.getTaskStatusHistory);
 // --- PERSONAL TASKS ROUTES ---
 router.get('/personal-tasks', authCtrl.getPersonalTasks);
 router.post('/personal-tasks', authCtrl.createPersonalTask);
+router.put('/personal-tasks/reorder', authCtrl.reorderPersonalTasks);
 router.put('/personal-tasks/:id', authCtrl.updatePersonalTask);
 router.delete('/personal-tasks/:id', authCtrl.deletePersonalTask);
 

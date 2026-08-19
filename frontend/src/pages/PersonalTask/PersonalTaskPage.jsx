@@ -41,9 +41,9 @@ const PersonalTaskPage = () => {
 
           <button
             onClick={() => handleAddTask("todo")}
-            className="px-5 py-2.5 rounded-2xl text-sm font-bold text-white shadow-lg flex items-center gap-2 cursor-pointer bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600"
+            className="px-6 py-2.5 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold text-xs glow-button flex items-center gap-2 cursor-pointer transition-all"
           >
-            <span className="text-lg leading-none">+</span>
+            <span className="text-sm leading-none font-extrabold">+</span>
             <span>{language === "th" ? "เพิ่ม Task ใหม่" : "Add New Task"}</span>
           </button>
         </div>

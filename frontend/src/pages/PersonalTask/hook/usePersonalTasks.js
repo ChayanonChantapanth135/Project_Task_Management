@@ -176,6 +176,20 @@ export const usePersonalTasks = () => {
         ...prev,
         columns: { ...prev.columns, [newColumn.id]: newColumn },
       }));
+
+      // บันทึกลำดับตำแหน่ง (Position) ใหม่ลง Database
+      try {
+        const reorderPayload = newTaskIds.map((tid, idx) => ({
+          id: data.tasks[tid].dbId,
+          status: startCol.id,
+          position: idx,
+        }));
+        await axios.put(`${API_URL}/auth/personal-tasks/reorder`, {
+          tasks: reorderPayload,
+        });
+      } catch (err) {
+        console.error("Failed to reorder tasks in db:", err);
+      }
       return;
     }
 
@@ -208,19 +222,27 @@ export const usePersonalTasks = () => {
     }));
 
     try {
-      await axios.put(
-        `${API_URL}/auth/personal-tasks/${movedTask.dbId}`,
-        {
-          status: newStatus,
-          is_completed: newStatus === "completed" ? 1 : 0,
-        }
-      );
+      // บันทึกลำดับตำแหน่งและสถานะของทั้ง 2 คอลัมน์ลง Database
+      const startReorder = startTaskIds.map((tid, idx) => ({
+        id: data.tasks[tid].dbId,
+        status: startCol.id,
+        position: idx,
+      }));
+      const finishReorder = finishTaskIds.map((tid, idx) => ({
+        id: data.tasks[tid].dbId,
+        status: finishCol.id,
+        position: idx,
+      }));
+
+      await axios.put(`${API_URL}/auth/personal-tasks/reorder`, {
+        tasks: [...startReorder, ...finishReorder],
+      });
     } catch (err) {
-      console.error("Failed to update status in db:", err);
+      console.error("Failed to update status & order in db:", err);
       Swal.fire({
         icon: "error",
         title: isThai ? "เกิดข้อผิดพลาด" : "Error",
-        text: isThai ? "ไม่สามารถอัปเดตสถานะงานได้" : "Failed to update status",
+        text: isThai ? "ไม่สามารถอัปเดตลำดับงานได้" : "Failed to update task order",
       });
       fetchTasks();
     }
@@ -374,7 +396,7 @@ export const usePersonalTasks = () => {
                 type="text" 
                 class="swal2-input !m-0 !w-full pr-10 cursor-pointer" 
                 value="${formattedDateDMY}"
-                placeholder="DD/MM/YYYY (เช่น 20/08/2026)" 
+                placeholder="DD/MM/YYYY" 
                 readonly 
               />
               <input 

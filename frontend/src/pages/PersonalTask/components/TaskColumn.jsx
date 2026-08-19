@@ -50,7 +50,7 @@ const TaskColumn = ({ column, tasks, onAddTask, onEditTask, onDeleteTask }) => {
             }`}
             style={{
               scrollbarWidth: "thin",
-              scrollbarColor: "#23526c transparent",
+              scrollbarColor: "#1e75aaff transparent",
             }}
           >
             {tasks.map((task, index) => (

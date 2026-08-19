@@ -165,14 +165,27 @@ export const useProjectManagement = (t) => {
     return true;
   });
 
-  if (sortByPriority !== "none") {
-    const priorityWeight = { High: 3, Medium: 2, Low: 1 };
-    filteredProjects.sort((a, b) => {
-      const weightA = priorityWeight[a.priority] || 0;
-      const weightB = priorityWeight[b.priority] || 0;
-      return sortByPriority === "desc" ? weightB - weightA : weightA - weightB;
-    });
-  }
+  const priorityWeight = { High: 3, Medium: 2, Low: 1 };
+
+  filteredProjects.sort((a, b) => {
+    // 1. Incomplete projects first, Completed projects last
+    const aCompleted = (a.status || "").toLowerCase() === "completed" ? 1 : 0;
+    const bCompleted = (b.status || "").toLowerCase() === "completed" ? 1 : 0;
+
+    if (aCompleted !== bCompleted) {
+      return aCompleted - bCompleted;
+    }
+
+    // 2. Sort by priority
+    const weightA = priorityWeight[a.priority] || (a.priority === "Low" ? 1 : a.priority === "High" ? 3 : 2);
+    const weightB = priorityWeight[b.priority] || (b.priority === "Low" ? 1 : b.priority === "High" ? 3 : 2);
+
+    if (sortByPriority === "asc") {
+      return weightA - weightB;
+    }
+    // Default or "desc" is High -> Medium -> Low
+    return weightB - weightA;
+  });
 
   const handleCreateSubmit = async (e) => {
     e.preventDefault();

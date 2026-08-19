@@ -4,6 +4,7 @@ import Footer from "../../components/Footer";
 import { useLanguage } from "../../lib/LanguageContext";
 import ConfirmModal from "../../components/ConfirmModal";
 import ProjectCard from "./components/ProjectCard";
+import ProjectBoardView from "./components/ProjectBoardView";
 import ProjectFilter from "./components/ProjectFilter";
 import ProjectTable from "./components/ProjectTable";
 import { useProjectManagement } from "./hooks/useProjectManagement";
@@ -141,31 +142,14 @@ const ManageProjectPage = () => {
             canManage={canManage}
           />
         ) : (
-          /* Grid Card View */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {filteredProjects.length > 0 ? (
-              filteredProjects.map((project) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  t={t}
-                  handleViewDetails={handleViewDetails}
-                  handleOpenEdit={handleOpenEdit}
-                  handleOpenDelete={handleOpenDelete}
-                  canManage={canManage}
-                />
-              ))
-            ) : (
-              <div className="col-span-full">
-                <div className="glass-panel rounded-3xl p-12 text-center border border-white/10">
-                  <div className="text-4xl mb-3">📂</div>
-                  <p className="text-sm font-semibold text-slate-400">
-                    {t("noProjectsFound")}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
+          <ProjectBoardView
+            filteredProjects={filteredProjects}
+            t={t}
+            handleViewDetails={handleViewDetails}
+            handleOpenEdit={handleOpenEdit}
+            handleOpenDelete={handleOpenDelete}
+            canManage={canManage}
+          />
         )}
       </main>
 

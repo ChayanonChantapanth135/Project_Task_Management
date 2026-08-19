@@ -233,6 +233,7 @@ export const initializeDatabase = async () => {
         user_id INT NULL,
         title VARCHAR(255) NOT NULL,
         status ENUM('todo', 'in-progress', 'completed') DEFAULT 'todo',
+        position INT DEFAULT 0,
         is_completed TINYINT(1) DEFAULT 0,
         task_date DATE NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -243,6 +244,7 @@ export const initializeDatabase = async () => {
     // Safely add missing columns to existing tables
     const alterQueries = [
       "ALTER TABLE personal_tasks ADD COLUMN IF NOT EXISTS status ENUM('todo', 'in-progress', 'completed') DEFAULT 'todo'",
+      "ALTER TABLE personal_tasks ADD COLUMN IF NOT EXISTS position INT DEFAULT 0",
       "ALTER TABLE users CHANGE COLUMN username fullname VARCHAR(255) NOT NULL",
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS role ENUM('admin','manager','storyboard','animation','designer','programmer') DEFAULT 'storyboard'",
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS role_id INT NULL",
