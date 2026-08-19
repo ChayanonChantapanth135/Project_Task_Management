@@ -1,9 +1,58 @@
 import React from "react";
 import { Draggable } from "@hello-pangea/dnd";
+import { useLanguage } from "../../../lib/LanguageContext";
 
 const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
+  const { language } = useLanguage();
   const columnTitle = column?.title || (task.is_completed ? "COMPLETED" : "TO DO");
   const columnColor = column?.color || (task.is_completed ? "#00b884" : "#007aeb");
+
+  // ฟังก์ชันแปลงวันที่ตามภาษา (ไทย = วัน เดือน พ.ศ. / อังกฤษ = วัน เดือน ค.ศ.)
+  const formatTaskDate = (dateStr) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+
+    if (language === "th") {
+      // รูปแบบไทย: 20 ส.ค. 2569
+      return d.toLocaleDateString("th-TH", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    } else {
+      // รูปแบบสากล/อังกฤษ: 20 Aug 2026
+      return d.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    }
+  };
+
+  // ตรวจสอบสถานะวันครบกำหนด (Due Date Urgency)
+  const getDateStatus = () => {
+    if (!task.task_date || task.is_completed || task.status === "completed") {
+      return null;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const dueDate = new Date(task.task_date);
+    dueDate.setHours(0, 0, 0, 0);
+
+    const diffTime = dueDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return "overdue";
+    } else if (diffDays <= 1) {
+      return "due-soon";
+    }
+    return "normal";
+  };
+
+  const dateStatus = getDateStatus();
 
   return (
     <Draggable draggableId={task.id} index={index}>
@@ -15,6 +64,10 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
           className={`p-4 mb-3 rounded-xl select-none group shadow-md ${
             snapshot.isDragging
               ? "bg-[#1e293b] ring-2 ring-teal-400 shadow-2xl"
+              : dateStatus === "overdue"
+              ? "bg-[#33222a] hover:bg-[#3d2732]"
+              : dateStatus === "due-soon"
+              ? "bg-[#352e22] hover:bg-[#3f3729]"
               : "bg-[#243746] hover:bg-[#2c4254]"
           }`}
           style={{
@@ -40,7 +93,7 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
                   e.stopPropagation();
                   onEdit(task);
                 }}
-                title="แก้ไขงานนี้"
+                title={language === "th" ? "แก้ไขงานนี้" : "Edit task"}
                 className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-700/60 hover:bg-blue-600/30 text-slate-300 hover:text-blue-400 text-xs transition-colors cursor-pointer"
               >
                 ✏️
@@ -52,7 +105,7 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
                   e.stopPropagation();
                   onDelete(task);
                 }}
-                title="ลบงานนี้"
+                title={language === "th" ? "ลบงานนี้" : "Delete task"}
                 className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-700/60 hover:bg-red-600/30 text-slate-300 hover:text-red-400 text-xs transition-colors cursor-pointer"
               >
                 ✕
@@ -60,10 +113,10 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
             </div>
           </div>
 
-          {/* Status Badge (สีทึบ ตัวอักษรดำ) */}
+          {/* Status Badge & วันที่กำหนด */}
           <div className="flex items-center justify-between gap-2 mt-2">
             <span
-              className="text-[11px] font-bold tracking-wider px-2.5 py-0.5 rounded-md inline-block uppercase text-slate-900 shadow-sm"
+              className="text-[11px] font-bold tracking-wider px-2.5 py-0.5 rounded-md inline-block uppercase text-slate-900 shadow-sm flex-shrink-0"
               style={{
                 backgroundColor: columnColor,
               }}
@@ -71,16 +124,20 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
               {columnTitle}
             </span>
 
-            {/* วันที่กำหนด */}
+            {/* วันที่กำหนดพร้อมไฮไลท์เตือนตามกำหนดส่ง (ไร้กรอบขาว) */}
             {task.task_date && (
-              <div className="text-[11px] text-slate-400 flex items-center gap-1">
-                <span>📅</span>
-                <span>
-                  {new Date(task.task_date).toLocaleDateString("th-TH", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
+              <div
+                className={`text-[11px] font-medium flex items-center gap-1.5 px-2.5 py-1 rounded-md ${
+                  dateStatus === "overdue"
+                    ? "bg-red-500/25 text-red-300"
+                    : dateStatus === "due-soon"
+                    ? "bg-amber-500/25 text-amber-300"
+                    : "text-slate-400"
+                }`}
+              >
+                <span>{dateStatus === "overdue" ? "⚠️" : dateStatus === "due-soon" ? "⏰" : "📅"}</span>
+                <span className="whitespace-nowrap font-medium">
+                  {formatTaskDate(task.task_date)}
                 </span>
               </div>
             )}

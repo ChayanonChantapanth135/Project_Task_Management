@@ -5,7 +5,7 @@ import TaskColumn from "./TaskColumn";
 const TaskBoard = ({ data, onDragEnd, onAddTask, onEditTask, onDeleteTask }) => {
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
         {data.columnOrder.map((columnId) => {
           const column = data.columns[columnId];
           const tasks = column.taskIds

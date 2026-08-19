@@ -6,10 +6,10 @@ const TaskColumn = ({ column, tasks, onAddTask, onEditTask, onDeleteTask }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <div className="rounded-2xl p-5 flex flex-col bg-[#1c2c38]/90 shadow-xl">
+    <div className="rounded-2xl p-5 flex flex-col bg-[#1c2c38]/90 shadow-xl h-[560px]">
       {/* Header ของคอลัมน์ */}
       <div
-        className="flex items-center justify-between mb-4 pb-3 border-b border-gray-700/50"
+        className="flex items-center justify-between mb-3 pb-3 border-b border-gray-700/50 flex-shrink-0"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -37,17 +37,21 @@ const TaskColumn = ({ column, tasks, onAddTask, onEditTask, onDeleteTask }) => {
         </button>
       </div>
 
-      {/* พื้นที่ Droppable */}
+      {/* พื้นที่ Droppable ความสูงเท่ากันทุกคอลัมน์ พร้อมเลื่อน Scrollbar เมื่อการ์ดล้น */}
       <Droppable droppableId={column.id}>
         {(provided, snapshot) => (
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`flex-1 min-h-[360px] rounded-xl p-2.5 ${
+            className={`flex-1 overflow-y-auto pr-1.5 rounded-xl transition-colors ${
               snapshot.isDraggingOver
                 ? "bg-slate-700/40 ring-2 ring-dashed ring-teal-400/50"
                 : "bg-transparent"
             }`}
+            style={{
+              scrollbarWidth: "thin",
+              scrollbarColor: "#23526c transparent",
+            }}
           >
             {tasks.map((task, index) => (
               <TaskCard

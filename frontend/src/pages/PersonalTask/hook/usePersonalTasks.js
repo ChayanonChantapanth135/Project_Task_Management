@@ -3,6 +3,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { getCurrentUser } from "../../../lib/auth";
 import { API_URL } from "../../../config";
+import { useLanguage } from "../../../lib/LanguageContext";
 
 const defaultColumnData = {
   tasks: {},
@@ -32,10 +33,36 @@ const defaultColumnData = {
   columnOrder: ["todo", "in-progress", "completed"],
 };
 
+// Helper แปลง YYYY-MM-DD -> DD/MM/YYYY
+const formatToDDMMYYYY = (isoDate) => {
+  if (!isoDate) return "";
+  const parts = isoDate.split("-");
+  if (parts.length === 3) {
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  return isoDate;
+};
+
+// Helper แปลง DD/MM/YYYY -> YYYY-MM-DD
+const parseDDMMYYYYtoISO = (dmyStr) => {
+  if (!dmyStr) return null;
+  const parts = dmyStr.split("/");
+  if (parts.length === 3) {
+    const day = parts[0].padStart(2, "0");
+    const month = parts[1].padStart(2, "0");
+    const year = parts[2];
+    return `${year}-${month}-${day}`;
+  }
+  return dmyStr;
+};
+
 export const usePersonalTasks = () => {
+  const { language } = useLanguage();
   const [data, setData] = useState(defaultColumnData);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState(null);
+
+  const isThai = language === "th";
 
   // ดึงข้อมูล User ปัจจุบันอย่างถูกต้อง
   useEffect(() => {
@@ -74,7 +101,6 @@ export const usePersonalTasks = () => {
 
       taskList.forEach((task) => {
         const taskIdStr = `task-${task.id}`;
-        // ตรวจสอบ status หรือ fallback จาก is_completed
         let currentStatus = task.status;
         if (!currentStatus) {
           currentStatus = task.is_completed ? "completed" : "todo";
@@ -162,7 +188,7 @@ export const usePersonalTasks = () => {
     const newFinish = { ...finishCol, taskIds: finishTaskIds };
 
     const movedTask = data.tasks[draggableId];
-    const newStatus = destination.droppableId; // 'todo' | 'in-progress' | 'completed'
+    const newStatus = destination.droppableId;
 
     setData((prev) => ({
       ...prev,
@@ -193,8 +219,8 @@ export const usePersonalTasks = () => {
       console.error("Failed to update status in db:", err);
       Swal.fire({
         icon: "error",
-        title: "เกิดข้อผิดพลาด",
-        text: "ไม่สามารถอัปเดตสถานะงานได้",
+        title: isThai ? "เกิดข้อผิดพลาด" : "Error",
+        text: isThai ? "ไม่สามารถอัปเดตสถานะงานได้" : "Failed to update status",
       });
       fetchTasks();
     }
@@ -205,33 +231,74 @@ export const usePersonalTasks = () => {
     const targetStatus = targetColumn.id;
 
     const { value: formValues } = await Swal.fire({
-      title: `<span class="text-xl font-semibold text-gray-800">เพิ่ม Task ใหม่ (${targetColumn?.title || ""})</span>`,
+      title: `<span class="text-xl font-semibold text-gray-800">${
+        isThai ? `เพิ่ม Task ใหม่ (${targetColumn?.title || ""})` : `Add New Task (${targetColumn?.title || ""})`
+      }</span>`,
       html: `
         <div class="flex flex-col gap-3 text-left">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">ชื่องาน <span class="text-red-500">*</span></label>
-            <input id="swal-task-title" class="swal2-input !m-0 !w-full" placeholder="กรอกชื่องานของคุณ..." />
+            <label class="block text-sm font-medium text-gray-700 mb-1">${
+              isThai ? "ชื่องาน" : "Task Title"
+            } <span class="text-red-500">*</span></label>
+            <input id="swal-task-title" class="swal2-input !m-0 !w-full" placeholder="${
+              isThai ? "กรอกชื่องานของคุณ..." : "Enter your task title..."
+            }" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">วันที่กำหนด (ถ้ามี)</label>
-            <input id="swal-task-date" type="date" class="swal2-input !m-0 !w-full" />
+            <label class="block text-sm font-medium text-gray-700 mb-1">${
+              isThai ? "วันที่กำหนด (วัน/เดือน/ปี)" : "Due Date (DD/MM/YYYY)"
+            }</label>
+            <div class="relative flex items-center">
+              <input 
+                id="swal-task-date-display" 
+                type="text" 
+                class="swal2-input !m-0 !w-full pr-10 cursor-pointer" 
+                placeholder="DD/MM/YYYY" 
+                readonly 
+              />
+              <input 
+                id="swal-task-date-native" 
+                type="date" 
+                class="absolute right-2 opacity-0 w-8 h-8 cursor-pointer" 
+              />
+              <span class="absolute right-3 pointer-events-none text-gray-500 text-lg">📅</span>
+            </div>
           </div>
         </div>
       `,
+      didOpen: () => {
+        const displayInput = document.getElementById("swal-task-date-display");
+        const nativeInput = document.getElementById("swal-task-date-native");
+
+        if (displayInput && nativeInput) {
+          displayInput.addEventListener("click", () => {
+            if (nativeInput.showPicker) {
+              nativeInput.showPicker();
+            } else {
+              nativeInput.focus();
+            }
+          });
+
+          nativeInput.addEventListener("change", (e) => {
+            displayInput.value = formatToDDMMYYYY(e.target.value);
+          });
+        }
+      },
       focusConfirm: false,
       showCancelButton: true,
-      confirmButtonText: "บันทึก",
-      cancelButtonText: "ยกเลิก",
+      confirmButtonText: isThai ? "บันทึก" : "Save",
+      cancelButtonText: isThai ? "ยกเลิก" : "Cancel",
       confirmButtonColor: "#007aeb",
       cancelButtonColor: "#6c757d",
       preConfirm: () => {
         const title = document.getElementById("swal-task-title").value.trim();
-        const task_date = document.getElementById("swal-task-date").value;
+        const dateDisplay = document.getElementById("swal-task-date-display").value.trim();
         if (!title) {
-          Swal.showValidationMessage("กรุณากรอกชื่องาน");
+          Swal.showValidationMessage(isThai ? "กรุณากรอกชื่องาน" : "Please enter task title");
           return false;
         }
-        return { title, task_date: task_date || null };
+        const isoDate = parseDDMMYYYYtoISO(dateDisplay);
+        return { title, task_date: isoDate || null };
       },
     });
 
@@ -259,7 +326,7 @@ export const usePersonalTasks = () => {
 
         Swal.fire({
           icon: "success",
-          title: "เพิ่มงานสำเร็จ",
+          title: isThai ? "เพิ่มงานสำเร็จ" : "Task created",
           timer: 1500,
           showConfirmButton: false,
         });
@@ -267,10 +334,10 @@ export const usePersonalTasks = () => {
         fetchTasks();
       } catch (err) {
         console.error("Error creating personal task:", err);
-        const errMsg = err.response?.data?.message || err.message || "ไม่สามารถเพิ่มงานได้";
+        const errMsg = err.response?.data?.message || err.message || (isThai ? "ไม่สามารถเพิ่มงานได้" : "Failed to create task");
         Swal.fire({
           icon: "error",
-          title: "เกิดข้อผิดพลาด",
+          title: isThai ? "เกิดข้อผิดพลาด" : "Error",
           text: errMsg,
         });
       }
@@ -278,38 +345,82 @@ export const usePersonalTasks = () => {
   };
 
   const handleEditTask = async (task) => {
-    const formattedDate = task.task_date
+    const formattedDateISO = task.task_date
       ? new Date(task.task_date).toISOString().split("T")[0]
       : "";
+    const formattedDateDMY = formatToDDMMYYYY(formattedDateISO);
 
     const { value: formValues } = await Swal.fire({
-      title: `<span class="text-xl font-semibold text-gray-800">แก้ไข Task</span>`,
+      title: `<span class="text-xl font-semibold text-gray-800">${
+        isThai ? "แก้ไข Task" : "Edit Task"
+      }</span>`,
       html: `
         <div class="flex flex-col gap-3 text-left">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">ชื่องาน <span class="text-red-500">*</span></label>
-            <input id="swal-edit-title" class="swal2-input !m-0 !w-full" value="${task.title.replace(/"/g, "&quot;")}" placeholder="กรอกชื่องานของคุณ..." />
+            <label class="block text-sm font-medium text-gray-700 mb-1">${
+              isThai ? "ชื่องาน" : "Task Title"
+            } <span class="text-red-500">*</span></label>
+            <input id="swal-edit-title" class="swal2-input !m-0 !w-full" value="${task.title.replace(/"/g, "&quot;")}" placeholder="${
+              isThai ? "กรอกชื่องานของคุณ..." : "Enter task title..."
+            }" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">วันที่กำหนด (ถ้ามี)</label>
-            <input id="swal-edit-date" type="date" class="swal2-input !m-0 !w-full" value="${formattedDate}" />
+            <label class="block text-sm font-medium text-gray-700 mb-1">${
+              isThai ? "วันที่กำหนด (วัน/เดือน/ปี)" : "Due Date (DD/MM/YYYY)"
+            }</label>
+            <div class="relative flex items-center">
+              <input 
+                id="swal-edit-date-display" 
+                type="text" 
+                class="swal2-input !m-0 !w-full pr-10 cursor-pointer" 
+                value="${formattedDateDMY}"
+                placeholder="DD/MM/YYYY (เช่น 20/08/2026)" 
+                readonly 
+              />
+              <input 
+                id="swal-edit-date-native" 
+                type="date" 
+                value="${formattedDateISO}"
+                class="absolute right-2 opacity-0 w-8 h-8 cursor-pointer" 
+              />
+              <span class="absolute right-3 pointer-events-none text-gray-500 text-lg">📅</span>
+            </div>
           </div>
         </div>
       `,
+      didOpen: () => {
+        const displayInput = document.getElementById("swal-edit-date-display");
+        const nativeInput = document.getElementById("swal-edit-date-native");
+
+        if (displayInput && nativeInput) {
+          displayInput.addEventListener("click", () => {
+            if (nativeInput.showPicker) {
+              nativeInput.showPicker();
+            } else {
+              nativeInput.focus();
+            }
+          });
+
+          nativeInput.addEventListener("change", (e) => {
+            displayInput.value = formatToDDMMYYYY(e.target.value);
+          });
+        }
+      },
       focusConfirm: false,
       showCancelButton: true,
-      confirmButtonText: "บันทึกการแก้ไข",
-      cancelButtonText: "ยกเลิก",
+      confirmButtonText: isThai ? "บันทึกการแก้ไข" : "Save Changes",
+      cancelButtonText: isThai ? "ยกเลิก" : "Cancel",
       confirmButtonColor: "#007aeb",
       cancelButtonColor: "#6c757d",
       preConfirm: () => {
         const title = document.getElementById("swal-edit-title").value.trim();
-        const task_date = document.getElementById("swal-edit-date").value;
+        const dateDisplay = document.getElementById("swal-edit-date-display").value.trim();
         if (!title) {
-          Swal.showValidationMessage("กรุณากรอกชื่องาน");
+          Swal.showValidationMessage(isThai ? "กรุณากรอกชื่องาน" : "Please enter task title");
           return false;
         }
-        return { title, task_date: task_date || null };
+        const isoDate = parseDDMMYYYYtoISO(dateDisplay);
+        return { title, task_date: isoDate || null };
       },
     });
 
@@ -322,7 +433,7 @@ export const usePersonalTasks = () => {
 
         Swal.fire({
           icon: "success",
-          title: "แก้ไขงานสำเร็จ",
+          title: isThai ? "แก้ไขงานสำเร็จ" : "Task updated",
           timer: 1500,
           showConfirmButton: false,
         });
@@ -330,10 +441,10 @@ export const usePersonalTasks = () => {
         fetchTasks();
       } catch (err) {
         console.error("Error updating personal task:", err);
-        const errMsg = err.response?.data?.message || err.message || "ไม่สามารถแก้ไขงานได้";
+        const errMsg = err.response?.data?.message || err.message || (isThai ? "ไม่สามารถแก้ไขงานได้" : "Failed to update task");
         Swal.fire({
           icon: "error",
-          title: "เกิดข้อผิดพลาด",
+          title: isThai ? "เกิดข้อผิดพลาด" : "Error",
           text: errMsg,
         });
       }
@@ -342,14 +453,14 @@ export const usePersonalTasks = () => {
 
   const handleDeleteTask = async (task) => {
     const result = await Swal.fire({
-      title: "ยืนยันการลบ?",
-      text: `คุณต้องการลบงาน "${task.title}" หรือไม่?`,
+      title: isThai ? "ยืนยันการลบ?" : "Are you sure?",
+      text: isThai ? `คุณต้องการลบงาน "${task.title}" หรือไม่?` : `Do you want to delete "${task.title}"?`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
-      confirmButtonText: "ลบ",
-      cancelButtonText: "ยกเลิก",
+      confirmButtonText: isThai ? "ลบ" : "Delete",
+      cancelButtonText: isThai ? "ยกเลิก" : "Cancel",
     });
 
     if (result.isConfirmed) {
@@ -359,14 +470,14 @@ export const usePersonalTasks = () => {
         );
         Swal.fire({
           icon: "success",
-          title: "ลบงานสำเร็จ",
+          title: isThai ? "ลบงานสำเร็จ" : "Task deleted",
           timer: 1200,
           showConfirmButton: false,
         });
         fetchTasks();
       } catch (err) {
         console.error("Error deleting task:", err);
-        Swal.fire("Error", "ไม่สามารถลบงานได้", "error");
+        Swal.fire(isThai ? "ข้อผิดพลาด" : "Error", isThai ? "ไม่สามารถลบงานได้" : "Failed to delete task", "error");
       }
     }
   };
