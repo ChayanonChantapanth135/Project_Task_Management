@@ -39,6 +39,12 @@ router.get('/tasks/:id/files', authCtrl.getTaskFiles);
 router.post('/tasks/:id/files', uploadTaskFileMiddleware.single('file'), authCtrl.uploadTaskFile);
 router.get('/tasks/:id/status-history', authCtrl.getTaskStatusHistory);
 
+// --- PERSONAL TASKS ROUTES ---
+router.get('/personal-tasks', authCtrl.getPersonalTasks);
+router.post('/personal-tasks', authCtrl.createPersonalTask);
+router.put('/personal-tasks/:id', authCtrl.updatePersonalTask);
+router.delete('/personal-tasks/:id', authCtrl.deletePersonalTask);
+
 // --- DASHBOARD & LOGS ROUTES ---
 router.get('/dashboard-stats', authCtrl.getDashboardStats);
 router.get('/activity-logs', authCtrl.getActivityLogs);

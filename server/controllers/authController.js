@@ -1545,3 +1545,106 @@ export const resetPasswordFirstTime = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// --- PERSONAL TASKS CONTROLLERS ---
+export const getPersonalTasks = async (req, res) => {
+    const { userId } = req.query;
+    try {
+        const db = await connectToDatabase();
+        let query = 'SELECT * FROM personal_tasks';
+        let params = [];
+        if (userId) {
+            query += ' WHERE user_id = ?';
+            params.push(userId);
+        }
+        query += ' ORDER BY created_at ASC';
+        const [rows] = await db.query(query, params);
+        res.status(200).json(rows);
+    } catch (error) {
+        console.error('Error fetching personal tasks:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const createPersonalTask = async (req, res) => {
+    const { user_id, title, status, is_completed, task_date } = req.body;
+    try {
+        if (!title) {
+            return res.status(400).json({ message: 'Task title is required' });
+        }
+        const db = await connectToDatabase();
+        
+        let validUserId = user_id || null;
+        if (validUserId) {
+            const [u] = await db.query('SELECT id FROM users WHERE id = ?', [validUserId]);
+            if (u.length === 0) validUserId = null;
+        }
+
+        const taskStatus = status || (is_completed ? 'completed' : 'todo');
+        const completedVal = taskStatus === 'completed' ? 1 : 0;
+
+        const [result] = await db.query(
+            'INSERT INTO personal_tasks (user_id, title, status, is_completed, task_date) VALUES (?, ?, ?, ?, ?)',
+            [validUserId, title, taskStatus, completedVal, task_date || null]
+        );
+        res.status(201).json({ id: result.insertId, user_id: validUserId, title, status: taskStatus, is_completed: completedVal, task_date });
+    } catch (error) {
+        console.error('Error creating personal task:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const updatePersonalTask = async (req, res) => {
+    const { id } = req.params;
+    const { title, status, is_completed, task_date } = req.body;
+    try {
+        const db = await connectToDatabase();
+        const updates = [];
+        const params = [];
+
+        if (title !== undefined) {
+            updates.push('title = ?');
+            params.push(title);
+        }
+        if (status !== undefined) {
+            updates.push('status = ?');
+            params.push(status);
+            // sync is_completed
+            updates.push('is_completed = ?');
+            params.push(status === 'completed' ? 1 : 0);
+        } else if (is_completed !== undefined) {
+            updates.push('is_completed = ?');
+            params.push(is_completed ? 1 : 0);
+            updates.push('status = ?');
+            params.push(is_completed ? 'completed' : 'todo');
+        }
+        if (task_date !== undefined) {
+            updates.push('task_date = ?');
+            params.push(task_date);
+        }
+
+        if (updates.length === 0) {
+            return res.status(400).json({ message: 'No fields to update' });
+        }
+
+        params.push(id);
+        await db.query(`UPDATE personal_tasks SET ${updates.join(', ')} WHERE id = ?`, params);
+        res.status(200).json({ message: 'Personal task updated successfully' });
+    } catch (error) {
+        console.error('Error updating personal task:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const deletePersonalTask = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const db = await connectToDatabase();
+        await db.query('DELETE FROM personal_tasks WHERE id = ?', [id]);
+        res.status(200).json({ message: 'Personal task deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting personal task:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+

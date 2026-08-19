@@ -32,9 +32,13 @@ select:focus, input:focus, textarea:focus {
 .modal-body textarea,
 .bg-white input,
 .bg-white select,
-.bg-white textarea {
+.bg-white textarea,
+.swal2-popup input,
+.swal2-popup select,
+.swal2-popup textarea,
+.swal2-input {
   border: 1.5px solid #cbd5e1 !important;
-  border-radius: 0.75rem;
+  border-radius: 0.75rem !important;
   transition: all 0.2s ease-in-out;
 }
 
@@ -46,7 +50,11 @@ select:focus, input:focus, textarea:focus {
 .modal-body textarea:focus,
 .bg-white input:focus,
 .bg-white select:focus,
-.bg-white textarea:focus {
+.bg-white textarea:focus,
+.swal2-popup input:focus,
+.swal2-popup select:focus,
+.swal2-popup textarea:focus,
+.swal2-input:focus {
   border-color: #14b8a6 !important;
   outline: none !important;
   box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.25) !important;
