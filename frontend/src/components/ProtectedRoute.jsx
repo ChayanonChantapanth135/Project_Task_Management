@@ -29,7 +29,15 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
       }
       setLoading(false);
     };
+
     checkAuth();
+    window.addEventListener("authChanged", checkAuth);
+    window.addEventListener("storage", checkAuth);
+
+    return () => {
+      window.removeEventListener("authChanged", checkAuth);
+      window.removeEventListener("storage", checkAuth);
+    };
   }, []);
 
   if (loading) {

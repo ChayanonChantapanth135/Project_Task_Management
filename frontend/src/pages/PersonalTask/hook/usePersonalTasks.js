@@ -248,9 +248,12 @@ export const usePersonalTasks = () => {
     }
   };
 
-  const handleAddTask = async (columnId) => {
+  const handleAddTask = async (columnId, initialDate = null) => {
     const targetColumn = data.columns[columnId] || data.columns["todo"];
     const targetStatus = targetColumn.id;
+
+    const initialDateISO = initialDate ? (initialDate.includes("T") ? initialDate.split("T")[0] : initialDate) : "";
+    const initialDateDMY = initialDateISO ? formatToDDMMYYYY(initialDateISO) : "";
 
     const { value: formValues } = await Swal.fire({
       title: `<span class="text-xl font-semibold text-gray-800">${
@@ -275,12 +278,14 @@ export const usePersonalTasks = () => {
                 id="swal-task-date-display" 
                 type="text" 
                 class="swal2-input !m-0 !w-full pr-10 cursor-pointer" 
+                value="${initialDateDMY}"
                 placeholder="DD/MM/YYYY" 
                 readonly 
               />
               <input 
                 id="swal-task-date-native" 
                 type="date" 
+                value="${initialDateISO}"
                 class="absolute right-2 opacity-0 w-8 h-8 cursor-pointer" 
               />
               <span class="absolute right-3 pointer-events-none text-gray-500 text-lg">📅</span>
@@ -504,6 +509,113 @@ export const usePersonalTasks = () => {
     }
   };
 
+  const handleUpdateTaskDate = async (taskDbId, newDateStr) => {
+    try {
+      const isoDate = newDateStr
+        ? (newDateStr.includes("T") ? newDateStr.split("T")[0] : newDateStr)
+        : null;
+
+      await axios.put(`${API_URL}/auth/personal-tasks/${taskDbId}`, {
+        task_date: isoDate,
+      });
+
+      setData((prev) => {
+        const taskIdStr = `task-${taskDbId}`;
+        if (!prev.tasks[taskIdStr]) return prev;
+        return {
+          ...prev,
+          tasks: {
+            ...prev.tasks,
+            [taskIdStr]: {
+              ...prev.tasks[taskIdStr],
+              task_date: isoDate,
+            },
+          },
+        };
+      });
+
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+        background: "#1e293b",
+        color: "#ffffff",
+      });
+      Toast.fire({
+        icon: "success",
+        title: isThai ? "ย้ายวันที่กำหนดส่งเรียบร้อยแล้ว" : "Due date updated successfully",
+      });
+    } catch (err) {
+      console.error("Error updating task date:", err);
+      Swal.fire({
+        icon: "error",
+        title: isThai ? "เกิดข้อผิดพลาด" : "Error",
+        text: isThai ? "ไม่สามารถอัปเดตวันที่ได้" : "Failed to update date",
+      });
+      fetchTasks();
+    }
+  };
+
+  const handleUpdateTaskStatus = async (taskDbId, newStatus) => {
+    try {
+      const isCompleted = newStatus === "completed" ? 1 : 0;
+      await axios.put(`${API_URL}/auth/personal-tasks/${taskDbId}`, {
+        status: newStatus,
+        is_completed: isCompleted,
+      });
+
+      setData((prev) => {
+        const taskIdStr = `task-${taskDbId}`;
+        if (!prev.tasks[taskIdStr]) return prev;
+
+        const oldStatus = prev.tasks[taskIdStr].status;
+        if (oldStatus === newStatus) return prev;
+
+        const oldCol = prev.columns[oldStatus] || prev.columns["todo"];
+        const newCol = prev.columns[newStatus] || prev.columns["todo"];
+
+        const oldTaskIds = oldCol.taskIds.filter((id) => id !== taskIdStr);
+        const newTaskIds = [...newCol.taskIds, taskIdStr];
+
+        return {
+          ...prev,
+          tasks: {
+            ...prev.tasks,
+            [taskIdStr]: {
+              ...prev.tasks[taskIdStr],
+              status: newStatus,
+              is_completed: isCompleted,
+            },
+          },
+          columns: {
+            ...prev.columns,
+            [oldCol.id]: { ...oldCol, taskIds: oldTaskIds },
+            [newCol.id]: { ...newCol, taskIds: newTaskIds },
+          },
+        };
+      });
+
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 1500,
+        showCloseButton: false,
+        background: "#1e293b",
+        color: "#ffffff",
+      });
+      Toast.fire({
+        icon: "success",
+        title: isThai ? "เปลี่ยนสถานะสำเร็จ" : "Status changed",
+      });
+    } catch (err) {
+      console.error("Error updating task status:", err);
+      fetchTasks();
+    }
+  };
+
   return {
     data,
     loading,
@@ -512,5 +624,8 @@ export const usePersonalTasks = () => {
     handleAddTask,
     handleEditTask,
     handleDeleteTask,
+    handleUpdateTaskDate,
+    handleUpdateTaskStatus,
   };
 };
+

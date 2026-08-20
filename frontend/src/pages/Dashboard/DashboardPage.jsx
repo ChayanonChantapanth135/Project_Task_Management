@@ -761,11 +761,11 @@ const DashboardPage = () => {
                 const eventTitle = info.event.title || "";
 
                 Swal.fire({
-                  title: isTask ? `📋 ${eventTitle}` : `📁 ${eventTitle}`,
+                  title: `<span style="font-size: 1.25rem; font-weight: 700; color: #1e293b;">${isTask ? `📋 ${eventTitle}` : `📁 ${eventTitle}`}</span>`,
                   html: `
-                    <div style="font-family: inherit; text-align: center; color: #cbd5e1; font-size: 14px; margin-top: 6px;">
-                      ${isTask && projectName ? `<p style="margin: 6px 0; color: #94a3b8;"><b>${t("project") || "โปรเจกต์"}:</b> <span style="color: #e2e8f0; font-weight: bold;">${projectName}</span></p>` : ""}
-                      <p style="margin: 6px 0; color: #94a3b8;"><b>${t("dueDate") || "กำหนดส่ง"}:</b> <span style="color: #f43f5e; font-weight: bold;">${dateStr}</span></p>
+                    <div style="font-family: inherit; text-align: center; color: #475569; font-size: 14px; margin-top: 8px;">
+                      ${isTask && projectName ? `<p style="margin: 6px 0; color: #64748b;"><b>${t("project") || "โปรเจกต์"}:</b> <span style="color: #0f172a; font-weight: 600;">${projectName}</span></p>` : ""}
+                      <p style="margin: 6px 0; color: #64748b;"><b>${t("dueDate") || "กำหนดส่ง"}:</b> <span style="color: #e11d48; font-weight: 600;">${dateStr}</span></p>
                     </div>
                   `,
                   icon: "info",
@@ -779,9 +779,12 @@ const DashboardPage = () => {
                   denyButtonColor: "#6366f1",
                   showCancelButton: true,
                   cancelButtonText: t("close") || (language === "th" ? "ปิด" : "Close"),
-                  cancelButtonColor: "#475569",
-                  background: "#0f172a",
-                  color: "#ffffff",
+                  cancelButtonColor: "#94a3b8",
+                  background: "#ffffff",
+                  color: "#1e293b",
+                  customClass: {
+                    popup: "rounded-3xl shadow-2xl !border-0",
+                  },
                 }).then((result) => {
                   if (result.isConfirmed) {
                     if (isTask) {

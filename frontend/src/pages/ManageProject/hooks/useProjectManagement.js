@@ -159,8 +159,19 @@ export const useProjectManagement = (t) => {
       }
     }
 
-    if (searchQuery) {
-      return p.name.toLowerCase().includes(searchQuery.toLowerCase());
+    if (searchQuery && searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const matchName = (p.name || "").toLowerCase().includes(q);
+      const matchId = String(p.id || "").includes(q.replace("#", ""));
+      const matchLeader = (p.teamLeaderName || p.teamLeader || "").toLowerCase().includes(q);
+      const matchManager = (p.projectManagerName || "").toLowerCase().includes(q);
+      const matchStatus = (p.status || "").toLowerCase().includes(q);
+      const matchTask =
+        p.tasks &&
+        Array.isArray(p.tasks) &&
+        p.tasks.some((t) => (t.title || "").toLowerCase().includes(q));
+
+      return matchName || matchId || matchLeader || matchManager || matchStatus || matchTask;
     }
     return true;
   });

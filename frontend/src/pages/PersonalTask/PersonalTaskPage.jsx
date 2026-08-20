@@ -1,12 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { useLanguage } from "../../lib/LanguageContext";
 import { usePersonalTasks } from "./hook/usePersonalTasks";
 import TaskBoard from "./components/TaskBoard";
+import PersonalTaskCalendar from "./components/PersonalTaskCalendar";
 
 const PersonalTaskPage = () => {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
+  const [viewMode, setViewMode] = useState("board"); // "board" | "calendar"
+
   const {
     data,
     loading,
@@ -14,7 +17,10 @@ const PersonalTaskPage = () => {
     handleAddTask,
     handleEditTask,
     handleDeleteTask,
+    handleUpdateTaskDate,
   } = usePersonalTasks();
+
+  const isThai = language === "th";
 
   return (
     <div className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans relative">
@@ -25,40 +31,80 @@ const PersonalTaskPage = () => {
       <div className="absolute top-1/3 right-1/4 w-[350px] h-[350px] bg-indigo-600/15 rounded-full filter blur-[110px] pointer-events-none -z-0"></div>
       <div className="absolute bottom-10 left-1/3 w-[450px] h-[450px] bg-cyan-600/10 rounded-full filter blur-[120px] pointer-events-none -z-0"></div>
 
-      <main className="flex-1 p-6 max-w-7xl mx-auto w-full relative z-10">
+      <main className="flex-1 p-6 max-w-7xl mx-auto w-full relative z-10 space-y-6">
         {/* Title Header Section */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
           <div>
             <h1 className="text-3xl font-black text-white tracking-wide flex items-center gap-3">
-              📋 {language === "th" ? "งานส่วนตัวของฉัน" : "Personal Tasks"}
+              📋 {isThai ? "งานส่วนตัวของฉัน" : "Personal Tasks"}
             </h1>
             <p className="text-slate-400 text-sm mt-1">
-              {language === "th"
-                ? "จัดการรายการงานส่วนตัวของคุณด้วยระบบ Kanban ลากและวาง"
-                : "Manage your personal tasks with drag-and-drop Kanban board"}
+              {isThai
+                ? "จัดการรายการงานส่วนตัวของคุณด้วยระบบ Kanban บอร์ด และปฏิทิน Drag & Drop"
+                : "Manage your personal tasks with Kanban board & Drag-and-Drop Calendar"}
             </p>
           </div>
 
-          <button
-            onClick={() => handleAddTask("todo")}
-            className="px-6 py-2.5 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold text-xs glow-button flex items-center gap-2 cursor-pointer transition-all"
-          >
-            <span className="text-sm leading-none font-extrabold">+</span>
-            <span>{language === "th" ? "เพิ่ม Task ใหม่" : "Add New Task"}</span>
-          </button>
+          <div className="flex items-center flex-wrap gap-3">
+            {/* View Mode Toggle Switcher without white border */}
+            <div className="flex items-center gap-1 bg-[#1c2c38] p-1 rounded-xl shadow-md text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setViewMode("board")}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  viewMode === "board"
+                    ? "bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/40"
+                }`}
+              >
+                <span>📋</span>
+                <span>{isThai ? "บอร์ด" : "Kanban"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setViewMode("calendar")}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  viewMode === "calendar"
+                    ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/40"
+                }`}
+              >
+                <span>📅</span>
+                <span>{isThai ? "ปฏิทิน" : "Calendar"}</span>
+              </button>
+            </div>
+
+            {/* Add New Task Button */}
+            <button
+              onClick={() => handleAddTask("todo")}
+              className="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold text-xs glow-button flex items-center gap-2 cursor-pointer transition-all hover:scale-105 active:scale-95 shadow-lg"
+            >
+              <span className="text-sm leading-none font-extrabold">+</span>
+              <span>{isThai ? "เพิ่ม Task ใหม่" : "Add New Task"}</span>
+            </button>
+          </div>
         </div>
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-400"></div>
           </div>
-        ) : (
+        ) : viewMode === "board" ? (
           <TaskBoard
             data={data}
             onDragEnd={handleDragEnd}
             onAddTask={handleAddTask}
             onEditTask={handleEditTask}
             onDeleteTask={handleDeleteTask}
+          />
+        ) : (
+          <PersonalTaskCalendar
+            data={data}
+            onAddTask={handleAddTask}
+            onEditTask={handleEditTask}
+            onDeleteTask={handleDeleteTask}
+            onUpdateTaskDate={handleUpdateTaskDate}
           />
         )}
       </main>

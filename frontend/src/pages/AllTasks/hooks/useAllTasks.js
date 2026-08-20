@@ -115,17 +115,51 @@ export const useAllTasks = () => {
     fetchUsers();
   }, []);
 
-  // Filter tasks based on search & criteria
-  const filteredTasks = tasks.filter((task) => {
-    const matchesSearch =
-      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.project.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.assignee.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "All" || task.status === statusFilter;
-    const matchesPriority = priorityFilter === "All" || task.priority === priorityFilter;
+  // Status order priority: Pending -> In Progress -> Reviewing -> Completed (last)
+  const STATUS_SORT_ORDER = {
+    Pending: 1,
+    "In Progress": 2,
+    Reviewing: 3,
+    Completed: 4,
+  };
 
-    return matchesSearch && matchesStatus && matchesPriority;
-  });
+  // Priority order: High -> Medium -> Low
+  const PRIORITY_SORT_ORDER = {
+    High: 1,
+    Medium: 2,
+    Low: 3,
+  };
+
+  // Filter & sort tasks based on search, criteria, status order, and priority
+  const filteredTasks = tasks
+    .filter((task) => {
+      const matchesSearch =
+        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        task.project.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        task.assignee.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === "All" || task.status === statusFilter;
+      const matchesPriority = priorityFilter === "All" || task.priority === priorityFilter;
+
+      return matchesSearch && matchesStatus && matchesPriority;
+    })
+    .sort((a, b) => {
+      // 1. Sort by Status (Pending -> In Progress -> Reviewing -> Completed)
+      const statusA = STATUS_SORT_ORDER[a.status] || 99;
+      const statusB = STATUS_SORT_ORDER[b.status] || 99;
+      if (statusA !== statusB) {
+        return statusA - statusB;
+      }
+
+      // 2. Sort by Priority (High -> Medium -> Low)
+      const priorityA = PRIORITY_SORT_ORDER[a.priority] || 99;
+      const priorityB = PRIORITY_SORT_ORDER[b.priority] || 99;
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+
+      // 3. Newest task first within same status & priority
+      return b.id - a.id;
+    });
 
   // Pagination calculation
   const indexOfLastItem = currentPage * itemsPerPage;

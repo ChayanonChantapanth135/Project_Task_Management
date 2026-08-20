@@ -4,8 +4,8 @@ import { useLanguage } from "../../../lib/LanguageContext";
 
 const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
   const { language } = useLanguage();
-  const columnTitle = column?.title || (task.is_completed ? "COMPLETED" : "TO DO");
-  const columnColor = column?.color || (task.is_completed ? "#00b884" : "#007aeb");
+
+  if (!task) return null;
 
   // ฟังก์ชันแปลงวันที่ตามภาษา (ไทย = วัน เดือน พ.ศ. / อังกฤษ = วัน เดือน ค.ศ.)
   const formatTaskDate = (dateStr) => {
@@ -52,7 +52,29 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
     return "normal";
   };
 
+  // จัดการสีและสไตล์ของป้ายสถานะตามรูปตัวอย่าง (Soft Tinted Pill Style)
+  const getStatusBadge = () => {
+    const status = (task.status || (task.is_completed ? "completed" : column?.id || "todo")).toLowerCase();
+    if (status.includes("complete") || status === "completed" || task.is_completed) {
+      return {
+        text: column?.title || "Completed",
+        className: "bg-emerald-500/20 text-emerald-300",
+      };
+    }
+    if (status.includes("progress") || status === "in-progress" || status === "in_progress") {
+      return {
+        text: column?.title || "In Progress",
+        className: "bg-amber-500/20 text-amber-300",
+      };
+    }
+    return {
+      text: column?.title || "To Do",
+      className: "bg-blue-500/20 text-blue-300",
+    };
+  };
+
   const dateStatus = getDateStatus();
+  const statusBadge = getStatusBadge();
 
   return (
     <Draggable draggableId={task.id} index={index}>
@@ -116,12 +138,9 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
           {/* Status Badge & วันที่กำหนด */}
           <div className="flex items-center justify-between gap-2 mt-2">
             <span
-              className="text-[11px] font-bold tracking-wider px-2.5 py-0.5 rounded-md inline-block uppercase text-slate-900 shadow-sm flex-shrink-0"
-              style={{
-                backgroundColor: columnColor,
-              }}
+              className={`text-xs font-semibold px-3 py-1 rounded-lg inline-block flex-shrink-0 tracking-wide ${statusBadge.className}`}
             >
-              {columnTitle}
+              {statusBadge.text}
             </span>
 
             {/* วันที่กำหนดพร้อมไฮไลท์เตือนตามกำหนดส่ง (ไร้กรอบขาว) */}

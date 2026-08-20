@@ -66,13 +66,19 @@ const SessionTimeoutHandler = () => {
     // Initial check
     checkSession();
 
-    // Listen to storage or auth events
+    // Listen to storage, auth, visibility, or focus events
     window.addEventListener("authChanged", checkSession);
+    window.addEventListener("storage", checkSession);
+    window.addEventListener("focus", checkSession);
+    document.addEventListener("visibilitychange", checkSession);
 
     return () => {
       clearInterval(checkInterval);
       clearInterval(countdownIntervalRef.current);
       window.removeEventListener("authChanged", checkSession);
+      window.removeEventListener("storage", checkSession);
+      window.removeEventListener("focus", checkSession);
+      document.removeEventListener("visibilitychange", checkSession);
     };
   }, [showModal]);
 

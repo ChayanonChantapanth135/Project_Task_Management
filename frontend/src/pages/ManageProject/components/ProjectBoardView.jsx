@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ProjectCard from "./ProjectCard";
 
 const ProjectBoardView = ({
@@ -12,10 +12,16 @@ const ProjectBoardView = ({
   const [itemsPerPage, setItemsPerPage] = useState(9);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Pagination calculations
+  // Auto-reset page to 1 when filtered dataset changes or if currentPage exceeds totalPages
   const totalItems = filteredProjects.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-  const indexOfLastItem = currentPage * itemsPerPage;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [totalItems, itemsPerPage]);
+
+  const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const indexOfLastItem = safeCurrentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredProjects.slice(
     indexOfFirstItem,

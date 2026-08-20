@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { formatDate } from "../../../lib/dateUtils";
 import { useLanguage } from "../../../lib/LanguageContext";
 
@@ -16,10 +16,16 @@ const ProjectTable = ({
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // คำนวณข้อมูล Pagination
+  // Auto-reset page to 1 when filtered dataset changes or if currentPage exceeds totalPages
   const totalEntries = filteredProjects.length;
   const totalPages = Math.ceil(totalEntries / entriesPerPage) || 1;
-  const indexOfLastEntry = currentPage * entriesPerPage;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [totalEntries, entriesPerPage]);
+
+  const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const indexOfLastEntry = safeCurrentPage * entriesPerPage;
   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
   const currentEntries = filteredProjects.slice(indexOfFirstEntry, indexOfLastEntry);
 
