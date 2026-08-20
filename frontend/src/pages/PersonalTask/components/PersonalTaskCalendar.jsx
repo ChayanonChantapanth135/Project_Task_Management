@@ -55,8 +55,7 @@ const PersonalTaskCalendar = ({
           ? task.task_date.split("T")[0]
           : task.task_date;
 
-        const statusConf =
-          STATUS_CONFIG[task.status] || STATUS_CONFIG["todo"];
+        const statusConf = STATUS_CONFIG[task.status] || STATUS_CONFIG["todo"];
 
         evts.push({
           id: String(task.dbId),
@@ -106,7 +105,7 @@ const PersonalTaskCalendar = ({
     return () => {
       draggable.destroy();
     };
-  }, [undatedTasks]);
+  }, []);
 
   // Handle Event Drag Start: record task being dragged
   const handleEventDragStart = (info) => {
@@ -176,14 +175,17 @@ const PersonalTaskCalendar = ({
     const statusConf = STATUS_CONFIG[task.status] || STATUS_CONFIG["todo"];
     const statusText = isThai ? statusConf.labelTh : statusConf.labelEn;
     const dateFormatted = task.task_date
-      ? new Date(task.task_date).toLocaleDateString(isThai ? "th-TH" : "en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })
+      ? new Date(task.task_date).toLocaleDateString(
+          isThai ? "th-TH" : "en-US",
+          {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          },
+        )
       : isThai
-      ? "ไม่ได้กำหนด"
-      : "No due date";
+        ? "ไม่ได้กำหนด"
+        : "No due date";
 
     Swal.fire({
       title: `<span class="text-xl font-bold text-gray-800">${task.title}</span>`,
@@ -365,6 +367,7 @@ const PersonalTaskCalendar = ({
           }
           .personal-calendar-container .fc-event-dragging {
             opacity: 0.3 !important;
+            transition: none !important;
           }
           .personal-calendar-container .fc-event-mirror {
             opacity: 0.95 !important;
@@ -372,6 +375,8 @@ const PersonalTaskCalendar = ({
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7) !important;
             z-index: 99999 !important;
             pointer-events: none !important;
+            will-change: transform, top, left;
+            transition: none !important;
           }
           .personal-calendar-container .fc-highlight {
             background: rgba(56, 189, 248, 0.22) !important;
@@ -484,50 +489,50 @@ const PersonalTaskCalendar = ({
           </span>
         </div>
 
-        {undatedTasks.length > 0 ? (
-          <div
-            ref={externalTasksContainerRef}
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"
-          >
-            {undatedTasks.map((task) => {
-              const statusConf =
-                STATUS_CONFIG[task.status] || STATUS_CONFIG["todo"];
-              return (
-                <div
-                  key={task.id}
-                  data-task={JSON.stringify(task)}
-                  onClick={() => onEditTask(task)}
-                  className="fc-external-task flex items-center justify-between p-3 rounded-xl bg-slate-800/90 hover:bg-slate-700/80 active:bg-slate-700 shadow-md transition-all cursor-grab active:cursor-grabbing select-none group"
-                >
-                  <div className="flex items-center gap-2.5 overflow-hidden pointer-events-none">
-                    <span
-                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: statusConf.color }}
-                    ></span>
-                    <span className="text-xs font-semibold text-slate-200 truncate group-hover:text-white">
-                      {task.title}
+        {/* Outer Container with persistent Ref */}
+        <div ref={externalTasksContainerRef} className="w-full">
+          {undatedTasks.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {undatedTasks.map((task) => {
+                const statusConf =
+                  STATUS_CONFIG[task.status] || STATUS_CONFIG["todo"];
+                return (
+                  <div
+                    key={task.id}
+                    data-task={JSON.stringify(task)}
+                    onClick={() => onEditTask(task)}
+                    className="fc-external-task flex items-center justify-between p-3 rounded-xl bg-slate-800/90 hover:bg-slate-700/80 active:bg-slate-700 shadow-md transition-colors cursor-grab active:cursor-grabbing select-none group"
+                  >
+                    <div className="flex items-center gap-2.5 overflow-hidden pointer-events-none">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: statusConf.color }}
+                      ></span>
+                      <span className="text-xs font-semibold text-slate-200 truncate group-hover:text-white">
+                        {task.title}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-slate-400 group-hover:text-indigo-300 transition-colors flex-shrink-0 ml-2 pointer-events-none">
+                      🖐️ {isThai ? "ลากวาง" : "Drag"}
                     </span>
                   </div>
-                  <span className="text-[10px] text-slate-400 group-hover:text-indigo-300 transition-colors flex-shrink-0 ml-2 pointer-events-none">
-                    🖐️ {isThai ? "ลากวาง" : "Drag"}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="py-6 px-4 text-center text-xs text-slate-400 rounded-2xl bg-slate-800/60 shadow-inner flex items-center justify-center gap-2">
-            <span>📥</span>
-            <span>
-              {isThai
-                ? "ไม่มีงานค้าง (คุณสามารถลากงานจากบนปฏิทินลงมาวางที่นี่เพื่อยกเลิกกำหนดส่งได้)"
-                : "No unscheduled tasks (Drag any task from the calendar down here to remove its due date)"}
-            </span>
-          </div>
-        )}
+                );
+              })}
+            </div>
+          ) : (
+            <div className="py-6 px-4 text-center text-xs text-slate-400 rounded-2xl bg-slate-800/60 shadow-inner flex items-center justify-center gap-2">
+              <span>📥</span>
+              <span>
+                {isThai
+                  ? "ไม่มีงานค้าง (คุณสามารถลากงานจากบนปฏิทินลงมาวางที่นี่เพื่อยกเลิกกำหนดส่งได้)"
+                  : "No unscheduled tasks (Drag any task from the calendar down here to remove its due date)"}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
-export default PersonalTaskCalendar;
+export default React.memo(PersonalTaskCalendar);

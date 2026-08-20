@@ -28,4 +28,4 @@ const TaskBoard = ({ data, onDragEnd, onAddTask, onEditTask, onDeleteTask }) => 
   );
 };
 
-export default TaskBoard;
+export default React.memo(TaskBoard);

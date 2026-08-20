@@ -49,4 +49,4 @@ const RecentActivity = ({ t, recentActivities }) => {
   );
 };
 
-export default RecentActivity;
+export default React.memo(RecentActivity);

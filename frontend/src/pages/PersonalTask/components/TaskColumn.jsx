@@ -1,18 +1,12 @@
-import React, { useState } from "react";
+import React from "react";
 import { Droppable } from "@hello-pangea/dnd";
 import TaskCard from "./TaskCard";
 
 const TaskColumn = ({ column, tasks, onAddTask, onEditTask, onDeleteTask }) => {
-  const [isHovered, setIsHovered] = useState(false);
-
   return (
     <div className="rounded-2xl p-5 flex flex-col bg-[#1c2c38]/90 shadow-xl h-[560px]">
       {/* Header ของคอลัมน์ */}
-      <div
-        className="flex items-center justify-between mb-3 pb-3 border-b border-gray-700/50 flex-shrink-0"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
+      <div className="group flex items-center justify-between mb-3 pb-3 border-b border-gray-700/50 flex-shrink-0">
         <div className="flex items-center gap-2.5">
           <span
             className="w-3.5 h-3.5 rounded-full inline-block shadow-sm"
@@ -29,9 +23,7 @@ const TaskColumn = ({ column, tasks, onAddTask, onEditTask, onDeleteTask }) => {
         <button
           title="Add Task"
           onClick={() => onAddTask(column.id)}
-          className={`text-slate-400 hover:text-white w-7 h-7 rounded-lg flex items-center justify-center text-lg cursor-pointer bg-slate-700/30 hover:bg-slate-700/60 transition-opacity ${
-            isHovered ? "opacity-100 visible" : "opacity-0 invisible"
-          }`}
+          className="text-slate-400 hover:text-white w-7 h-7 rounded-lg flex items-center justify-center text-lg cursor-pointer bg-slate-700/30 hover:bg-slate-700/60 transition-all opacity-0 invisible group-hover:opacity-100 group-hover:visible"
         >
           +
         </button>
@@ -71,4 +63,4 @@ const TaskColumn = ({ column, tasks, onAddTask, onEditTask, onDeleteTask }) => {
   );
 };
 
-export default TaskColumn;
+export default React.memo(TaskColumn);

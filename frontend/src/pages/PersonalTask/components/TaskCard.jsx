@@ -54,14 +54,24 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
 
   // จัดการสีและสไตล์ของป้ายสถานะตามรูปตัวอย่าง (Soft Tinted Pill Style)
   const getStatusBadge = () => {
-    const status = (task.status || (task.is_completed ? "completed" : column?.id || "todo")).toLowerCase();
-    if (status.includes("complete") || status === "completed" || task.is_completed) {
+    const status = (
+      task.status || (task.is_completed ? "completed" : column?.id || "todo")
+    ).toLowerCase();
+    if (
+      status.includes("complete") ||
+      status === "completed" ||
+      task.is_completed
+    ) {
       return {
         text: column?.title || "Completed",
         className: "bg-emerald-500/20 text-emerald-300",
       };
     }
-    if (status.includes("progress") || status === "in-progress" || status === "in_progress") {
+    if (
+      status.includes("progress") ||
+      status === "in-progress" ||
+      status === "in_progress"
+    ) {
       return {
         text: column?.title || "In Progress",
         className: "bg-amber-500/20 text-amber-300",
@@ -87,10 +97,10 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
             snapshot.isDragging
               ? "bg-[#1e293b] ring-2 ring-teal-400 shadow-2xl"
               : dateStatus === "overdue"
-              ? "bg-[#33222a] hover:bg-[#3d2732]"
-              : dateStatus === "due-soon"
-              ? "bg-[#352e22] hover:bg-[#3f3729]"
-              : "bg-[#243746] hover:bg-[#2c4254]"
+                ? "bg-[#33222a] hover:bg-[#3d2732]"
+                : dateStatus === "due-soon"
+                  ? "bg-[#352e22] hover:bg-[#3f3729]"
+                  : "bg-[#243746] hover:bg-[#2c4254]"
           }`}
           style={{
             ...provided.draggableProps.style,
@@ -99,9 +109,7 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
           <div className="flex items-start justify-between gap-2 mb-2.5">
             <h4
               className={`text-sm font-medium leading-snug flex-1 ${
-                task.is_completed
-                  ? "line-through text-slate-400"
-                  : "text-white"
+                task.is_completed ? "line-through text-slate-400" : "text-white"
               }`}
             >
               {task.title}
@@ -150,11 +158,17 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
                   dateStatus === "overdue"
                     ? "bg-red-500/25 text-red-300"
                     : dateStatus === "due-soon"
-                    ? "bg-amber-500/25 text-amber-300"
-                    : "text-slate-400"
+                      ? "bg-amber-500/25 text-amber-300"
+                      : "text-slate-400"
                 }`}
               >
-                <span>{dateStatus === "overdue" ? "⚠️" : dateStatus === "due-soon" ? "⏰" : "📅"}</span>
+                <span>
+                  {dateStatus === "overdue"
+                    ? "⚠️"
+                    : dateStatus === "due-soon"
+                      ? "⏰"
+                      : "📅"}
+                </span>
                 <span className="whitespace-nowrap font-medium">
                   {formatTaskDate(task.task_date)}
                 </span>
@@ -167,4 +181,4 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
   );
 };
 
-export default TaskCard;
+export default React.memo(TaskCard);

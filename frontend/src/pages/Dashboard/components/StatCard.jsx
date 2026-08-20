@@ -35,4 +35,4 @@ const StatCard = ({ title, value, subtitle, link, path, icon, glowColor = "bg-in
   );
 };
 
-export default StatCard;
+export default React.memo(StatCard);

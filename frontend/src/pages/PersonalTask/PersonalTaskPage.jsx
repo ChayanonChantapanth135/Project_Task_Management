@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { useLanguage } from "../../lib/LanguageContext";
-import { usePersonalTasks } from "./hook/usePersonalTasks";
+import { usePersonalTasks } from "./hooks/usePersonalTasks";
 import TaskBoard from "./components/TaskBoard";
 import PersonalTaskCalendar from "./components/PersonalTaskCalendar";
 

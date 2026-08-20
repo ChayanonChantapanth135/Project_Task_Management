@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { useLanguage } from "../../lib/LanguageContext";
-import axios from "axios";
 import StatCard from "./components/StatCard";
 import RecentActivity from "./components/RecentActivity";
 import FullCalendar from "@fullcalendar/react";
@@ -13,8 +12,7 @@ import thLocale from "@fullcalendar/core/locales/th";
 import Swal from "sweetalert2";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-
-import { getCurrentUser } from "../../lib/auth";
+import { useDashboard } from "./hooks/useDashboard";
 
 /**
  * คอมโพเนนต์หน้าแดชบอร์ดสรุปผล (DashboardPage Component) - Redesigned Dark Luxe Glassmorphism Theme
@@ -57,528 +55,17 @@ const DashboardPage = () => {
     { scope: pageRef },
   );
 
-  const [currentUser, setCurrentUser] = useState(null);
-  const [stats, setStats] = useState({
-    users: 0,
-    projects: 0,
-    tasks: 0,
-    overdueTasks: 0,
-    projectStatus: { pending: 0, inProgress: 0, review: 0, completed: 0 },
-    taskStatus: { pending: 0, inProgress: 0, reviewing: 0, completed: 0 },
-  });
-  const [recentActivities, setRecentActivities] = useState([]);
-  const [projects, setProjects] = useState([]);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const u = await getCurrentUser();
-        setCurrentUser(u);
-      } catch (error) {
-        console.error("Error fetching current user:", error);
-      }
-    };
-    const fetchStats = async () => {
-      try {
-        const response = await axios.get("/auth/dashboard-stats");
-        setStats(response.data);
-      } catch (error) {
-        console.error("Error fetching stats:", error);
-      }
-    };
-    const fetchActivities = async () => {
-      try {
-        const response = await axios.get("/auth/activity-logs?limit=20");
-        setRecentActivities(response.data.slice(0, 20));
-      } catch (error) {
-        console.error("Error fetching activity logs:", error);
-      }
-    };
-    const fetchProjects = async () => {
-      try {
-        const response = await axios.get("/auth/projects");
-        setProjects(response.data);
-      } catch (error) {
-        console.error("Error fetching projects:", error);
-      }
-    };
-    fetchUser();
-    fetchStats();
-    fetchActivities();
-    fetchProjects();
-  }, []);
-
-  const userRole = currentUser?.role
-    ? currentUser.role.toLowerCase().trim().replace(/\s+/g, "_")
-    : "";
-  const isAdmin = userRole === "admin";
-  const isAdminOrManager =
-    userRole === "admin" ||
-    userRole === "manager" ||
-    userRole === "project_manager";
-  const isTeamLeader = userRole === "team_leader";
-
-  const myTasks = [];
-  if (currentUser && projects && projects.length > 0) {
-    const userId = Number(currentUser.id);
-    const userFullname = (currentUser.fullname || currentUser.name || "")
-      .trim()
-      .toLowerCase();
-    const userName = (currentUser.name || "").trim().toLowerCase();
-
-    projects.forEach((project) => {
-      if (project.tasks && Array.isArray(project.tasks)) {
-        project.tasks.forEach((task) => {
-          const taskAssigneeId = task.assigned_to
-            ? Number(task.assigned_to)
-            : null;
-          const taskAssigneeName = (task.assigned_to_name || "")
-            .trim()
-            .toLowerCase();
-
-          const isAssigned =
-            (taskAssigneeId !== null && taskAssigneeId === userId) ||
-            (userFullname && taskAssigneeName === userFullname) ||
-            (userName && taskAssigneeName === userName);
-
-          if (isAssigned) {
-            myTasks.push({
-              ...task,
-              projectName: project.name,
-              projectId: project.id,
-              projectDueDate: project.end_date,
-            });
-          }
-        });
-      }
-    });
-  }
-
-  const calendarEvents =
-    isAdminOrManager || isTeamLeader
-      ? projects
-          .filter((project) => {
-            if (isAdminOrManager) return true;
-            if (isTeamLeader) {
-              return (
-                project.teamLeaderId === currentUser?.id ||
-                project.team_leader_id === currentUser?.id ||
-                project.teamLeaderName === currentUser?.fullname ||
-                project.teamLeaderName === currentUser?.name ||
-                project.created_by === currentUser?.id
-              );
-            }
-            return false;
-          })
-          .map((project) => {
-            const status = (project.status || "").toLowerCase();
-            let color = "#ef4444";
-            if (status === "completed") {
-              color = "#10b981";
-            } else if (status === "in progress" || status === "in_progress") {
-              color = "#6366f1";
-            } else if (status === "review" || status === "reviewing") {
-              color = "#f59e0b";
-            }
-            return {
-              id: project.id,
-              title: project.name,
-              date: project.end_date ? project.end_date.split("T")[0] : "",
-              color: color,
-              extendedProps: {
-                type: "project",
-                projectId: project.id,
-                projectName: project.name,
-                status: project.status,
-                priority: project.priority,
-              },
-            };
-          })
-          .filter((event) => event.date)
-      : myTasks
-          .map((task) => {
-            const status = (task.status || "").toLowerCase();
-            let color = "#ef4444";
-            if (status === "completed") {
-              color = "#10b981";
-            } else if (status === "in progress" || status === "in_progress") {
-              color = "#6366f1";
-            } else if (status === "review" || status === "reviewing") {
-              color = "#f59e0b";
-            }
-            const taskDate = task.due_date || task.dueDate;
-            return {
-              id: task.id,
-              title: task.title,
-              date: taskDate ? taskDate.split("T")[0] : "",
-              color: color,
-              extendedProps: {
-                type: "task",
-                taskId: task.id,
-                taskTitle: task.title,
-                projectName: task.projectName || task.project,
-                projectId: task.projectId,
-                status: task.status,
-                priority: task.priority,
-              },
-            };
-          })
-          .filter((event) => event.date);
-
-  const myPendingCount = myTasks.filter(
-    (t) => (t.status || "").toLowerCase() === "pending",
-  ).length;
-  const myInProgressCount = myTasks.filter((t) => {
-    const s = (t.status || "").toLowerCase();
-    return s === "in progress" || s === "in_progress";
-  }).length;
-  const myCompletedCount = myTasks.filter(
-    (t) => (t.status || "").toLowerCase() === "completed",
-  ).length;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const myOverdueCount = myTasks.filter((t) => {
-    const status = (t.status || "").toLowerCase();
-    if (status === "completed") return false;
-    const taskDue = t.due_date || t.dueDate;
-    if (!taskDue) return false;
-    const dueDate = new Date(taskDue);
-    dueDate.setHours(0, 0, 0, 0);
-    return dueDate < today;
-  }).length;
-
-  const isManager = userRole === "manager" || userRole === "project_manager";
-
-  const managedProjects = projects.filter((p) => {
-    if (isAdmin) return true;
-    if (isManager) {
-      return (
-        p.created_by === currentUser?.id ||
-        p.manager_id === currentUser?.id ||
-        p.managerId === currentUser?.id
-      );
-    }
-    return false;
-  });
-
-  const managedTasks = [];
-  managedProjects.forEach((project) => {
-    if (project.tasks && Array.isArray(project.tasks)) {
-      project.tasks.forEach((task) => {
-        managedTasks.push(task);
-      });
-    }
-  });
-
-  const statsCards = isAdmin
-    ? [
-        {
-          title: t("allUsers"),
-          value: stats.users,
-          link: t("manageUsersBtn") || "จัดการผู้ใช้งาน",
-          path: "/ManageUsers",
-          icon: "👥",
-        },
-        {
-          title: t("allProjects"),
-          value: stats.projects,
-          link: t("projectsTitle") || "โปรเจกต์",
-          path: "/Projects",
-          icon: "📁",
-        },
-        {
-          title: t("totalTasks"),
-          value: stats.tasks,
-          subtitle: `${t("completedPrefix") || "Completed:"} ${stats.taskStatus.completed}`,
-          icon: "📋",
-        },
-        {
-          title: t("overdueTasks"),
-          value: stats.overdueTasks,
-          link: t("reportsTitle") || "รายงาน",
-          path: "/Reports",
-          icon: "⚠️",
-        },
-        {
-          title: t("overdueProjects"),
-          value: stats.overdueProjects,
-          link: t("reportsTitle") || "รายงาน",
-          path: "/Reports",
-          icon: "⚠️",
-        },
-      ]
-    : isManager
-      ? (() => {
-          const pendingP = managedProjects.filter(
-            (p) => (p.status || "").toLowerCase() === "pending",
-          ).length;
-          const inProgressP = managedProjects.filter((p) => {
-            const s = (p.status || "").toLowerCase();
-            return s === "in progress" || s === "in_progress";
-          }).length;
-          const completedP = managedProjects.filter(
-            (p) => (p.status || "").toLowerCase() === "completed",
-          ).length;
-
-          const todayObj = new Date();
-          todayObj.setHours(0, 0, 0, 0);
-          const overdueP = managedProjects.filter((p) => {
-            const s = (p.status || "").toLowerCase();
-            if (s === "completed") return false;
-            const endD = p.end_date || p.endDate;
-            if (!endD) return false;
-            const d = new Date(endD);
-            d.setHours(0, 0, 0, 0);
-            return d < todayObj;
-          }).length;
-
-          return [
-            {
-              title:
-                language === "th" ? "โปรเจกต์ทั้งหมดของฉัน" : "All My Projects",
-              value: managedProjects.length,
-              link: language === "th" ? "โปรเจกต์ของฉัน" : "My Project",
-              path: "/Projects",
-              icon: "📁",
-            },
-            {
-              title: t("pending") || "Pending",
-              value: pendingP,
-              link: language === "th" ? "โปรเจกต์ของฉัน" : "My Project",
-              path: "/Projects",
-              icon: "⏳",
-            },
-            {
-              title: t("inProgress") || "In Progress",
-              value: inProgressP,
-              link: language === "th" ? "โปรเจกต์ของฉัน" : "My Project",
-              path: "/Projects",
-              icon: "⚡",
-            },
-            {
-              title: t("completed") || "Completed",
-              value: completedP,
-              link: language === "th" ? "โปรเจกต์ของฉัน" : "My Project",
-              path: "/Projects",
-              icon: "✅",
-            },
-            {
-              title:
-                language === "th" ? "โปรเจกต์เกินกำหนด" : "Overdue Projects",
-              value: overdueP,
-              link: language === "th" ? "โปรเจกต์ของฉัน" : "My Project",
-              path: "/Projects",
-              icon: "⚠️",
-            },
-          ];
-        })()
-      : [
-          {
-            title:
-              t("allMyTasks") ||
-              (language === "th" ? "งานทั้งหมดของฉัน" : "All My Tasks"),
-            value: myTasks.length,
-            link: t("myTask") || "งานของฉัน",
-            path: "/MyTasks",
-            icon: "📋",
-          },
-          {
-            title: t("pending") || "Pending",
-            value: myPendingCount,
-            link: t("myTask") || "งานของฉัน",
-            path: "/MyTasks",
-            icon: "⏳",
-          },
-          {
-            title: t("inProgress") || "In Progress",
-            value: myInProgressCount,
-            link: t("myTask") || "งานของฉัน",
-            path: "/MyTasks",
-            icon: "⚡",
-          },
-          {
-            title: t("completed") || "Completed",
-            value: myCompletedCount,
-            link: t("myTask") || "งานของฉัน",
-            path: "/MyTasks",
-            icon: "✅",
-          },
-          {
-            title: t("overdueTasks") || "Overdue Tasks",
-            value: myOverdueCount,
-            link: t("myTask") || "งานของฉัน",
-            path: "/MyTasks",
-            icon: "⚠️",
-          },
-        ];
-
-  const tlProjects = projects.filter((project) => {
-    return (
-      project.teamLeaderId === currentUser?.id ||
-      project.team_leader_id === currentUser?.id ||
-      project.teamLeaderName === currentUser?.fullname ||
-      project.teamLeaderName === currentUser?.name ||
-      project.created_by === currentUser?.id
-    );
-  });
-
-  const tlTasks = [];
-  tlProjects.forEach((project) => {
-    if (project.tasks && Array.isArray(project.tasks)) {
-      project.tasks.forEach((task) => {
-        tlTasks.push(task);
-      });
-    }
-  });
-
-  const currentProjectStatus = isAdmin
-    ? {
-        pending: projects.filter(
-          (p) => (p.status || "").toLowerCase() === "pending",
-        ).length,
-        inProgress: projects.filter((p) => {
-          const s = (p.status || "").toLowerCase();
-          return s === "in progress" || s === "in_progress";
-        }).length,
-        review: projects.filter((p) => {
-          const s = (p.status || "").toLowerCase();
-          return s === "review" || s === "reviewing";
-        }).length,
-        completed: projects.filter(
-          (p) => (p.status || "").toLowerCase() === "completed",
-        ).length,
-      }
-    : isManager
-      ? {
-          pending: managedProjects.filter(
-            (p) => (p.status || "").toLowerCase() === "pending",
-          ).length,
-          inProgress: managedProjects.filter((p) => {
-            const s = (p.status || "").toLowerCase();
-            return s === "in progress" || s === "in_progress";
-          }).length,
-          review: managedProjects.filter((p) => {
-            const s = (p.status || "").toLowerCase();
-            return s === "review" || s === "reviewing";
-          }).length,
-          completed: managedProjects.filter(
-            (p) => (p.status || "").toLowerCase() === "completed",
-          ).length,
-        }
-      : isTeamLeader
-        ? {
-            pending: tlProjects.filter(
-              (p) => (p.status || "").toLowerCase() === "pending",
-            ).length,
-            inProgress: tlProjects.filter((p) => {
-              const s = (p.status || "").toLowerCase();
-              return s === "in progress" || s === "in_progress";
-            }).length,
-            review: tlProjects.filter((p) => {
-              const s = (p.status || "").toLowerCase();
-              return s === "review" || s === "reviewing";
-            }).length,
-            completed: tlProjects.filter(
-              (p) => (p.status || "").toLowerCase() === "completed",
-            ).length,
-          }
-        : stats.projectStatus;
-
-  const allTasksAcrossProjects = [];
-  if (projects && Array.isArray(projects)) {
-    projects.forEach((proj) => {
-      if (proj.tasks && Array.isArray(proj.tasks)) {
-        allTasksAcrossProjects.push(...proj.tasks);
-      }
-    });
-  }
-
-  const currentTaskStatus = isAdmin
-    ? {
-        pending: allTasksAcrossProjects.filter(
-          (t) => (t.status || "").toLowerCase() === "pending",
-        ).length,
-        inProgress: allTasksAcrossProjects.filter((t) => {
-          const s = (t.status || "").toLowerCase();
-          return s === "in progress" || s === "in_progress";
-        }).length,
-        reviewing: allTasksAcrossProjects.filter((t) => {
-          const s = (t.status || "").toLowerCase();
-          return s === "review" || s === "reviewing";
-        }).length,
-        completed: allTasksAcrossProjects.filter(
-          (t) => (t.status || "").toLowerCase() === "completed",
-        ).length,
-      }
-    : {
-        pending: myTasks.filter(
-          (t) => (t.status || "").toLowerCase() === "pending",
-        ).length,
-        inProgress: myTasks.filter((t) => {
-          const s = (t.status || "").toLowerCase();
-          return s === "in progress" || s === "in_progress";
-        }).length,
-        reviewing: myTasks.filter((t) => {
-          const s = (t.status || "").toLowerCase();
-          return s === "review" || s === "reviewing";
-        }).length,
-        completed: myTasks.filter(
-          (t) => (t.status || "").toLowerCase() === "completed",
-        ).length,
-      };
-
-  const projectStatus = [
-    {
-      label: t("statusPending"),
-      value: currentProjectStatus?.pending || 0,
-      badgeBg: "bg-[#1e293b] text-slate-400",
-    },
-    {
-      label: t("statusInProgress"),
-      value: currentProjectStatus?.inProgress || 0,
-      badgeBg: "bg-indigo-500/20 text-indigo-300",
-    },
-    {
-      label: t("statusReview"),
-      value: currentProjectStatus?.review || 0,
-      badgeBg: "bg-amber-500/20 text-amber-300",
-    },
-    {
-      label: t("statusCompleted"),
-      value: currentProjectStatus?.completed || 0,
-      badgeBg: "bg-emerald-500/20 text-emerald-300",
-    },
-  ];
-
-  const taskStatus = [
-    {
-      label: t("pending"),
-      value: currentTaskStatus?.pending || 0,
-      badgeBg: "bg-[#1e293b] text-slate-400",
-    },
-    {
-      label: t("inProgress"),
-      value: currentTaskStatus?.inProgress || 0,
-      badgeBg: "bg-indigo-500/20 text-indigo-300",
-    },
-    {
-      label: t("reviewing"),
-      value: currentTaskStatus?.reviewing || 0,
-      badgeBg: "bg-amber-500/20 text-amber-300",
-    },
-    {
-      label: t("completed"),
-      value: currentTaskStatus?.completed || 0,
-      badgeBg: "bg-emerald-500/20 text-emerald-300",
-    },
-  ];
-
-  const projectAndTaskActivities = recentActivities.filter((activity) => {
-    const action = (activity.action || "").toLowerCase();
-    return !action.includes("login") && !action.includes("logout");
-  });
+  const {
+    isAdmin,
+    isAdminOrManager,
+    isTeamLeader,
+    statsCards,
+    projectStatus,
+    taskStatus,
+    recentActivities,
+    projectAndTaskActivities,
+    calendarEvents,
+  } = useDashboard();
 
   return (
     <div
@@ -760,25 +247,57 @@ const DashboardPage = () => {
                 const dateStr = info.event.startStr || "";
                 const eventTitle = info.event.title || "";
 
+                const formatDisplayDate = (dStr) => {
+                  if (!dStr) return "-";
+                  const d = new Date(dStr);
+                  if (isNaN(d.getTime())) {
+                    return dStr;
+                  }
+                  if (language === "th") {
+                    return d.toLocaleDateString("th-TH", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    });
+                  } else {
+                    return d.toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    });
+                  }
+                };
+
+                const formattedDate = formatDisplayDate(dateStr);
+                const dueDateText = language === "th" ? "กำหนดส่ง" : "Due Date";
+
                 Swal.fire({
                   title: `<span style="font-size: 1.25rem; font-weight: 700; color: #1e293b;">${isTask ? `📋 ${eventTitle}` : `📁 ${eventTitle}`}</span>`,
                   html: `
                     <div style="font-family: inherit; text-align: center; color: #475569; font-size: 14px; margin-top: 8px;">
-                      ${isTask && projectName ? `<p style="margin: 6px 0; color: #64748b;"><b>${t("project") || "โปรเจกต์"}:</b> <span style="color: #0f172a; font-weight: 600;">${projectName}</span></p>` : ""}
-                      <p style="margin: 6px 0; color: #64748b;"><b>${t("dueDate") || "กำหนดส่ง"}:</b> <span style="color: #e11d48; font-weight: 600;">${dateStr}</span></p>
+                      ${isTask && projectName ? `<p style="margin: 6px 0; color: #64748b;"><b>${language === "th" ? "โปรเจกต์" : "Project"}:</b> <span style="color: #0f172a; font-weight: 600;">${projectName}</span></p>` : ""}
+                      <p style="margin: 6px 0; color: #64748b;"><b>${dueDateText}:</b> <span style="color: #e11d48; font-weight: 600;">${formattedDate}</span></p>
                     </div>
                   `,
                   icon: "info",
                   showConfirmButton: true,
                   confirmButtonText: isTask
-                    ? (language === "th" ? "📌 ไปที่งานนี้ (My Tasks)" : "📌 Go to My Tasks")
-                    : (language === "th" ? "📁 ไปที่โปรเจกต์นี้ (Projects)" : "📁 Go to Projects"),
+                    ? language === "th"
+                      ? "📌 ไปที่งานนี้"
+                      : "📌 Go to My Tasks"
+                    : language === "th"
+                      ? "📁 ไปที่โปรเจกต์นี้"
+                      : "📁 Go to Projects",
                   confirmButtonColor: "#0d9488",
                   showDenyButton: !isTask,
-                  denyButtonText: language === "th" ? "📋 ดูงานทั้งหมด (All Tasks)" : "📋 Go to All Tasks",
+                  denyButtonText:
+                    language === "th"
+                      ? "📋 ดูงานทั้งหมด"
+                      : "📋 Go to All Tasks",
                   denyButtonColor: "#6366f1",
                   showCancelButton: true,
-                  cancelButtonText: t("close") || (language === "th" ? "ปิด" : "Close"),
+                  cancelButtonText:
+                    t("close") || (language === "th" ? "ปิด" : "Close"),
                   cancelButtonColor: "#94a3b8",
                   background: "#ffffff",
                   color: "#1e293b",
