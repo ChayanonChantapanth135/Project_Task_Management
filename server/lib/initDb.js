@@ -264,6 +264,18 @@ export const initializeDatabase = async () => {
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL DEFAULT NULL",
       "ALTER TABLE projects ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL DEFAULT NULL",
       "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL DEFAULT NULL",
+      
+      // Performance Indexes
+      "CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON notifications (user_id, is_read)",
+      "CREATE INDEX IF NOT EXISTS idx_activity_logs_created_at ON activity_logs (created_at DESC)",
+      "CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks (status)",
+      "CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks (due_date)",
+      "CREATE INDEX IF NOT EXISTS idx_projects_deleted_at ON projects (deleted_at)",
+      "CREATE INDEX IF NOT EXISTS idx_tasks_deleted_at ON tasks (deleted_at)",
+      "CREATE INDEX IF NOT EXISTS idx_users_deleted_at ON users (deleted_at)",
+      "CREATE INDEX IF NOT EXISTS idx_personal_tasks_user_status ON personal_tasks (user_id, status)",
+      "CREATE INDEX IF NOT EXISTS idx_personal_tasks_date ON personal_tasks (task_date)",
+      "CREATE INDEX IF NOT EXISTS idx_otp_expires_used ON otp_requests (expires_at, is_used)",
     ]
     for (const q of alterQueries) {
       try { await connection.query(q) } catch (e) { /* ignore if column already exists */ }

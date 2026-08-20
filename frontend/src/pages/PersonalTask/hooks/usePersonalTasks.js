@@ -312,6 +312,8 @@ export const usePersonalTasks = () => {
         }
       },
       focusConfirm: false,
+      returnFocus: false,
+      heightAuto: false,
       showCancelButton: true,
       confirmButtonText: isThai ? "บันทึก" : "Save",
       cancelButtonText: isThai ? "ยกเลิก" : "Cancel",
@@ -434,6 +436,8 @@ export const usePersonalTasks = () => {
         }
       },
       focusConfirm: false,
+      returnFocus: false,
+      heightAuto: false,
       showCancelButton: true,
       confirmButtonText: isThai ? "บันทึกการแก้ไข" : "Save Changes",
       cancelButtonText: isThai ? "ยกเลิก" : "Cancel",
@@ -463,6 +467,8 @@ export const usePersonalTasks = () => {
           title: isThai ? "แก้ไขงานสำเร็จ" : "Task updated",
           timer: 1500,
           showConfirmButton: false,
+          returnFocus: false,
+          heightAuto: false,
         });
 
         fetchTasks();
@@ -473,6 +479,8 @@ export const usePersonalTasks = () => {
           icon: "error",
           title: isThai ? "เกิดข้อผิดพลาด" : "Error",
           text: errMsg,
+          returnFocus: false,
+          heightAuto: false,
         });
       }
     }
@@ -484,6 +492,8 @@ export const usePersonalTasks = () => {
       text: isThai ? `คุณต้องการลบงาน "${task.title}" หรือไม่?` : `Do you want to delete "${task.title}"?`,
       icon: "warning",
       showCancelButton: true,
+      returnFocus: false,
+      heightAuto: false,
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
       confirmButtonText: isThai ? "ลบ" : "Delete",

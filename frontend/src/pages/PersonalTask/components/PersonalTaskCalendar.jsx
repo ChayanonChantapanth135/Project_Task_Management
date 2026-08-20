@@ -205,6 +205,8 @@ const PersonalTaskCalendar = ({
       `,
       background: "#ffffff",
       color: "#1f2937",
+      returnFocus: false,
+      heightAuto: false,
       showCancelButton: true,
       showDenyButton: true,
       confirmButtonText: `✏️ ${isThai ? "แก้ไข" : "Edit"}`,
@@ -512,9 +514,7 @@ const PersonalTaskCalendar = ({
                         {task.title}
                       </span>
                     </div>
-                    <span className="text-[10px] text-slate-400 group-hover:text-indigo-300 transition-colors flex-shrink-0 ml-2 pointer-events-none">
-                      🖐️ {isThai ? "ลากวาง" : "Drag"}
-                    </span>
+                    <span className="text-[10px] text-slate-400 group-hover:text-indigo-300 transition-colors flex-shrink-0 ml-2 pointer-events-none"></span>
                   </div>
                 );
               })}

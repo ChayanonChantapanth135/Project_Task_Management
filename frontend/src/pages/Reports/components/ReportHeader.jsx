@@ -13,9 +13,11 @@ export default function ReportHeader({
   return (
     <div className="relative mb-10">
       {/* Hero Section */}
-      <div className="relative overflow-hidden rounded-3xl p-8 md:p-10"
+      <div
+        className="relative overflow-hidden rounded-3xl p-8 md:p-10"
         style={{
-          background: "linear-gradient(135deg, rgba(20,184,166,0.12) 0%, rgba(99,102,241,0.15) 50%, rgba(168,85,247,0.10) 100%)",
+          background:
+            "linear-gradient(135deg, rgba(20,184,166,0.12) 0%, rgba(99,102,241,0.15) 50%, rgba(168,85,247,0.10) 100%)",
           backdropFilter: "blur(20px)",
         }}
       >
@@ -24,7 +26,8 @@ export default function ReportHeader({
           <div
             className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] opacity-[0.03]"
             style={{
-              background: "conic-gradient(from 0deg, transparent 0%, white 10%, transparent 20%)",
+              background:
+                "conic-gradient(from 0deg, transparent 0%, white 10%, transparent 20%)",
               animation: "shimmerSpin 8s linear infinite",
             }}
           />
@@ -33,16 +36,31 @@ export default function ReportHeader({
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
           <div>
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-11 h-11 rounded-2xl flex items-center justify-center"
-                style={{ background: "linear-gradient(135deg, #14b8a6, #6366f1)" }}
+              <div
+                className="w-11 h-11 rounded-2xl flex items-center justify-center"
+                style={{
+                  background: "linear-gradient(135deg, #14b8a6, #6366f1)",
+                }}
               >
-                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
                 </svg>
               </div>
-              <span className="px-3 py-1 text-[10px] font-black uppercase tracking-[0.15em] rounded-full"
+              <span
+                className="px-3 py-1 text-[10px] font-black uppercase tracking-[0.15em] rounded-full"
                 style={{
-                  background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))",
+                  background:
+                    "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))",
                   color: "#a5b4fc",
                   border: "1px solid rgba(99,102,241,0.2)",
                 }}
@@ -51,9 +69,11 @@ export default function ReportHeader({
               </span>
             </div>
 
-            <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2"
+            <h1
+              className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2"
               style={{
-                background: "linear-gradient(135deg, #ffffff 0%, #e2e8f0 40%, #94a3b8 100%)",
+                background:
+                  "linear-gradient(135deg, #ffffff 0%, #e2e8f0 40%, #94a3b8 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
               }}
@@ -86,8 +106,18 @@ export default function ReportHeader({
                 e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
               }}
             >
-              <svg className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              <svg
+                className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
               </svg>
               {t("refreshDataBtn")}
             </button>
@@ -102,20 +132,32 @@ export default function ReportHeader({
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = "translateY(-1px)";
-                e.currentTarget.style.boxShadow = "0 12px 32px rgba(16,185,129,0.35)";
+                e.currentTarget.style.boxShadow =
+                  "0 12px 32px rgba(16,185,129,0.35)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "0 8px 24px rgba(16,185,129,0.25)";
+                e.currentTarget.style.boxShadow =
+                  "0 8px 24px rgba(16,185,129,0.25)";
               }}
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
               </svg>
               {t("exportExcel")}
             </button>
 
-            <button
+            {/* <button
               onClick={onPrint}
               className="px-5 py-2.5 rounded-2xl text-xs font-bold transition-all duration-300 flex items-center gap-2 shadow-lg print:hidden"
               style={{
@@ -136,7 +178,7 @@ export default function ReportHeader({
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
               {t("printReport")}
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
