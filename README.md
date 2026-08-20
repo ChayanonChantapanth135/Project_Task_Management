@@ -1,45 +1,54 @@
-# 🚀 Project & Task Management System (PM Project)
+# 🚀 Enterprise Project & Task Management System (RNM AUTH)
 
-ระบบบริหารจัดการโครงการและติดตามงานในทีมแบบครบวงจร (Enterprise Project & Task Management System) ที่ออกแบบด้วยดีไซน์ **Dark Luxe Glassmorphism** ทันสมัย ลื่นไหล และปลอดภัย พร้อมระบบกระจายงาน สรุปสถิติอัตโนมัติ และการจัดลำดับสิทธิ์การเข้าถึงตามบทบาทผู้ใช้ (Role-Based Access Control)
+ระบบบริหารจัดการโครงการและติดตามภารกิจในทีมแบบครบวงจร ออกแบบด้วยสถาปัตยกรรม **Modern Modular Frontend & RESTful Backend** บนธีม **Dark Luxe Glassmorphism** ที่ทันสมัย ลื่นไหล และปลอดภัย พร้อมระบบคำนวณความคืบหน้าอัตโนมัติ การจัดการสิทธิ์ผู้ใช้งานตามบทบาท (RBAC) ปฏิทินกำหนดส่งงานแบบสองทิศทาง (Bidirectional Drag & Drop) และระบบ Personal Kanban Board
 
 ---
 
 ## 🌟 ฟีเจอร์หลักของระบบ (Key Features)
 
 ### 🔐 1. ระบบยืนยันตัวตนและความปลอดภัย (Authentication & Security)
-- **JWT & bcrypt Authentication**: ระบบล็อกอิน ป้องกันรหัสผ่านด้วย bcrypt hashing และออก Token ด้วย JSON Web Token
-- **OTP Verification & Password Reset**: กู้คืนรหัสผ่านด้วยรหัส OTP ส่งตรงไปยังอีเมล
-- **First-Time Password Change**: บังคับเปลี่ยนรหัสผ่านสำหรับการใช้งานครั้งแรกเพื่อความปลอดภัย
-- **User Suspension Control**: สามารถพักการใช้งานผู้ใช้ (Suspend) พร้อมระงับการเข้าสู่ระบบแบบเรียลไทม์
+- **JWT & bcrypt Authentication**: ล็อกอินปลอดภัย เข้ารหัสรหัสผ่านด้วย `bcrypt` และออก Session Token ด้วย `jsonwebtoken`
+- **OTP Email Verification & Password Reset**: ระบบกู้คืนรหัสผ่านด้วยรหัส OTP 6 หลัก ส่งผ่าน SMTP (`nodemailer`)
+- **First-Time Password Change**: บังคับให้ผู้ใช้งานเปลี่ยนรหัสผ่านทันทีเมื่อเข้าสู่ระบบครั้งแรกเพื่อความปลอดภัย
+- **User Suspension Control**: ผู้ดูแลระบบสามารถสั่งระงับ (Suspend) หรือเปิดใช้งานผู้ใช้ได้ทันที
 
-### 👥 2. ระบบจัดการผู้ใช้งานตามบทบาท (User & RBAC Management)
-- **สิทธิ์การใช้งาน 5 ระดับ (Role Hierarchies)**:
-  1. 🔑 **Admin** - สิทธิ์สูงสุด จัดการผู้ใช้ โครงการ งาน และดูรายงานทั้งหมด
-  2. 💼 **Project Manager** - สร้างและดูแลโครงการ บริหารผู้รับผิดชอบงาน
-  3. 👑 **Team Leader** - ดูแลโครงการที่ได้รับมอบหมายและแจกจ่ายงานในทีม
-  4. 🎬 **Video Editor** - ดำเนินการและอัปเดตสถานะงานตัดต่อ
-  5. 🗣️ **Translator** - ดำเนินการและอัปเดตสถานะงานแปล
-- **Excel Import / Export**: นำเข้าผู้ใช้งานด้วยไฟล์ Excel (`.xlsx`) ตามเทมเพลต และส่งออกข้อมูลผู้ใช้พร้อมระบบค้นหาและกรองข้อมูล
-- **Profile & Avatar Management**: อัปโหลดและเปลี่ยนรูปโปรไฟล์ พร้อมจัดการข้อมูลส่วนตัว
+### 👥 2. การจัดการผู้ใช้และสิทธิ์การเข้าถึง (User & RBAC Management)
+- **ระบบสิทธิ์ 5 ระดับ (Role-Based Access Control)**:
+  1. 🔑 **Admin** - สิทธิ์สูงสุด จัดการผู้ใช้งาน โครงการ งาน และดูรายงานสถิติระดับบริหาร
+  2. 💼 **Project Manager** - สร้างโครงการ มอบหมาย Team Leader และติดตามโครงการในความดูแล
+  3. 👑 **Team Leader** - ดูแลโครงการที่ได้รับมอบหมาย แจกจ่ายงาน และติดตามลูกทีม
+  4. 🎬 **Video Editor** - ดำเนินการและอัปเดตงานตัดต่อวิดีโอ
+  5. 🗣️ **Translator** - ดำเนินการและอัปเดตงานแปลภาษา
+- **Excel Import / Export**: นำเข้าผู้ใช้งานด้วยไฟล์ Excel (`.xlsx`) และ Export รายชื่อพร้อมระบบค้นหาและกรองข้อมูล
+- **Profile Management**: อัปโหลดเปลี่ยนรูปโปรไฟล์ (Multer Storage) แก้ไขเบอร์โทรศัพท์ และเปลี่ยนรหัสผ่าน
 
-### 📁 3. ระบบบริหารโครงการ (Project Management)
-- **Auto Status & Progress Calculation**: 
-  - คำนวณเปอร์เซ็นต์ความคืบหน้า (Progress 0-100%) อัตโนมัติจากจำนวน Task ที่เสร็จสิ้น
-  - **Auto In-Progress**: เปลี่ยนสถานะโครงการเป็น `In Progress` ทันทีเมื่อมีการสร้าง Task ในโครงการ
-  - **Auto Complete**: เปลี่ยนสถานะโครงการเป็น `Completed` อัตโนมัติทันทีเมื่อ Progress ครบ 100%
-- **Team Leader Assignment**: ผูกผู้ดูแลโครงการ (Team Leader) พร้อมแสดงกำหนดวันส่ง (End Date) และลำดับความสำคัญ (Priority)
+### 📁 3. การบริหารโครงการ (Project Management)
+- **Smart Progress & Status Automation**:
+  - คำนวณเปอร์เซ็นต์ความคืบหน้า (Progress 0-100%) อัตโนมัติจาก Task ที่เสร็จสิ้น
+  - **Auto In-Progress**: เปลี่ยนสถานะโครงการเป็น `In Progress` ทันทีที่มีการสร้างงานในโครงการ
+  - **Auto Complete**: ปรับสถานะโครงการเป็น `Completed` อัตโนมัติเมื่อ Task ในโครงการเสร็จครบ 100%
+- **Team Leader Assignment**: มอบหมายหัวหน้าทีมผู้รับผิดชอบโครงการ พร้อมระบุกำหนดวันส่ง (End Date) และระดับความสำคัญ (Priority)
 
-### 📋 4. ระบบจัดการงานและติดตามสถานะ (Task Management)
-- **Task Creation & Assignment**: สร้างงาน กำหนดประเภทงาน (แปล, ตัดต่อ, อื่นๆ), ลำดับความสำคัญ (High, Medium, Low) และผู้รับผิดชอบ
-- **Interactive Custom Date Picker**: ช่องใส่วันที่แบบยืดหยุ่น รองรับการพิมพ์ตรงในรูปแบบ วัน/เดือน/ปี (`DD/MM/YYYY`) พร้อมปฏิทินเลือกวันที่ในระบบเวลาท้องถิ่น (Local Timezone Safe)
-- **Task Status Timeline & History**: บันทึกประวัติการเปลี่ยนสถานะงานอย่างละเอียดพร้อมระบุผู้ปรับเปลี่ยนและเวลาแบบย้อนหลัง
-- **Comments & File Attachments**: ระบบแสดงความคิดเห็นแบบเรียลไทม์และแนบไฟล์ประกอบงาน
-- **Kanban Board & Table View**: สลับมุมมองการทำงานได้ทั้งแบบตาราง (Table View) และแบบบอร์ด (Kanban Board)
+### 📋 4. การจัดการงานในโครงการ (Project Tasks)
+- **Task Assignment & Priority**: สร้างงาน มอบหมายผู้รับผิดชอบ ระบุประเภทงาน (เช่น งานแปล, งานตัดต่อ) และระดับความสำคัญ (High, Medium, Low)
+- **Flexible Localized Date Picker**: ปฏิทินและกล่องเลือกวันที่รองรับรูปแบบ วัน/เดือน/ปี (`DD/MM/YYYY`) ปลอดภัยจากปัญหา Timezone
+- **Status History Timeline**: บันทึกประวัติการเปลี่ยนสถานะงานอย่างละเอียด ย้อนดูได้ว่าใครเป็นผู้เปลี่ยนสถานะและเวลาใด
+- **Comments & File Attachments**: แสดงความคิดเห็นแบบเรียลไทม์ และอัปโหลดไฟล์แนบประกอบงาน
 
-### 📊 5. แดชบอร์ด รายงาน และประวัติกิจกรรม (Dashboard & Reports)
-- **Interactive Visual Dashboard**: กราฟสรุปสถิติจำนวนงาน งานที่เกินกำหนด (Overdue Tasks) และปฏิทินกำหนดส่งงาน (FullCalendar Integration)
-- **Role-Based Report Analytics**: หน้าสถิติรายงานยืดหยุ่นตามบทบาท (Admin, Manager, Team Leader, User)
-- **Activity Logging System**: บันทึกทุกกิจกรรมในระบบ (Activity Logs) เพื่อการตรวจสอบความถูกต้องย้อนหลัง
+### 📌 5. ระบบงานส่วนตัว (Personal Tasks - Kanban & Calendar)
+- **Kanban Board Drag & Drop**: จัดการงานส่วนตัวด้วยบอร์ดลากวางสถานะ `To Do`, `In Progress`, `Completed` พร้อมบันทึกลำดับ (Position) ลงฐานข้อมูล
+- **Interactive Calendar with Bidirectional Tray**: 
+  - ลากงานจากถาดงานค้างด้านล่างขึ้นปฏิทินเพื่อกำหนดวันส่ง (`task_date`)
+  - ลากงานจากปฏิทินลงถาดด้านล่างเพื่อยกเลิกวันกำหนดส่ง (Unschedule) ได้ทันที
+  - ปรับแต่งการเรนเดอร์ด้วย GPU Acceleration (`will-change`) เพื่อความลื่นไหลสูงสุด
+
+### 📊 6. แดชบอร์ดและรายงานวิเคราะห์ (Dashboard & Analytics Reports)
+- **Role-Based Dynamic Dashboard**: แดชบอร์ดสรุปยอดงาน งานเกินกำหนด (Overdue) และปฏิทินภาพรวมตามบทบาทผู้ใช้
+- **Executive & Team Performance Reports**: หน้าสรุปรายงานประสิทธิภาพการส่งงาน กราฟสัดส่วนงาน และอัตราความสำเร็จ (Completion Rate)
+- **Activity Logs**: ระบบบันทึกประวัติการใช้งานทุกการเปลี่ยนแปลง (Audit Trail)
+
+### 🌐 7. ระบบหลายภาษา (Internationalization - i18n)
+- รองรับการสลับภาษาทั้ง **ภาษาไทย (TH)** และ **ภาษาอังกฤษ (EN)** ครอบคลุมทุกหน้า ทุก Modal และข้อความแจ้งเตือน โดยรวมศูนย์คำแปลไว้ที่ `LanguageContext.jsx`
 
 ---
 
@@ -47,17 +56,18 @@
 
 ### **Frontend**
 - **Core**: React 19, Vite, React Router DOM v7
-- **Styling & Animation**: Vanilla CSS (CSS Modules & Custom Design System), Tailwind CSS v4, GSAP (GreenSock Animation Platform), Framer Motion
-- **UI Components & Icons**: Bootstrap 5, React Bootstrap, **Ionicons v7** (`<ion-icon>`)
-- **Calendar & Tools**: FullCalendar, SweetAlert2, ExcelJS, XLSX
+- **Architecture**: Custom Hooks Pattern (`useDashboard`, `usePersonalTasks`, `useMyTasks`, `useProjectManagement`, etc.)
+- **Styling & UI**: Tailwind CSS v4, Vanilla CSS (Glassmorphism & Neon Glow Tokens), GSAP (GreenSock Animation Platform), Framer Motion
+- **Libraries & Plugins**: `@fullcalendar/react`, `@hello-pangea/dnd`, `sweetalert2`, `exceljs`, `xlsx`, `axios`
 
 ### **Backend**
-- **Runtime & Framework**: Node.js, Express.js
-- **Database Driver**: `mysql2` (Connection Pool พร้อมคอนฟิก `dateStrings: true` เพื่อความแม่นยำของ Timezone)
-- **Security & Uploads**: bcrypt, jsonwebtoken, nodemailer, multer (Handling avatar & task file uploads)
+- **Runtime & Framework**: Node.js, Express.js (ES Modules)
+- **Database Driver**: `mysql2/promise` (Connection Pooling พร้อม `dateStrings: true`)
+- **Security & Utilities**: `bcrypt`, `jsonwebtoken`, `nodemailer`, `multer`
+- **Database Optimization**: Auto-migration พร้อม Composite Indexing (`notifications`, `activity_logs`, `tasks`, `projects`, `personal_tasks`, `otp_requests`)
 
 ### **Database**
-- **RDBMS**: MySQL (รองรับการใช้งานผ่าน XAMPP / MariaDB)
+- **RDBMS**: MySQL 8.0+ / MariaDB (ผ่าน XAMPP)
 
 ---
 
@@ -65,37 +75,47 @@
 
 ```text
 RNM AUTH/
-├── frontend/                   # Frontend Client (React + Vite)
-│   ├── public/                 # Static Assets & Templates (e.g. Excel Template)
+├── frontend/                   # ส่วนติดต่อผู้ใช้งาน (React + Vite Client)
+│   ├── public/                 # รูปภาพและเทมเพลตไฟล์ Excel
 │   ├── src/
-│   │   ├── assets/             # Images & Logos
-│   │   ├── components/         # Reusable Components (Header, CustomDateInput, SearchableUserSelect, etc.)
-│   │   ├── lib/                # Utilities, Auth Helpers, LanguageContext, DateUtils
-│   │   ├── pages/
-│   │   │   ├── AllTasks/       # หน้างานทั้งหมด (Admin Task Overview)
-│   │   │   ├── Dashboard/      # หน้าแดชบอร์ดสรุปผล & ปฏิทิน
-│   │   │   ├── ManageProject/  # หน้าจัดการโครงการ (Projects List, Modals, Kanban)
-│   │   │   ├── ManageUser/     # หน้าจัดการผู้ใช้งาน (CRUD, Excel Import/Export)
-│   │   │   ├── MyTasks/        # หน้างานของฉัน (User Personal Tasks)
-│   │   │   ├── Profile/        # หน้าโปรไฟล์ส่วนตัว
-│   │   │   ├── Reports/        # หน้าสถิติและรายงานผลตามบทบาท
-│   │   │   └── Activity/       # หน้าประวัติกิจกรรมในระบบ
+│   │   ├── assets/             # รูปภาพ ไอคอน โลโก้
+│   │   ├── components/         # คอมโพเนนต์ส่วนกลาง (Header, Footer, LanguageSwitcher)
+│   │   ├── lib/                # Context & Utilities (LanguageContext, auth, dateUtils)
+│   │   ├── pages/              # แยกโฟลเดอร์แต่ละหน้าตาม Clean Architecture
+│   │   │   ├── About/          # หน้าเกี่ยวกับเรา (Features, Tech Stack)
+│   │   │   ├── Activity/       # หน้าบันทึกประวัติกิจกรรมทั้งหมดในระบบ
+│   │   │   ├── AllTasks/       # หน้าภาพรวมงานทั้งหมดสำหรับ Admin
+│   │   │   ├── Contract/       # หน้าติดต่อเราและฟอร์มส่งข้อความ
+│   │   │   ├── Dashboard/      # หน้าแดชบอร์ดสรุปผล & useDashboard Hook
+│   │   │   ├── Home/           # หน้าแรก (Landing Page)
+│   │   │   ├── Login/          # หน้าเข้าสู่ระบบ & useLogin Hook
+│   │   │   ├── ManageProject/  # หน้าจัดการโครงการ & useProjectManagement Hook
+│   │   │   ├── ManageUser/     # หน้าจัดการผู้ใช้งาน & useUserManagement Hook
+│   │   │   ├── MyActivity/     # หน้าประวัติกิจกรรมส่วนบุคคล
+│   │   │   ├── MyTasks/        # หน้างานที่ได้รับมอบหมาย & useMyTasks Hook
+│   │   │   ├── PersonalTask/   # หน้างานส่วนตัว (Kanban Board & Calendar Tray)
+│   │   │   ├── Profile/        # หน้าโปรไฟล์และตั้งค่าบัญชี
+│   │   │   ├── Reports/        # หน้ารายงานและสถิติตามบทบาท
+│   │   │   ├── ResetPassword/  # หน้ารีเซ็ตรหัสผ่านด้วย OTP
+│   │   │   └── ResetPasswordFirstTime/ # หน้าบังคับเปลี่ยนรหัสผ่านครั้งแรก
 │   │   ├── App.jsx
 │   │   └── main.jsx
-│   ├── index.html              # Ionicons ES Modules Script Entrypoint
+│   ├── index.html
+│   ├── vite.config.js
 │   └── package.json
 │
-├── server/                     # Backend API Server (Node.js + Express)
+├── server/                     # ส่วนให้บริการ API (Node.js + Express Server)
 │   ├── controllers/
-│   │   └── authController.js   # Main Business Logic, Task & Project Status Sync
+│   │   └── authController.js   # Logic หลัก: จัดการสิทธิ์ โครงการ งาน และฐานข้อมูล
 │   ├── lib/
-│   │   └── db.js               # MySQL Connection Pool Config (`dateStrings: true`)
+│   │   ├── db.js               # เชื่อมต่อ MySQL Connection Pool
+│   │   └── initDb.js           # สร้างตารางและ Performance Indexes อัตโนมัติ
 │   ├── middleware/
-│   │   └── authMiddleware.js   # Multer Storage & Authentication Verification
+│   │   └── authMiddleware.js   # ตรวจสอบ JWT Token และ Multer Uploads
 │   ├── routes/
-│   │   └── authRoutes.js       # Express Route Endpoints
-│   ├── uploads/                # Directory for Profile Avatars & Task Attachments
-│   ├── index.js                # Express Server Setup & Startup
+│   │   └── authRoutes.js       # กำหนด API Endpoints ทั้งหมด
+│   ├── uploads/                # เก็บรูปโปรไฟล์และไฟล์แนบ
+│   ├── index.js                # Entry Point เริ่มต้นการทำงานของเซิร์ฟเวอร์
 │   └── package.json
 │
 └── README.md
@@ -103,67 +123,80 @@ RNM AUTH/
 
 ---
 
-## ⚡ วิธีการติดตั้งและเริ่มต้นใช้งาน (Getting Started)
+## ⚡ วิธีการติดตั้งและรันระบบ (Getting Started)
 
 ### 1. ความต้องการของระบบ (Prerequisites)
-- **Node.js**: v18.0.0 หรือสูงกว่า
-- **MySQL / XAMPP**: เปิดใช้งาน Apache และ MySQL Server
+- **Node.js**: เวอร์ชัน 18.0.0 ขึ้นไป
+- **MySQL / XAMPP**: ติดตั้งและเปิดใช้งาน MySQL และ Apache
 
 ### 2. การตั้งค่าฐานข้อมูล (Database Setup)
 1. เปิด **XAMPP Control Panel** แล้วกด **Start** ที่โมดูล **MySQL** และ **Apache**
-2. เข้าใช้งาน **phpMyAdmin** (`http://localhost/phpmyadmin`)
-3. สร้างฐานข้อมูลใหม่ชื่อ `rnm_auth` (หรือตามชื่อที่ระบุไว้ใน `.env`)
-4. นำเข้าไฟล์ SQL ที่เตรียมไว้ (Database Dump) เข้าสู่ฐานข้อมูล
+2. เข้าสู่ **phpMyAdmin** ที่ `http://localhost/phpmyadmin`
+3. สร้างฐานข้อมูลใหม่ชื่อ `myapp_db` (หรือตั้งชื่อตามต้องการ)
+4. ตั้งค่า Environment Variable ในโฟลเดอร์ `server` (สร้างไฟล์ `.env`):
+   ```env
+   PORT=3000
+   DB_HOST=localhost
+   DB_USER=root
+   DB_PASSWORD=
+   DB_NAME=myapp_db
+   JWT_SECRET=your_jwt_secret_key
+   EMAIL_USER=your_email@gmail.com
+   EMAIL_PASS=your_email_app_password
+   ```
+*(เมื่อรันเซิร์ฟเวอร์ ระบบจะสร้างตารางและดัชนี Index ทั้ง 13 ตารางให้อัตโนมัติ)*
 
-### 3. การติดตั้งและรัน Backend Server
+### 3. การเริ่มต้น Backend Server
 ```bash
-# สลับไปยังโฟลเดอร์ server
+# เข้าสู่โฟลเดอร์ server
 cd server
 
 # ติดตั้ง Dependencies
 npm install
 
-# เริ่มต้นทำงานเซิร์ฟเวอร์ (Runs on Port 3000)
+# เริ่มต้นการทำงานเซิร์ฟเวอร์ (รันบน Port 3000)
 npm start
 ```
 
-### 4. การติดตั้งและรัน Frontend Client
+### 4. การเริ่มต้น Frontend Client
 ```bash
-# สลับไปยังโฟลเดอร์ frontend
+# เข้าสู่โฟลเดอร์ frontend
 cd frontend
 
 # ติดตั้ง Dependencies
 npm install
 
-# เริ่มต้นทำงานการพัฒนา (Runs on Port 5173)
+# เริ่มต้น Development Server (รันบน Port 5173)
 npm run dev
 ```
 
----
-
-## 🔌 API Endpoints สรุปสังเขป
-
-### 🔑 Authentication & Users
-- `POST /auth/login` - ล็อกอินเข้าสู่ระบบ
-- `POST /auth/send-otp` - ส่งรหัส OTP ไปยังอีเมล
-- `POST /auth/reset-password` - ตั้งรหัสผ่านใหม่ด้วย OTP
-- `GET /auth/users` - ดึงรายชื่อผู้ใช้งานทั้งหมด
-- `POST /auth/users` - เพิ่มผู้ใช้ใหม่ (พร้อมอัปโหลดรูปภาพ)
-- `PUT /auth/users/:id` - แก้ไขข้อมูลผู้ใช้งาน
-- `DELETE /auth/users/:id` - พักการใช้งานผู้ใช้ (Soft Delete)
-- `POST /auth/users/import` - นำเข้าผู้ใช้งานด้วยไฟล์ Excel
-
-### 📁 Projects & Tasks
-- `GET /auth/projects` - ดึงรายการโครงการทั้งหมด (พร้อมซิงค์ Progress และ Status อัตโนมัติ)
-- `POST /auth/projects` - สร้างโครงการใหม่
-- `PUT /auth/projects/:id` - แก้ไขโครงการ
-- `POST /auth/tasks` - สร้างงานใหม่ภายใต้โครงการ
-- `PUT /auth/tasks/:id/status` - อัปเดตสถานะงาน (พร้อมคำนวณและปรับสถานะโครงการอัตโนมัติ)
-- `PUT /auth/tasks/:id` - แก้ไขรายละเอียดงาน
-- `POST /auth/tasks/:id/comments` - เพิ่มความคิดเห็นในงาน
-- `POST /auth/tasks/:id/files` - อัปโหลดไฟล์แนบประกอบงาน
+เปิดเบราว์เซอร์ไปที่: `http://localhost:5173`
 
 ---
 
-## 📄 License & Maintainer
+## 🔌 สรุป API Endpoints ที่สำคัญ
+
+| Method | Endpoint | คำอธิบาย |
+| :--- | :--- | :--- |
+| `POST` | `/auth/login` | เข้าสู่ระบบ และรับ JWT Token |
+| `POST` | `/auth/send-otp` | ส่งรหัส OTP 6 หลักไปยังอีเมล |
+| `POST` | `/auth/reset-password` | รีเซ็ตรหัสผ่านใหม่ด้วย OTP |
+| `GET` | `/auth/users` | ดึงรายชื่อผู้ใช้ทั้งหมด |
+| `POST` | `/auth/users` | เพิ่มผู้ใช้ใหม่พร้อมอัปโหลดรูปภาพ |
+| `PUT` | `/auth/users/:id` | แก้ไขข้อมูลผู้ใช้งาน / เปลี่ยนสิทธิ์ |
+| `DELETE` | `/auth/users/:id` | ลบผู้ใช้ (Soft Delete) |
+| `GET` | `/auth/projects` | ดึงรายการโครงการ (พร้อมคำนวณ Progress อัตโนมัติ) |
+| `POST` | `/auth/projects` | สร้างโครงการใหม่และมอบหมาย Team Leader |
+| `PUT` | `/auth/projects/:id` | อัปเดตข้อมูลโครงการ |
+| `POST` | `/auth/tasks` | สร้างงานใหม่ภายใต้โครงการ |
+| `PUT` | `/auth/tasks/:id/status` | เปลี่ยนสถานะงาน (Sync กับสถานะโครงการ) |
+| `GET` | `/auth/personal-tasks` | ดึงรายการงานส่วนตัวของผู้ใช้ |
+| `POST` | `/auth/personal-tasks` | สร้างงานส่วนตัวใหม่ |
+| `PUT` | `/auth/personal-tasks/reorder` | อัปเดตลำดับและการย้ายสถานะบน Kanban Board |
+| `GET` | `/auth/dashboard-stats` | ดึงข้อมูลสถิติภาพรวมสำหรับ Dashboard |
+| `GET` | `/auth/activity-logs` | ดึงประวัติกิจกรรมของระบบ |
+
+---
+
+## 📄 License & Maintainers
 พัฒนาและดูแลระบบโดยทีมงาน **Project Task Management System (RNM AUTH)**
