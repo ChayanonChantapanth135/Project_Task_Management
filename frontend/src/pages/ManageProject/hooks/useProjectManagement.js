@@ -135,6 +135,21 @@ export const useProjectManagement = (t) => {
     fetchUsers();
   }, []);
 
+  // Auto-open Project Detail modal if projectId or openProject is present in URL search params
+  useEffect(() => {
+    if (projects.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const targetProjectId = params.get("projectId") || params.get("openProject");
+      if (targetProjectId) {
+        const found = projects.find((p) => Number(p.id) === Number(targetProjectId));
+        if (found) {
+          setSelectedProject(found);
+          setShowDetailModal(true);
+        }
+      }
+    }
+  }, [projects]);
+
   const filteredProjects = projects.filter((p) => {
     const role = (currentUser?.role || roleSimulation || "").toLowerCase().trim().replace(/\s+/g, "_");
     const userId = Number(currentUser?.id);

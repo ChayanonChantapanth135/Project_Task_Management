@@ -5,22 +5,54 @@ import { useLanguage } from "../../lib/LanguageContext";
 import { usePersonalTasks } from "./hooks/usePersonalTasks";
 import TaskBoard from "./components/TaskBoard";
 import PersonalTaskCalendar from "./components/PersonalTaskCalendar";
+import TaskModal from "./components/TaskModal";
 
 const PersonalTaskPage = () => {
   const { language } = useLanguage();
   const [viewMode, setViewMode] = useState("board"); // "board" | "calendar"
 
+  // Modal State for Add / Edit
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("add"); // "add" | "edit"
+  const [currentTask, setCurrentTask] = useState(null);
+  const [activeColumnId, setActiveColumnId] = useState("todo");
+
   const {
     data,
     loading,
     handleDragEnd,
-    handleAddTask,
-    handleEditTask,
+    createTask,
+    updateTask,
     handleDeleteTask,
     handleUpdateTaskDate,
   } = usePersonalTasks();
 
   const isThai = language === "th";
+
+  const handleOpenAdd = (columnId = "todo", initialDate = null) => {
+    setModalMode("add");
+    setActiveColumnId(columnId);
+    setCurrentTask(initialDate ? { task_date: initialDate } : null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (task) => {
+    setModalMode("edit");
+    setCurrentTask(task);
+    setIsModalOpen(true);
+  };
+
+  const handleModalSubmit = async (formData) => {
+    if (modalMode === "add") {
+      const success = await createTask(activeColumnId, formData);
+      if (success) setIsModalOpen(false);
+    } else if (modalMode === "edit") {
+      const success = await updateTask(currentTask.id, formData);
+      if (success) setIsModalOpen(false);
+    }
+  };
+
+  const columnTitle = data?.columns?.[activeColumnId]?.title || "";
 
   return (
     <div className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans relative">
@@ -77,7 +109,7 @@ const PersonalTaskPage = () => {
 
             {/* Add New Task Button */}
             <button
-              onClick={() => handleAddTask("todo")}
+              onClick={() => handleOpenAdd("todo")}
               className="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold text-xs glow-button flex items-center gap-2 cursor-pointer transition-all hover:scale-105 active:scale-95 shadow-lg"
             >
               <span className="text-sm leading-none font-extrabold">+</span>
@@ -94,20 +126,29 @@ const PersonalTaskPage = () => {
           <TaskBoard
             data={data}
             onDragEnd={handleDragEnd}
-            onAddTask={handleAddTask}
-            onEditTask={handleEditTask}
+            onAddTask={handleOpenAdd}
+            onEditTask={handleOpenEdit}
             onDeleteTask={handleDeleteTask}
           />
         ) : (
           <PersonalTaskCalendar
             data={data}
-            onAddTask={handleAddTask}
-            onEditTask={handleEditTask}
+            onAddTask={handleOpenAdd}
+            onEditTask={handleOpenEdit}
             onDeleteTask={handleDeleteTask}
             onUpdateTaskDate={handleUpdateTaskDate}
           />
         )}
       </main>
+
+      {/* Task Modal with CustomDateInput Calendar */}
+      <TaskModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleModalSubmit}
+        initialData={currentTask}
+        columnTitle={columnTitle}
+      />
 
       <Footer />
     </div>

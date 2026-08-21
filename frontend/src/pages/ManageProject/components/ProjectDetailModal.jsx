@@ -139,7 +139,14 @@ const ProjectDetailModal = ({
                 <ion-icon name="clipboard-outline" style={{ fontSize: "20px" }}></ion-icon>
                 <span>{t("projectDetailsTaskList")}</span>
               </h6>
-              <div className="list-group rounded-lg shadow-xs">
+              <div
+                className="list-group rounded-lg shadow-xs"
+                style={{
+                  maxHeight: "380px",
+                  overflowY: "auto",
+                  paddingRight: "4px",
+                }}
+              >
                 {selectedProject.tasks && selectedProject.tasks.length > 0 ? (
                   selectedProject.tasks.map((task) => (
                     <div
@@ -191,18 +198,32 @@ const ProjectDetailModal = ({
                         </span>
                       </div>
 
-                      {/* Right: View Task Detail Button */}
-                      <div className="ms-3">
-                        <button
-                          className="btn btn-sm btn-primary rounded-lg text-xs"
-                          onClick={() => {
-                            setSelectedTask(task);
-                            setTempStatus(task.status || "Pending");
-                            setShowViewTaskModal(true);
-                          }}
-                        >
-                          {t("viewTaskDetail")}
-                        </button>
+                      {/* Right: View Task Detail Button (Fixed width container to keep alignment) */}
+                      <div className="ms-3 d-flex justify-content-end" style={{ width: "125px", minWidth: "125px" }}>
+                        {(() => {
+                          const currentUid = Number(currentUser?.id);
+                          const isAssigned =
+                            Number(task.assigned_to) === currentUid ||
+                            Number(task.assignedTo) === currentUid;
+                          const canViewDetail = canManage || isTeamLeaderOfProject || isAssigned;
+
+                          if (!canViewDetail) {
+                            return null;
+                          }
+
+                          return (
+                            <button
+                              className="btn btn-sm btn-primary rounded-lg text-xs w-100"
+                              onClick={() => {
+                                setSelectedTask(task);
+                                setTempStatus(task.status || "Pending");
+                                setShowViewTaskModal(true);
+                              }}
+                            >
+                              {t("viewTaskDetail")}
+                            </button>
+                          );
+                        })()}
                       </div>
                     </div>
                   ))

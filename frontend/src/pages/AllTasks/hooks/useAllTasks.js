@@ -115,6 +115,23 @@ export const useAllTasks = () => {
     fetchUsers();
   }, []);
 
+  // Auto-open modal if taskId or openTask is present in URL search params
+  useEffect(() => {
+    if (tasks.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const targetTaskId = params.get("taskId") || params.get("openTask");
+      if (targetTaskId) {
+        const found = tasks.find((t) => Number(t.id) === Number(targetTaskId));
+        if (found) {
+          setSelectedTask(found);
+          setTempStatus(found.status);
+          fetchTaskHistory(found.id);
+          setShowViewModal(true);
+        }
+      }
+    }
+  }, [tasks]);
+
   // Status order priority: Pending -> In Progress -> Reviewing -> Completed (last)
   const STATUS_SORT_ORDER = {
     Pending: 1,

@@ -14,7 +14,7 @@ export const getUserNotifications = async (req, res) => {
     
     // ดึงการแจ้งเตือน 50 รายการล่าสุด
     const [rows] = await db.query(
-      `SELECT id, user_id, title, message, type, link, COALESCE(is_read, read_status, 0) as is_read, created_at 
+      `SELECT id, user_id, task_id, title, message, type, link, COALESCE(is_read, read_status, 0) as is_read, created_at 
        FROM notifications 
        WHERE user_id = ? 
        ORDER BY created_at DESC 
@@ -82,6 +82,10 @@ export const markAsRead = async (req, res) => {
         await db.query(
           "INSERT INTO task_history (task_id, action, details, changed_by) VALUES (?, 'status_change', ?, ?)",
           [taskId, `เปลี่ยนสถานะเป็น In Progress อัตโนมัติเมื่อกดอ่านการแจ้งเตือน`, userId]
+        );
+        await db.query(
+          "INSERT INTO task_status_history (task_id, status, changed_by) VALUES (?, 'In Progress', ?)",
+          [taskId, userId]
         );
 
         // อัปเดตสถานะโปรเจกต์หลักถ้าจำเป็น
@@ -182,6 +186,10 @@ export const markAllAsRead = async (req, res) => {
           await db.query(
             "INSERT INTO task_history (task_id, action, details, changed_by) VALUES (?, 'status_change', ?, ?)",
             [item.task_id, `เปลี่ยนสถานะเป็น In Progress อัตโนมัติเมื่อกดอ่านการแจ้งเตือนทั้งหมด`, userId]
+          );
+          await db.query(
+            "INSERT INTO task_status_history (task_id, status, changed_by) VALUES (?, 'In Progress', ?)",
+            [item.task_id, userId]
           );
         }
       }

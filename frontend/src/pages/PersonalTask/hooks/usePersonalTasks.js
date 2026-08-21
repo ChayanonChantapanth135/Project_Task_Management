@@ -626,11 +626,93 @@ export const usePersonalTasks = () => {
     }
   };
 
+  const createTask = async (columnId, { title, task_date }) => {
+    const targetColumn = data.columns[columnId] || data.columns["todo"];
+    const targetStatus = targetColumn.id;
+
+    try {
+      let uid = currentUserId;
+      if (!uid) {
+        const user = await getCurrentUser();
+        uid = user?.id || null;
+      }
+      if (!uid) {
+        const rawUser = localStorage.getItem("userData");
+        if (rawUser) {
+          uid = JSON.parse(rawUser).id;
+        }
+      }
+
+      await axios.post(`${API_URL}/auth/personal-tasks`, {
+        user_id: uid,
+        title,
+        status: targetStatus,
+        is_completed: targetStatus === "completed" ? 1 : 0,
+        task_date,
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: isThai ? "เพิ่มงานสำเร็จ" : "Task created",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
+      fetchTasks();
+      return true;
+    } catch (err) {
+      console.error("Error creating personal task:", err);
+      const errMsg =
+        err.response?.data?.message ||
+        err.message ||
+        (isThai ? "ไม่สามารถเพิ่มงานได้" : "Failed to create task");
+      Swal.fire({
+        icon: "error",
+        title: isThai ? "เกิดข้อผิดพลาด" : "Error",
+        text: errMsg,
+      });
+      return false;
+    }
+  };
+
+  const updateTask = async (taskId, { title, task_date }) => {
+    try {
+      await axios.put(`${API_URL}/auth/personal-tasks/${taskId}`, {
+        title,
+        task_date,
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: isThai ? "แก้ไขงานสำเร็จ" : "Task updated",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
+      fetchTasks();
+      return true;
+    } catch (err) {
+      console.error("Error updating personal task:", err);
+      const errMsg =
+        err.response?.data?.message ||
+        err.message ||
+        (isThai ? "ไม่สามารถแก้ไขงานได้" : "Failed to update task");
+      Swal.fire({
+        icon: "error",
+        title: isThai ? "เกิดข้อผิดพลาด" : "Error",
+        text: errMsg,
+      });
+      return false;
+    }
+  };
+
   return {
     data,
     loading,
     fetchTasks,
     handleDragEnd,
+    createTask,
+    updateTask,
     handleAddTask,
     handleEditTask,
     handleDeleteTask,
@@ -638,4 +720,5 @@ export const usePersonalTasks = () => {
     handleUpdateTaskStatus,
   };
 };
+
 

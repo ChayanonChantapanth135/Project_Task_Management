@@ -23,7 +23,14 @@ const ViewTaskModal = ({
 }) => {
   const { language } = useLanguage();
   const userRole = (currentUser?.role || "").toLowerCase().trim().replace(/\s+/g, "_");
-  const canManage = userRole === "admin" || userRole === "manager" || userRole === "project_manager";
+  const isTeamLeaderOfProject =
+    Number(selectedProject?.teamLeaderId) === Number(currentUser?.id) ||
+    Number(selectedProject?.team_leader_id) === Number(currentUser?.id);
+  const canManage =
+    userRole === "admin" ||
+    userRole === "manager" ||
+    userRole === "project_manager" ||
+    isTeamLeaderOfProject;
 
   const [comments, setComments] = useState([]);
   const [files, setFiles] = useState([]);

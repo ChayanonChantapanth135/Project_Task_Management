@@ -123,9 +123,15 @@ async function notifyProjectMembers({ db, projectId, taskId = null, title, messa
     teamLeaderIds.forEach(id => memberIds.add(Number(id)));
     assigneeIds.forEach(id => memberIds.add(Number(id)));
 
-    // ยกเว้นผู้ที่เป็นคนกดกระทำเอง
+    // ยกเว้นผู้ที่ระบุไว้ (เช่น คนสร้าง หรือคนที่ได้รับการแจ้งเตือนเฉพาะไปแล้ว)
     if (excludeUserId) {
-      memberIds.delete(Number(excludeUserId));
+      if (Array.isArray(excludeUserId)) {
+        excludeUserId.forEach(id => {
+          if (id) memberIds.delete(Number(id));
+        });
+      } else {
+        memberIds.delete(Number(excludeUserId));
+      }
     }
 
     for (const targetUserId of memberIds) {
@@ -944,16 +950,30 @@ export const createTask = async (req, res) => {
         const [projRows] = await db.query('SELECT name FROM projects WHERE id = ?', [projectId]);
         const projectName = projRows[0]?.name || `ID ${projectId}`;
 
-        await notifyProjectMembers({
-            db,
-            projectId,
-            taskId,
-            title: 'งานใหม่ในโปรเจกต์',
-            message: `มีงานใหม่ "${title}" ในโปรเจกต์ "${projectName}"`,
-            type: 'task',
-            link: '/MyTasks',
-            excludeUserId: createdBy
-        });
+        // In-app notification specifically for the assigned user
+        if (assignedTo && Number(assignedTo) !== Number(createdBy)) {
+            const assignMsg = `คุณได้รับมอบหมายงานใหม่: "${title}" ในโปรเจกต์ "${projectName}"`;
+            await db.query(
+                "INSERT INTO notifications (user_id, task_id, title, message, type, link, is_read, read_status) VALUES (?, ?, ?, ?, ?, ?, 0, 0)",
+                [Number(assignedTo), taskId, 'ได้รับมอบหมายงานใหม่', assignMsg, 'task', '/MyTasks']
+            );
+        }
+
+        // Notify Project Creator & Team Leaders about the new task (excluding the person who created it and the assignee who got dedicated notification)
+        const [tlRows] = await db.query('SELECT user_id FROM project_team_leaders WHERE project_id = ?', [projectId]);
+        const leadersToNotify = new Set();
+        if (projRows[0]?.created_by) leadersToNotify.add(Number(projRows[0].created_by));
+        tlRows.forEach(r => leadersToNotify.add(Number(r.user_id)));
+
+        if (createdBy) leadersToNotify.delete(Number(createdBy));
+        if (assignedTo) leadersToNotify.delete(Number(assignedTo));
+
+        for (const leaderId of leadersToNotify) {
+            await db.query(
+                "INSERT INTO notifications (user_id, task_id, title, message, type, link, is_read, read_status) VALUES (?, ?, ?, ?, ?, ?, 0, 0)",
+                [leaderId, taskId, 'งานใหม่ในโปรเจกต์', `มีงานใหม่ "${title}" ในโปรเจกต์ "${projectName}"`, 'task', '/AllTasks']
+            );
+        }
 
         await db.query(
             "INSERT INTO task_history (task_id, action, details, changed_by) VALUES (?, 'create', ?, ?)",
@@ -1033,10 +1053,11 @@ export const updateTaskStatus = async (req, res) => {
         await notifyProjectMembers({
             db,
             projectId: project_id,
+            taskId: id,
             title: 'อัปเดตสถานะงาน',
             message: `งาน "${title}" ในโปรเจกต์ "${project_name}" ถูกอัปเดตสถานะเป็น "${status}"`,
             type: 'task',
-            link: '/AllTasks',
+            link: `/Projects?projectId=${project_id}`,
             excludeUserId: userId
         });
 
@@ -1117,13 +1138,13 @@ export const updateTask = async (req, res) => {
 
         await logActivity(db, userId || null, 'Update Task Details', `Updated task details for "${title}" (ID: ${id})`);
 
-        if (assignedTo && Number(assignedTo) !== Number(oldAssignee)) {
-            const [projRows] = await db.query('SELECT name FROM projects WHERE id = ?', [projectId]);
-            const projectName = projRows[0]?.name || `ID ${projectId}`;
+        if (assignedTo && Number(assignedTo) !== Number(oldAssignee) && Number(assignedTo) !== Number(userId)) {
+            const [projRows] = await db.query('SELECT name FROM projects WHERE id = ?', [projectId || oldTask.project_id]);
+            const projectName = projRows[0]?.name || `ID ${projectId || oldTask.project_id}`;
             const notifMessage = `คุณได้รับมอบหมายงานใหม่: "${title}" ในโปรเจกต์ "${projectName}"`;
             await db.query(
-                "INSERT INTO notifications (user_id, title, message, type, link, is_read, read_status) VALUES (?, ?, ?, ?, ?, 0, FALSE)",
-                [Number(assignedTo), 'ได้รับมอบหมายงานใหม่', notifMessage, 'task', '/MyTasks']
+                "INSERT INTO notifications (user_id, task_id, title, message, type, link, is_read, read_status) VALUES (?, ?, ?, ?, ?, ?, 0, 0)",
+                [Number(assignedTo), id, 'ได้รับมอบหมายงานใหม่', notifMessage, 'task', '/MyTasks']
             );
         }
 

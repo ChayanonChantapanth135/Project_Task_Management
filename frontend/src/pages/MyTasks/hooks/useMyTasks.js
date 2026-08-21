@@ -126,6 +126,22 @@ export const useMyTasks = () => {
     return () => window.removeEventListener("taskStatusUpdated", handleStatusUpdate);
   }, []);
 
+  // Auto-open modal if taskId or openTask is present in URL search params
+  useEffect(() => {
+    if (myTasks.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const targetTaskId = params.get("taskId") || params.get("openTask");
+      if (targetTaskId) {
+        const found = myTasks.find((t) => Number(t.id) === Number(targetTaskId));
+        if (found) {
+          setSelectedTask(found);
+          setTempStatus(found.status);
+          setShowViewModal(true);
+        }
+      }
+    }
+  }, [myTasks]);
+
   const handleUpdateTask = async (updatedDetails) => {
     if (!selectedTask) return;
     try {

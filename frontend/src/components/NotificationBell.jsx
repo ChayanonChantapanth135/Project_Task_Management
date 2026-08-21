@@ -66,7 +66,11 @@ const NotificationBell = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleMarkAsRead = async (id, link) => {
+  const handleMarkAsRead = async (item) => {
+    const id = item.id;
+    const link = item.link;
+    const taskId = item.task_id;
+
     try {
       await axios.put(
         `${API_URL}/auth/notifications/${id}/read`,
@@ -74,7 +78,7 @@ const NotificationBell = () => {
         { headers: getAuthHeaders() },
       );
       setNotifications((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, is_read: 1 } : item)),
+        prev.map((n) => (n.id === id ? { ...n, is_read: 1 } : n)),
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
       window.dispatchEvent(new Event("taskStatusUpdated"));
@@ -98,6 +102,12 @@ const NotificationBell = () => {
       // Non-admin users: redirect /AllTasks to /MyTasks
       if (!isAdmin && targetLink === "/AllTasks") {
         targetLink = "/MyTasks";
+      }
+
+      // If notification has a task_id, append query param to trigger popup modal
+      if (taskId && (targetLink.includes("/MyTasks") || targetLink.includes("/AllTasks"))) {
+        const separator = targetLink.includes("?") ? "&" : "?";
+        targetLink = `${targetLink}${separator}taskId=${taskId}`;
       }
     } catch (e) {
       targetLink = link || "/Dashboard";
@@ -503,7 +513,7 @@ const NotificationBell = () => {
               filteredNotifications.map((item) => (
                 <div
                   key={item.id}
-                  onClick={() => handleMarkAsRead(item.id, item.link)}
+                  onClick={() => handleMarkAsRead(item)}
                   className={`p-3.5 flex gap-3 transition-colors cursor-pointer relative group ${
                     !item.is_read
                       ? "bg-indigo-950/30 hover:bg-indigo-900/40"
