@@ -61,10 +61,10 @@ export default function MyTaskProjectGroups({
             <div className="flex items-center gap-3">
               <span className="text-2xl">📁</span>
               <div>
-                <h2 className="text-xl font-bold text-white leading-tight">
+                <h2 className="text-xl font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
                   {group.name}
                 </h2>
-                <span className="text-xs text-teal-400 mt-1 block">
+                <span className="text-xs mt-1 block font-semibold" style={{ color: "var(--brand-color)" }}>
                   {group.tasks.length} {t("assignedTasksText")}
                 </span>
               </div>
@@ -75,7 +75,13 @@ export default function MyTaskProjectGroups({
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 text-slate-400 text-xs uppercase tracking-wider">
+                <tr 
+                  className="text-xs uppercase tracking-wider font-bold"
+                  style={{
+                    color: "var(--text-secondary)",
+                    borderBottom: "1px solid var(--border-surface)",
+                  }}
+                >
                   <th className="py-3 px-4 text-center">
                     {t("taskNameLabel")}
                   </th>
@@ -94,13 +100,13 @@ export default function MyTaskProjectGroups({
                   <th className="py-3 px-4 text-center">{t("colManage")}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/40 text-sm">
+              <tbody className="divide-y text-sm" style={{ borderColor: "var(--border-surface)" }}>
                 {group.tasks.map((task) => {
                   const statusColors = {
                     Pending: "bg-amber-500/10 text-amber-500",
-                    "In Progress": "bg-sky-500/10 text-sky-400",
-                    Reviewing: "bg-purple-500/10 text-purple-400",
-                    Completed: "bg-emerald-500/10 text-emerald-400",
+                    "In Progress": "bg-sky-500/10 text-sky-500",
+                    Reviewing: "bg-purple-500/10 text-purple-500",
+                    Completed: "bg-emerald-500/10 text-emerald-500",
                   };
 
                   const priorityColors = {
@@ -174,9 +180,9 @@ export default function MyTaskProjectGroups({
                     );
 
                     if (diffDays < 0) {
-                      return { backgroundColor: "rgba(225, 29, 72, 0.18)" };
+                      return { backgroundColor: "rgba(225, 29, 72, 0.12)" };
                     } else if (diffDays <= 3) {
-                      return { backgroundColor: "rgba(245, 158, 11, 0.20)" };
+                      return { backgroundColor: "rgba(245, 158, 11, 0.15)" };
                     }
                     return {};
                   };
@@ -184,13 +190,13 @@ export default function MyTaskProjectGroups({
                   return (
                     <tr
                       key={task.id}
-                      className="hover:bg-slate-800/30 transition-all group"
+                      className="hover:bg-slate-500/5 transition-all group"
                       style={getTaskRowStyle(task)}
                     >
-                      <td className="py-3.5 px-4 text-center font-semibold text-white group-hover:text-teal-300 transition-colors first:rounded-l-xl last:rounded-r-xl">
+                      <td className="py-3.5 px-4 text-center font-bold first:rounded-l-xl last:rounded-r-xl" style={{ color: "var(--text-primary)" }}>
                         {task.title}
                       </td>
-                      <td className="py-3.5 px-4 text-center text-slate-300 first:rounded-l-xl last:rounded-r-xl">
+                      <td className="py-3.5 px-4 text-center font-medium first:rounded-l-xl last:rounded-r-xl" style={{ color: "var(--text-secondary)" }}>
                         {formatTaskType(task.taskType)}
                       </td>
                       <td className="py-3.5 px-4 text-center first:rounded-l-xl last:rounded-r-xl">
@@ -207,12 +213,17 @@ export default function MyTaskProjectGroups({
                           {translateStatus(task.status)}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-center text-slate-400 text-xs first:rounded-l-xl last:rounded-r-xl">
+                      <td className="py-3.5 px-4 text-center text-xs font-semibold first:rounded-l-xl last:rounded-r-xl" style={{ color: "var(--text-secondary)" }}>
                         {formatDueDateDisplay(task.rawDueDate || task.dueDate)}
                       </td>
                       <td className="py-3.5 px-4 text-center first:rounded-l-xl last:rounded-r-xl">
                         <button
-                          className="px-4 py-1.5 bg-[#184157] hover:bg-teal-500 hover:text-[#112936] text-slate-200 text-xs font-bold rounded-full transition-all"
+                          className="px-4 py-1.5 text-xs font-bold rounded-2xl transition-all cursor-pointer shadow-sm hover:shadow-md"
+                          style={{
+                            background: "var(--bg-surface-hover)",
+                            color: "var(--text-primary)",
+                            border: "1px solid var(--border-surface)",
+                          }}
                           onClick={() => handleManageClick(task)}
                         >
                           {t("colManage")}

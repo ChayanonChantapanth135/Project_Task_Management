@@ -87,7 +87,14 @@ const ContractPage = () => {
   ];
 
   return (
-    <div ref={pageRef} className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans selection:bg-teal-500 selection:text-white relative overflow-hidden">
+    <div 
+      ref={pageRef} 
+      className="min-h-screen flex flex-col font-sans relative overflow-hidden"
+      style={{
+        backgroundColor: "var(--bg-primary)",
+        color: "var(--text-primary)",
+      }}
+    >
       <Header />
 
       {/* GSAP Animated Ambient Orbs */}

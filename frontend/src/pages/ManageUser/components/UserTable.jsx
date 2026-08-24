@@ -185,7 +185,13 @@ const UserTable = ({
       </div>
 
       {/* Pagination footer */}
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-white/5 text-xs text-slate-400">
+      <div 
+        className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 text-xs"
+        style={{
+          borderTop: "1px solid var(--border-surface)",
+          color: "var(--text-secondary)",
+        }}
+      >
         <span>
           {t("showingText")} {totalEntries === 0 ? 0 : indexOfFirstEntry + 1}{" "}
           {t("toText")} {Math.min(indexOfLastEntry, totalEntries)} {t("ofText")}{" "}
@@ -196,22 +202,38 @@ const UserTable = ({
           <div className="flex items-center gap-2">
             <button
               disabled={currentPage === 1}
-              className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 disabled:opacity-40 transition-colors"
+              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold disabled:opacity-40 transition-all cursor-pointer shadow-sm hover:shadow-md"
+              style={{
+                background: "var(--bg-surface-hover)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--border-surface)",
+              }}
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             >
-              {t("prevText")}
+              {t("prevText") || "Previous"}
             </button>
-            <span className="px-3 py-1.5 font-bold text-white bg-indigo-600 rounded-xl">
+            <span 
+              className="px-3.5 py-1.5 font-bold rounded-xl text-xs pagination-badge shadow-md"
+              style={{
+                background: "var(--brand-color)",
+                color: "#FFFFFF",
+              }}
+            >
               {currentPage} / {totalPages}
             </span>
             <button
               disabled={currentPage === totalPages}
-              className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 disabled:opacity-40 transition-colors"
+              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold disabled:opacity-40 transition-all cursor-pointer shadow-sm hover:shadow-md"
+              style={{
+                background: "var(--bg-surface-hover)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--border-surface)",
+              }}
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
             >
-              {t("nextText")}
+              {t("nextText") || "Next"}
             </button>
           </div>
         )}

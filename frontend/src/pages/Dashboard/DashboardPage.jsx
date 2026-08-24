@@ -70,7 +70,11 @@ const DashboardPage = () => {
   return (
     <div
       ref={pageRef}
-      className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans selection:bg-teal-500 selection:text-white relative overflow-hidden"
+      className="min-h-screen flex flex-col font-sans relative overflow-hidden"
+      style={{
+        backgroundColor: "var(--bg-primary)",
+        color: "var(--text-primary)",
+      }}
     >
       <Header />
 
@@ -189,45 +193,66 @@ const DashboardPage = () => {
 
           <style>{`
             .project-calendar-container .fc {
-              --fc-border-color: rgba(255, 255, 255, 0.08);
+              --fc-border-color: var(--border-surface);
               font-family: 'Inter', system-ui, sans-serif;
             }
             .project-calendar-container .fc-scrollgrid {
               border-radius: 16px !important;
               overflow: hidden !important;
-              border: 1px solid rgba(255, 255, 255, 0.1) !important;
+              border: 1px solid var(--border-surface) !important;
             }
             .project-calendar-container .fc-toolbar-title {
               font-size: 1.25rem !important;
               font-weight: 800 !important;
-              color: #ffffff !important;
+              color: var(--text-primary) !important;
             }
             .project-calendar-container .fc-button {
-              background: rgba(30, 41, 59, 0.6) !important;
-              border: 1px solid rgba(255, 255, 255, 0.1) !important;
-              color: #cbd5e1 !important;
+              background: var(--bg-surface-hover) !important;
+              border: 1px solid var(--border-surface) !important;
+              color: var(--text-primary) !important;
               font-weight: 600 !important;
               border-radius: 12px !important;
               padding: 0.5rem 1rem !important;
+              transition: all 0.2s ease !important;
             }
             .project-calendar-container .fc-button:hover {
-              background: rgba(99, 102, 241, 0.3) !important;
+              background: var(--brand-color) !important;
+              color: #ffffff !important;
+            }
+            .project-calendar-container .fc-button-active {
+              background: var(--brand-color) !important;
               color: #ffffff !important;
             }
             .project-calendar-container .fc-col-header-cell {
-              background: rgba(15, 23, 42, 0.9) !important;
+              background: var(--bg-surface-hover) !important;
               padding: 0.75rem 0 !important;
+              border-color: var(--border-surface) !important;
             }
             .project-calendar-container .fc-col-header-cell-cushion {
-              color: #94a3b8 !important;
+              color: var(--text-secondary) !important;
               font-weight: 700 !important;
             }
             .project-calendar-container .fc-daygrid-day-number {
-              color: #cbd5e1 !important;
+              color: var(--text-secondary) !important;
               font-weight: 600 !important;
+              padding: 0.35rem 0.5rem !important;
+            }
+            .project-calendar-container .fc-daygrid-day:hover {
+              background-color: var(--bg-surface-hover) !important;
             }
             .project-calendar-container .fc-day-today {
-              background: rgba(99, 102, 241, 0.15) !important;
+              background: rgba(59, 130, 246, 0.12) !important;
+            }
+            .project-calendar-container .fc-day-today .fc-daygrid-day-number {
+              color: var(--brand-color) !important;
+              font-weight: 800 !important;
+            }
+            .project-calendar-container .fc-event {
+              border-radius: 6px !important;
+              padding: 2px 4px !important;
+              font-size: 0.75rem !important;
+              font-weight: 600 !important;
+              cursor: pointer !important;
             }
           `}</style>
 

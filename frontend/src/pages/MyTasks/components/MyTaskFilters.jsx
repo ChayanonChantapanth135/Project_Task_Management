@@ -11,12 +11,23 @@ export default function MyTaskFilters({
   const statuses = ["All", "Pending", "In Progress", "Reviewing", "Completed"];
 
   return (
-    <div className="glass-panel rounded-3xl p-5 mb-8 flex flex-col md:flex-row gap-4 items-center justify-between">
+    <div 
+      className="glass-panel rounded-3xl p-5 mb-8 flex flex-col md:flex-row gap-4 items-center justify-between shadow-xl"
+      style={{
+        background: "var(--bg-surface)",
+        border: "1px solid var(--border-surface)",
+      }}
+    >
       <div className="w-full md:w-72 relative">
         <input 
           type="text" 
           placeholder={language === "th" ? "ค้นหาชื่องาน หรือ โปรเจกต์..." : "Search by task or project..."}
-          className="w-full bg-[#184157]/70 text-slate-100 rounded-full px-5 py-3 text-sm focus:ring-2 focus:ring-teal-400 transition-all placeholder:text-slate-400"
+          className="w-full rounded-2xl px-5 py-2.5 text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400 shadow-sm"
+          style={{
+            background: "var(--bg-surface-hover)",
+            color: "var(--text-primary)",
+            border: "1px solid var(--border-surface)",
+          }}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -27,11 +38,12 @@ export default function MyTaskFilters({
           <button
             key={status}
             onClick={() => setStatusFilter(status)}
-            className={`px-4 py-2 text-xs font-bold rounded-full transition-all whitespace-nowrap ${
-              statusFilter === status 
-                ? "bg-teal-500 text-[#112936] shadow-lg shadow-teal-500/25" 
-                : "bg-[#184157]/50 hover:bg-[#184157] text-slate-300"
-            }`}
+            className="px-4 py-2 text-xs font-bold rounded-2xl transition-all whitespace-nowrap cursor-pointer shadow-sm"
+            style={{
+              background: statusFilter === status ? "var(--brand-color)" : "var(--bg-surface-hover)",
+              color: statusFilter === status ? "#FFFFFF" : "var(--text-secondary)",
+              border: statusFilter === status ? "1px solid transparent" : "1px solid var(--border-surface)",
+            }}
           >
             {status === "All" 
               ? (language === "th" ? "ทั้งหมด" : "All") 

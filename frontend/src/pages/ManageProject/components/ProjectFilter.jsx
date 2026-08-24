@@ -18,7 +18,12 @@ const ProjectFilter = ({
         </span>
         <input
           type="text"
-          className="w-full bg-slate-800/60 hover:bg-slate-800/80 rounded-2xl py-3 pl-10 pr-4 text-white text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400"
+          className="w-full rounded-2xl py-3 pl-10 pr-4 text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400"
+          style={{
+            background: "var(--bg-surface)",
+            color: "var(--text-primary)",
+            border: "1px solid var(--border-surface)",
+          }}
           placeholder={t("searchProjectPlaceholder")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}

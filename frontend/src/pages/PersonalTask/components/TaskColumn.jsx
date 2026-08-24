@@ -4,18 +4,34 @@ import TaskCard from "./TaskCard";
 
 const TaskColumn = ({ column, tasks, onAddTask, onEditTask, onDeleteTask }) => {
   return (
-    <div className="rounded-2xl p-5 flex flex-col bg-[#1c2c38]/90 shadow-xl h-[560px]">
+    <div 
+      className="rounded-3xl p-5 flex flex-col shadow-xl h-[560px] transition-all"
+      style={{
+        backgroundColor: "var(--bg-surface)",
+        border: "1px solid var(--border-surface)",
+      }}
+    >
       {/* Header ของคอลัมน์ */}
-      <div className="group flex items-center justify-between mb-3 pb-3 border-b border-gray-700/50 flex-shrink-0">
+      <div 
+        className="group flex items-center justify-between mb-3 pb-3 flex-shrink-0"
+        style={{ borderBottom: "1px solid var(--border-surface)" }}
+      >
         <div className="flex items-center gap-2.5">
           <span
             className="w-3.5 h-3.5 rounded-full inline-block shadow-sm"
-            style={{ backgroundColor: column.color }}
+            style={{ backgroundColor: column.color || "var(--brand-color)" }}
           ></span>
-          <h3 className="text-sm font-bold text-white tracking-wider">
+          <h3 className="text-sm font-bold tracking-wider" style={{ color: "var(--text-primary)" }}>
             {column.title}
           </h3>
-          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full text-slate-300 bg-slate-700/50">
+          <span 
+            className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
+            style={{
+              backgroundColor: "var(--bg-surface-hover)",
+              color: "var(--text-secondary)",
+              border: "1px solid var(--border-surface)",
+            }}
+          >
             {tasks.length}
           </span>
         </div>
@@ -23,7 +39,12 @@ const TaskColumn = ({ column, tasks, onAddTask, onEditTask, onDeleteTask }) => {
         <button
           title="Add Task"
           onClick={() => onAddTask(column.id)}
-          className="text-slate-400 hover:text-white w-7 h-7 rounded-lg flex items-center justify-center text-lg cursor-pointer bg-slate-700/30 hover:bg-slate-700/60 transition-all opacity-0 invisible group-hover:opacity-100 group-hover:visible"
+          className="w-7 h-7 rounded-xl flex items-center justify-center text-sm font-bold cursor-pointer transition-all opacity-0 invisible group-hover:opacity-100 group-hover:visible shadow-sm"
+          style={{
+            background: "var(--bg-surface-hover)",
+            color: "var(--brand-color)",
+            border: "1px solid var(--border-surface)",
+          }}
         >
           +
         </button>

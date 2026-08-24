@@ -30,13 +30,18 @@ const TaskFilters = ({
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full bg-[#1e293b]/50  rounded-2xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all text-sm"
+            className="w-full rounded-2xl py-3 px-4 text-xs font-medium placeholder-slate-400 focus:outline-none transition-all"
+            style={{
+              background: "var(--bg-surface-hover)",
+              color: "var(--text-primary)",
+              border: "1px solid var(--border-surface)",
+            }}
           />
         </div>
 
         {/* กรองสถานะ */}
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+          <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-secondary)" }}>
             {language === "th" ? "สถานะ" : "Status"}
           </label>
           <div className="relative w-full">
@@ -46,21 +51,26 @@ const TaskFilters = ({
                 setStatusFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full bg-[#1e293b]/50 rounded-2xl py-3 pl-4 pr-10 text-white focus:outline-none focus:border-teal-500 transition-all text-sm appearance-none"
+              className="w-full rounded-2xl py-3 pl-4 pr-10 text-xs font-semibold focus:outline-none transition-all appearance-none cursor-pointer"
+              style={{
+                background: "var(--bg-surface-hover)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--border-surface)",
+              }}
             >
-              <option value="All" className="bg-[#153648]">
-                {language === "th" ? "ทุกสถานะ" : "All Statuses"}
+              <option value="All">
+                {t("all") || "All"}
               </option>
-              <option value="Pending" className="bg-[#153648]">
+              <option value="Pending">
                 {t("pending") || "Pending"}
               </option>
-              <option value="In Progress" className="bg-[#153648]">
+              <option value="In Progress">
                 {t("inProgress") || "In Progress"}
               </option>
-              <option value="Reviewing" className="bg-[#153648]">
+              <option value="Reviewing">
                 {t("reviewing") || "Reviewing"}
               </option>
-              <option value="Completed" className="bg-[#153648]">
+              <option value="Completed">
                 {t("completed") || "Completed"}
               </option>
             </select>
@@ -74,7 +84,7 @@ const TaskFilters = ({
 
         {/* กรองความสำคัญ */}
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+          <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-secondary)" }}>
             {language === "th" ? "ความสำคัญ" : "Priority"}
           </label>
           <div className="relative w-full">
@@ -84,18 +94,23 @@ const TaskFilters = ({
                 setPriorityFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full bg-[#1e293b]/50 rounded-2xl py-3 pl-4 pr-10 text-white focus:outline-none focus:border-teal-500 transition-all text-sm appearance-none"
+              className="w-full rounded-2xl py-3 pl-4 pr-10 text-xs font-semibold focus:outline-none transition-all appearance-none cursor-pointer"
+              style={{
+                background: "var(--bg-surface-hover)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--border-surface)",
+              }}
             >
-              <option value="All" className="bg-[#153648]">
+              <option value="All">
                 {language === "th" ? "ทุกระดับ" : "All Priorities"}
               </option>
-              <option value="High" className="bg-[#153648]">
+              <option value="High">
                 {language === "th" ? "สูง" : "High"}
               </option>
-              <option value="Medium" className="bg-[#153648]">
+              <option value="Medium">
                 {language === "th" ? "ปานกลาง" : "Medium"}
               </option>
-              <option value="Low" className="bg-[#153648]">
+              <option value="Low">
                 {language === "th" ? "ต่ำ" : "Low"}
               </option>
             </select>

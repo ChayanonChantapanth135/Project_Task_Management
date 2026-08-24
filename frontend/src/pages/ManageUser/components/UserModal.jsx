@@ -63,8 +63,8 @@ const UserModal = ({
               {/* Email */}
               <div>
                 <label
-                  className="form-label text-secondary mb-1"
-                  style={{ fontSize: "0.85rem", fontWeight: "600" }}
+                  className="form-label mb-1"
+                  style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-secondary)" }}
                 >
                   {t("modalEmailLabel")}{" "}
                   <span className="text-danger">*</span>
@@ -72,7 +72,7 @@ const UserModal = ({
                 <input
                   type="email"
                   name="email"
-                  className="form-control rounded-lg"
+                  className="form-control rounded-xl py-2.5 px-3 text-sm focus:outline-none transition-all shadow-sm"
                   value={formData.email}
                   onChange={handleInputChange}
                   required
@@ -82,8 +82,8 @@ const UserModal = ({
               {/* Password */}
               <div>
                 <label
-                  className="form-label text-secondary mb-1"
-                  style={{ fontSize: "0.85rem", fontWeight: "600" }}
+                  className="form-label mb-1"
+                  style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-secondary)" }}
                 >
                   {t("modalPasswordLabel")}{" "}
                   {!isEditMode && <span className="text-danger">*</span>}
@@ -91,7 +91,7 @@ const UserModal = ({
                 <input
                   type="password"
                   name="password"
-                  className="form-control rounded-lg"
+                  className="form-control rounded-xl py-2.5 px-3 text-sm focus:outline-none transition-all shadow-sm"
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder={isEditMode ? "••••••••" : ""}
@@ -103,8 +103,8 @@ const UserModal = ({
               <div className="row g-2">
                 <div className="col">
                   <label
-                    className="form-label text-secondary mb-1"
-                    style={{ fontSize: "0.85rem", fontWeight: "600" }}
+                    className="form-label mb-1"
+                    style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-secondary)" }}
                   >
                     {t("modalFirstNameLabel")}{" "}
                     <span className="text-danger">*</span>
@@ -112,7 +112,7 @@ const UserModal = ({
                   <input
                     type="text"
                     name="firstName"
-                    className="form-control rounded-lg"
+                    className="form-control rounded-xl py-2.5 px-3 text-sm focus:outline-none transition-all shadow-sm"
                     value={formData.firstName}
                     onChange={handleInputChange}
                     required
@@ -120,8 +120,8 @@ const UserModal = ({
                 </div>
                 <div className="col">
                   <label
-                    className="form-label text-secondary mb-1"
-                    style={{ fontSize: "0.85rem", fontWeight: "600" }}
+                    className="form-label mb-1"
+                    style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-secondary)" }}
                   >
                     {t("modalLastNameLabel")}{" "}
                     <span className="text-danger">*</span>
@@ -129,7 +129,7 @@ const UserModal = ({
                   <input
                     type="text"
                     name="lastName"
-                    className="form-control rounded-lg"
+                    className="form-control rounded-xl py-2.5 px-3 text-sm focus:outline-none transition-all shadow-sm"
                     value={formData.lastName}
                     onChange={handleInputChange}
                     required
@@ -140,15 +140,15 @@ const UserModal = ({
               {/* Phone */}
               <div>
                 <label
-                  className="form-label text-secondary mb-1"
-                  style={{ fontSize: "0.85rem", fontWeight: "600" }}
+                  className="form-label mb-1"
+                  style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-secondary)" }}
                 >
                   {t("modalPhoneLabel")}
                 </label>
                 <input
                   type="text"
                   name="phone"
-                  className="form-control rounded-lg"
+                  className="form-control rounded-xl py-2.5 px-3 text-sm focus:outline-none transition-all shadow-sm"
                   value={formData.phone}
                   onChange={handleInputChange}
                 />
@@ -213,14 +213,14 @@ const UserModal = ({
               {/* Role Selection */}
               <div>
                 <label
-                  className="form-label text-secondary mb-1"
-                  style={{ fontSize: "0.85rem", fontWeight: "600" }}
+                  className="form-label mb-1"
+                  style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-secondary)" }}
                 >
                   {t("modalRoleLabel")} <span className="text-danger">*</span>
                 </label>
                 <select
                   name="role"
-                  className="form-select rounded-lg"
+                  className="form-select rounded-xl py-2.5 px-3 text-sm focus:outline-none transition-all cursor-pointer shadow-sm"
                   value={formData.role}
                   onChange={handleInputChange}
                   required

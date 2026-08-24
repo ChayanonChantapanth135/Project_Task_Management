@@ -63,7 +63,11 @@ const ManageUserPage = () => {
   return (
     <div
       ref={pageRef}
-      className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans selection:bg-teal-500 selection:text-white relative overflow-hidden"
+      className="min-h-screen flex flex-col font-sans relative overflow-hidden"
+      style={{
+        backgroundColor: "var(--bg-primary)",
+        color: "var(--text-primary)",
+      }}
     >
       <Header />
 
@@ -154,33 +158,38 @@ const ManageUserPage = () => {
         )}
 
         {/* Top Filters Block */}
-        <div className="glass-panel rounded-3xl p-5 mb-8 shadow-2xl">
+        <div className="glass-panel rounded-3xl p-6 mb-8 shadow-xl">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative w-full">
               <select
-                className="w-full bg-slate-800/60 hover:bg-slate-800/80 rounded-2xl py-3 pl-4 pr-10 text-white text-xs font-medium focus:outline-none border-0 transition-all cursor-pointer appearance-none"
+                className="w-full rounded-2xl py-3 pl-4 pr-10 text-xs font-semibold focus:outline-none transition-all cursor-pointer appearance-none"
+                style={{
+                  background: "var(--bg-surface-hover)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-surface)",
+                }}
                 value={userHook.roleFilter}
                 onChange={(e) => userHook.setRoleFilter(e.target.value)}
               >
-                <option value="all" className="bg-slate-900">
+                <option value="all">
                   {t("roleFilterAll")}
                 </option>
-                <option value="Admin" className="bg-slate-900">
+                <option value="Admin">
                   Admin
                 </option>
-                <option value="Project Manager" className="bg-slate-900">
+                <option value="Project Manager">
                   Project Manager
                 </option>
-                <option value="Storyboard" className="bg-slate-900">
+                <option value="Storyboard">
                   Storyboard
                 </option>
-                <option value="Animation" className="bg-slate-900">
+                <option value="Animation">
                   Animation
                 </option>
-                <option value="Designer" className="bg-slate-900">
+                <option value="Designer">
                   Designer
                 </option>
-                <option value="Programmer" className="bg-slate-900">
+                <option value="Programmer">
                   Programmer
                 </option>
               </select>
@@ -203,17 +212,22 @@ const ManageUserPage = () => {
             </div>
             <div className="relative w-full">
               <select
-                className="w-full bg-slate-800/60 hover:bg-slate-800/80 rounded-2xl py-3 pl-4 pr-10 text-white text-xs font-medium focus:outline-none border-0 transition-all cursor-pointer appearance-none"
+                className="w-full rounded-2xl py-3 pl-4 pr-10 text-xs font-semibold focus:outline-none transition-all cursor-pointer appearance-none"
+                style={{
+                  background: "var(--bg-surface-hover)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-surface)",
+                }}
                 value={userHook.statusFilter}
                 onChange={(e) => userHook.setStatusFilter(e.target.value)}
               >
-                <option value="all" className="bg-slate-900">
+                <option value="all">
                   {t("statusFilterAll")}
                 </option>
-                <option value="active" className="bg-slate-900">
+                <option value="active">
                   {t("activeLabel")}
                 </option>
-                <option value="suspended" className="bg-slate-900">
+                <option value="suspended">
                   {t("suspendedLabel")}
                 </option>
               </select>
@@ -238,12 +252,17 @@ const ManageUserPage = () => {
               <div className="relative">
                 <input
                   type="text"
-                  className="w-full bg-slate-800/60 hover:bg-slate-800/80 rounded-2xl py-3 pl-10 pr-4 text-white text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400"
+                  className="w-full rounded-2xl py-3 pl-10 pr-4 text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400"
+                  style={{
+                    background: "var(--bg-surface-hover)",
+                    color: "var(--text-primary)",
+                    border: "1px solid var(--border-surface)",
+                  }}
                   placeholder={t("searchPlaceholder")}
                   value={userHook.searchQuery}
                   onChange={(e) => userHook.setSearchQuery(e.target.value)}
                 />
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
                   🔍
                 </span>
               </div>

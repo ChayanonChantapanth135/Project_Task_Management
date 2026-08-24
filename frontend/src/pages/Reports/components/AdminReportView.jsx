@@ -8,16 +8,16 @@ function KpiCard({
   iconGradient,
   label,
   value,
-  valueColor = "text-white",
+  valueColor = "",
   accentColor,
 }) {
   return (
     <div
-      className="group relative rounded-3xl p-6 transition-all duration-500 hover:-translate-y-1"
+      className="group relative rounded-3xl p-6 transition-all duration-500 hover:-translate-y-1 shadow-md"
       style={{
-        background: "rgba(22,53,71,0.6)",
+        background: "var(--bg-surface)",
+        border: "1px solid var(--border-surface)",
         backdropFilter: "blur(16px)",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
       }}
     >
       {/* Top accent line */}
@@ -33,10 +33,16 @@ function KpiCard({
           {icon}
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider truncate">
+          <p
+            className="text-[11px] font-bold uppercase tracking-wider truncate"
+            style={{ color: "var(--text-secondary)" }}
+          >
             {label}
           </p>
-          <h3 className={`text-2xl font-black mt-0.5 ${valueColor}`}>
+          <h3
+            className={`text-2xl font-black mt-0.5 ${valueColor}`}
+            style={!valueColor ? { color: "var(--text-primary)" } : {}}
+          >
             {value}
           </h3>
         </div>
@@ -73,7 +79,7 @@ function CompletionRing({
           <path
             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
             fill="none"
-            stroke="rgba(30,41,59,0.6)"
+            stroke="var(--border-surface)"
             strokeWidth="3.2"
           />
           <path
@@ -85,13 +91,21 @@ function CompletionRing({
             strokeDasharray={`${rate}, 100`}
             style={{
               transition: "stroke-dasharray 1.2s cubic-bezier(0.4,0,0.2,1)",
-              filter: `drop-shadow(0 0 8px ${glowColor})`,
+              // filter: `drop-shadow(0 0 8px ${glowColor})`,
             }}
           />
         </svg>
         <div className="absolute flex flex-col items-center">
-          <span className="text-3xl font-black text-white">{rate}%</span>
-          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+          <span
+            className="text-3xl font-black"
+            style={{ color: "var(--text-primary)" }}
+          >
+            {rate}%
+          </span>
+          <span
+            className="text-[10px] font-bold uppercase tracking-wider"
+            style={{ color: "var(--text-secondary)" }}
+          >
             {t("completed")}
           </span>
         </div>
@@ -104,11 +118,11 @@ function CompletionRing({
 function Section({ children, className = "" }) {
   return (
     <div
-      className={`rounded-3xl p-8 ${className}`}
+      className={`rounded-3xl p-8 shadow-lg ${className}`}
       style={{
-        background: "rgba(22,53,71,0.5)",
+        background: "var(--bg-surface)",
+        border: "1px solid var(--border-surface)",
         backdropFilter: "blur(16px)",
-        boxShadow: "0 16px 48px rgba(0,0,0,0.2)",
       }}
     >
       {children}
@@ -508,19 +522,31 @@ export default function AdminReportView({ data }) {
             {projects.map((p) => (
               <div
                 key={p.id}
-                className="rounded-xl p-3.5 flex items-center justify-between gap-4 transition-all duration-300 hover:bg-white/[0.03]"
-                style={{ background: "rgba(15,23,42,0.3)" }}
+                className="rounded-2xl p-4 flex items-center justify-between gap-4 transition-all duration-300 shadow-sm"
+                style={{
+                  background: "var(--bg-surface-hover)",
+                  border: "1px solid var(--border-surface)",
+                }}
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-xs font-bold text-slate-200 truncate">
+                    <span
+                      className="text-xs font-bold truncate"
+                      style={{ color: "var(--text-primary)" }}
+                    >
                       {p.name}
                     </span>
-                    <span className="text-xs font-black text-teal-400 tabular-nums">
+                    <span
+                      className="text-xs font-black tabular-nums"
+                      style={{ color: "var(--brand-color)" }}
+                    >
                       {p.progress || 0}%
                     </span>
                   </div>
-                  <div className="w-full bg-slate-800/60 rounded-full h-1.5">
+                  <div
+                    className="w-full rounded-full h-2 overflow-hidden"
+                    style={{ background: "var(--border-surface)" }}
+                  >
                     <div
                       className="h-full rounded-full transition-all duration-700"
                       style={{
@@ -561,20 +587,30 @@ export default function AdminReportView({ data }) {
 
         {/* Top Filters Block */}
         <div
-          className="rounded-2xl p-5 mb-6 shadow-xl"
-          style={{ background: "rgba(15, 38, 52, 0.7)" }}
+          className="rounded-2xl p-4 mb-5 shadow-sm"
+          style={{
+            background: "var(--bg-surface-hover)",
+            border: "1px solid var(--border-surface)",
+          }}
         >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
             {/* Search Input */}
             <div className="md:col-span-2">
-              <label className="block text-xs font-bold text-slate-300 mb-2">
+              <label
+                className="block text-[11px] font-bold mb-1.5"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 {t("searchUser") || t("searchWork") || "ค้นหาผู้ใช้งาน"}
               </label>
               <div className="relative">
                 <input
                   type="text"
-                  className="w-full bg-[#18394c] hover:bg-[#1d445b] focus:bg-[#1d445b] rounded-2xl py-3 pl-10 pr-4 text-white text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400 border-0 shadow-none"
-                  style={{ border: "none", outline: "none", boxShadow: "none" }}
+                  className="w-full rounded-xl py-2.5 pl-10 pr-4 text-xs font-medium focus:outline-none transition-all shadow-sm"
+                  style={{
+                    background: "var(--bg-surface)",
+                    color: "var(--text-primary)",
+                    border: "1px solid var(--border-surface)",
+                  }}
                   placeholder={
                     t("searchPlaceholder") || "ค้นหาด้วยชื่อหรืออีเมล..."
                   }
@@ -591,43 +627,38 @@ export default function AdminReportView({ data }) {
             </div>
 
             {/* Role Filter */}
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-2">
+            <div className="w-full">
+              <label
+                className="block text-[11px] font-bold mb-1.5"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 {t("colRole") || "บทบาท"}
               </label>
               <div className="relative w-full">
                 <select
-                  className="w-full bg-[#18394c] hover:bg-[#1d445b] focus:bg-[#1d445b] rounded-2xl py-3 pl-4 pr-10 text-white text-xs font-medium focus:outline-none transition-all cursor-pointer appearance-none border-0 shadow-none"
-                  style={{ border: "none", outline: "none", boxShadow: "none" }}
+                  className="w-full rounded-xl py-2.5 pl-3.5 pr-8 text-xs font-medium focus:outline-none transition-all cursor-pointer appearance-none shadow-sm"
+                  style={{
+                    background: "var(--bg-surface)",
+                    color: "var(--text-primary)",
+                    border: "1px solid var(--border-surface)",
+                  }}
                   value={roleFilter}
                   onChange={(e) => {
                     setRoleFilter(e.target.value);
                     setCurrentPage(1);
                   }}
                 >
-                  <option value="all" className="bg-[#153648]">
+                  <option value="all">
                     {t("roleFilterAll") || "ทุกบทบาท"}
                   </option>
-                  <option value="Admin" className="bg-[#153648]">
-                    Admin
-                  </option>
-                  <option value="Project Manager" className="bg-[#153648]">
-                    Project Manager
-                  </option>
-                  <option value="Storyboard" className="bg-[#153648]">
-                    Storyboard
-                  </option>
-                  <option value="Animation" className="bg-[#153648]">
-                    Animation
-                  </option>
-                  <option value="Designer" className="bg-[#153648]">
-                    Designer
-                  </option>
-                  <option value="Programmer" className="bg-[#153648]">
-                    Programmer
-                  </option>
+                  <option value="Admin">Admin</option>
+                  <option value="Project Manager">Project Manager</option>
+                  <option value="Storyboard">Storyboard</option>
+                  <option value="Animation">Animation</option>
+                  <option value="Designer">Designer</option>
+                  <option value="Programmer">Programmer</option>
                 </select>
-                <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
+                <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-slate-400">
                   <svg
                     className="w-4 h-4"
                     fill="none"
@@ -649,30 +680,29 @@ export default function AdminReportView({ data }) {
 
         {/* Entries Control & Pagination Info Header */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
-          <div className="flex items-center gap-2.5 text-xs text-slate-300 font-semibold">
+          <div
+            className="flex items-center gap-2.5 text-xs font-semibold"
+            style={{ color: "var(--text-secondary)" }}
+          >
             <span>{t("showText") || "แสดง"}</span>
             <div className="relative inline-flex items-center">
               <select
-                className="bg-[#0f2430] hover:bg-[#153243] text-white text-xs font-bold rounded-full pl-5 pr-8 py-1.5 focus:outline-none transition-all cursor-pointer border-0 shadow-none appearance-none"
-                style={{ border: "none", outline: "none", boxShadow: "none" }}
+                className="text-xs font-bold rounded-full pl-5 pr-8 py-1.5 focus:outline-none transition-all cursor-pointer appearance-none"
+                style={{
+                  background: "var(--bg-surface-hover)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-surface)",
+                }}
                 value={entriesPerPage}
                 onChange={(e) => {
                   setEntriesPerPage(Number(e.target.value));
                   setCurrentPage(1);
                 }}
               >
-                <option value={5} className="bg-[#153648]">
-                  5
-                </option>
-                <option value={10} className="bg-[#153648]">
-                  10
-                </option>
-                <option value={25} className="bg-[#153648]">
-                  25
-                </option>
-                <option value={50} className="bg-[#153648]">
-                  50
-                </option>
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
               </select>
               <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white">
                 <svg
@@ -754,7 +784,13 @@ export default function AdminReportView({ data }) {
                   </td>
                   <td className="py-4 px-4 min-w-[170px]">
                     <div className="flex items-center gap-3">
-                      <div className="flex-1 bg-slate-800/80 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="flex-1 rounded-full h-2 overflow-hidden shadow-inner"
+                        style={{
+                          background: "var(--border-surface)",
+                          border: "1px solid rgba(255, 255, 255, 0.08)",
+                        }}
+                      >
                         <div
                           className="h-full rounded-full transition-all duration-700"
                           style={{
@@ -764,11 +800,22 @@ export default function AdminReportView({ data }) {
                                 ? "linear-gradient(90deg, #10b981, #34d399)"
                                 : item.rate >= 40
                                   ? "linear-gradient(90deg, #f59e0b, #fbbf24)"
-                                  : "linear-gradient(90deg, #ef4444, #f87171)",
+                                  : item.rate > 0
+                                    ? "linear-gradient(90deg, #ef4444, #f87171)"
+                                    : "transparent",
                           }}
                         />
                       </div>
-                      <span className="text-xs font-bold text-white w-10 text-right tabular-nums">
+                      <span
+                        className="text-xs font-bold w-10 text-right tabular-nums"
+                        style={{
+                          color:
+                            item.rate > 0
+                              ? "var(--text-primary)"
+                              : "var(--text-secondary)",
+                          opacity: item.rate === 0 ? 0.8 : 1,
+                        }}
+                      >
                         {item.rate}%
                       </span>
                     </div>
@@ -790,7 +837,13 @@ export default function AdminReportView({ data }) {
         </div>
 
         {/* Pagination Footer */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-white/5 text-xs text-slate-400">
+        <div
+          className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 text-xs"
+          style={{
+            borderTop: "1px solid var(--border-surface)",
+            color: "var(--text-secondary)",
+          }}
+        >
           <span>
             {t("showingText") || "แสดง"}{" "}
             {totalEntries === 0 ? 0 : indexOfFirstEntry + 1}{" "}
@@ -802,22 +855,38 @@ export default function AdminReportView({ data }) {
             <div className="flex items-center gap-2">
               <button
                 disabled={currentPage === 1}
-                className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 disabled:opacity-40 transition-colors"
+                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold disabled:opacity-40 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                style={{
+                  background: "var(--bg-surface-hover)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-surface)",
+                }}
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               >
-                {t("prevText") || "ก่อนหน้า"}
+                {t("prevText") || "Previous"}
               </button>
-              <span className="px-3 py-1.5 font-bold text-white bg-indigo-600 rounded-xl">
+              <span
+                className="px-3.5 py-1.5 font-bold rounded-xl text-xs pagination-badge shadow-md"
+                style={{
+                  background: "var(--brand-color)",
+                  color: "#FFFFFF",
+                }}
+              >
                 {currentPage} / {totalPages}
               </span>
               <button
                 disabled={currentPage === totalPages}
-                className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 disabled:opacity-40 transition-colors"
+                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold disabled:opacity-40 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                style={{
+                  background: "var(--bg-surface-hover)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-surface)",
+                }}
                 onClick={() =>
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                 }
               >
-                {t("nextText") || "ถัดไป"}
+                {t("nextText") || "Next"}
               </button>
             </div>
           )}

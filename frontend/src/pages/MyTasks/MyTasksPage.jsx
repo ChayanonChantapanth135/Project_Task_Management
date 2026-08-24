@@ -64,7 +64,14 @@ const MyTasksPage = () => {
   }, [loading, filteredTasks]);
 
   return (
-    <div ref={pageRef} className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans relative overflow-hidden">
+    <div 
+      ref={pageRef} 
+      className="min-h-screen flex flex-col font-sans relative overflow-hidden"
+      style={{
+        backgroundColor: "var(--bg-primary)",
+        color: "var(--text-primary)",
+      }}
+    >
       <Header />
 
       {/* Background Animated Blobs */}
@@ -77,10 +84,10 @@ const MyTasksPage = () => {
         {/* Title Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-black text-white tracking-wide flex items-center gap-3">
+            <h1 className="text-3xl font-black tracking-wide flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
               🎯 {t("myTask") || "งานของฉัน"}
             </h1>
-            <p className="text-slate-400 text-sm mt-1">
+            <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
               {language === "th" 
                 ? "ติดตามภารกิจที่คุณได้รับมอบหมายและจัดหมวดหมู่ตามโครงการ" 
                 : "Track tasks assigned to you grouped by project"}
@@ -89,21 +96,11 @@ const MyTasksPage = () => {
           <button
             onClick={loadData}
             disabled={loading}
-            className="group px-5 py-2.5 rounded-2xl text-xs font-bold transition-all duration-300 flex items-center gap-2"
+            className="group px-5 py-2.5 rounded-2xl text-xs font-bold transition-all duration-300 flex items-center gap-2 cursor-pointer shadow-sm"
             style={{
-              background: "rgba(30,41,59,0.7)",
-              color: "#94a3b8",
-              border: "1px solid rgba(255,255,255,0.06)",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(30,41,59,0.9)";
-              e.currentTarget.style.color = "#e2e8f0";
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(30,41,59,0.7)";
-              e.currentTarget.style.color = "#94a3b8";
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
+              background: "var(--bg-surface-hover)",
+              color: "var(--text-primary)",
+              border: "1px solid var(--border-surface)",
             }}
           >
             <svg
@@ -113,17 +110,17 @@ const MyTasksPage = () => {
                   : "group-hover:rotate-180 transition-transform duration-500"
               }`}
               fill="none"
-              viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth="2.5"
+              viewBox="0 0 24 24"
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                strokeWidth="2"
                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
               />
             </svg>
-            {t("refreshDataBtn")}
+            <span>{t("refresh") || "รีเฟรช"}</span>
           </button>
         </div>
 

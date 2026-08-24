@@ -110,12 +110,12 @@ const TaskTable = ({
                       <span
                         className={`inline-block px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${
                           task.status === "Completed"
-                            ? "bg-emerald-500/20 text-emerald-300"
+                            ? "badge-status-completed"
                             : task.status === "In Progress"
-                            ? "bg-indigo-500/20 text-indigo-300"
-                            : task.status === "Reviewing"
-                            ? "bg-amber-500/20 text-amber-300"
-                            : "bg-slate-500/20 text-slate-300"
+                            ? "badge-status-in-progress"
+                            : task.status === "Reviewing" || task.status === "In Review"
+                            ? "badge-status-in-review"
+                            : "badge-status-todo"
                         }`}
                       >
                         {task.status}

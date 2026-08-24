@@ -261,16 +261,22 @@ const PersonalTaskCalendar = ({
   return (
     <div className="space-y-6">
       {/* Calendar Card Container */}
-      <div className="bg-[#1c2c38] rounded-2xl p-5 md:p-6 shadow-2xl">
+      <div 
+        className="glass-panel rounded-3xl p-6 md:p-8 shadow-xl"
+        style={{
+          background: "var(--bg-surface)",
+          border: "1px solid var(--border-surface)",
+        }}
+      >
         {/* Header toolbar stats & legend */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-gray-700/50">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">📅</span>
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4" style={{ borderBottom: "1px solid var(--border-surface)" }}>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📅</span>
             <div>
-              <h2 className="text-base font-bold text-white">
+              <h2 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>
                 {isThai ? "ปฏิทินงานส่วนตัว" : "Personal Tasks Calendar"}
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
                 {isThai
                   ? "💡 ลากและวางการ์ดเพื่อเปลี่ยนกำหนดส่ง หรือคลิกที่ช่องวันที่เพื่อสร้างงานใหม่"
                   : "💡 Drag and drop cards to change due dates, or click a date to add a new task"}
@@ -279,18 +285,24 @@ const PersonalTaskCalendar = ({
           </div>
 
           {/* Status Color Legend */}
-          <div className="flex items-center gap-4 text-xs font-semibold bg-slate-800/80 px-3.5 py-2 rounded-xl shadow-md">
+          <div 
+            className="flex items-center gap-4 text-xs font-semibold px-4 py-2 rounded-2xl shadow-sm"
+            style={{
+              background: "var(--bg-surface-hover)",
+              border: "1px solid var(--border-surface)",
+            }}
+          >
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-[#007aeb]"></span>
-              <span className="text-slate-300">To Do</span>
+              <span style={{ color: "var(--text-secondary)" }}>To Do</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-[#f59e0b]"></span>
-              <span className="text-slate-300">In Progress</span>
+              <span style={{ color: "var(--text-secondary)" }}>In Progress</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-[#00b884]"></span>
-              <span className="text-slate-300">Completed</span>
+              <span style={{ color: "var(--text-secondary)" }}>Completed</span>
             </div>
           </div>
         </div>
@@ -299,8 +311,8 @@ const PersonalTaskCalendar = ({
         <style>{`
           .personal-calendar-container .fc {
             font-family: inherit;
-            --fc-border-color: rgba(71, 85, 105, 0.4);
-            --fc-today-bg-color: rgba(14, 165, 233, 0.12);
+            --fc-border-color: var(--border-surface);
+            --fc-today-bg-color: rgba(59, 130, 246, 0.12);
           }
           .personal-calendar-container .fc-header-toolbar {
             margin-bottom: 1.25rem !important;
@@ -310,13 +322,13 @@ const PersonalTaskCalendar = ({
           .personal-calendar-container .fc-toolbar-title {
             font-size: 1.25rem !important;
             font-weight: 800 !important;
-            color: #ffffff !important;
+            color: var(--text-primary) !important;
             letter-spacing: -0.025em;
           }
           .personal-calendar-container .fc-button {
-            background-color: #243949 !important;
-            border-color: rgba(71, 85, 105, 0.6) !important;
-            color: #e2e8f0 !important;
+            background-color: var(--bg-surface-hover) !important;
+            border: 1px solid var(--border-surface) !important;
+            color: var(--text-primary) !important;
             font-weight: 600 !important;
             font-size: 0.8125rem !important;
             padding: 0.4rem 0.85rem !important;
@@ -325,40 +337,40 @@ const PersonalTaskCalendar = ({
             text-transform: capitalize !important;
           }
           .personal-calendar-container .fc-button:hover {
-            background-color: #334e64 !important;
+            background-color: var(--brand-color) !important;
             color: #ffffff !important;
-            border-color: #007aeb !important;
+            border-color: var(--brand-color) !important;
           }
           .personal-calendar-container .fc-button-active {
-            background-color: #007aeb !important;
-            border-color: #007aeb !important;
+            background-color: var(--brand-color) !important;
+            border-color: var(--brand-color) !important;
             color: #ffffff !important;
-            box-shadow: 0 0 12px rgba(0, 122, 235, 0.4) !important;
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.4) !important;
           }
           .personal-calendar-container .fc-col-header-cell {
-            background-color: rgba(30, 48, 62, 0.85) !important;
+            background-color: var(--bg-surface-hover) !important;
             padding: 0.65rem 0 !important;
-            border-color: rgba(71, 85, 105, 0.4) !important;
+            border-color: var(--border-surface) !important;
           }
           .personal-calendar-container .fc-col-header-cell-cushion {
-            color: #94a3b8 !important;
+            color: var(--text-secondary) !important;
             font-weight: 700 !important;
             font-size: 0.8125rem !important;
             text-transform: uppercase;
             letter-spacing: 0.05em;
           }
           .personal-calendar-container .fc-daygrid-day-number {
-            color: #cbd5e1 !important;
+            color: var(--text-secondary) !important;
             font-size: 0.8125rem !important;
             font-weight: 600 !important;
             padding: 0.35rem 0.5rem !important;
           }
           .personal-calendar-container .fc-daygrid-day:hover {
-            background-color: rgba(255, 255, 255, 0.03);
+            background-color: var(--bg-surface-hover);
             cursor: pointer;
           }
           .personal-calendar-container .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
-            color: #38bdf8 !important;
+            color: var(--brand-color) !important;
             font-weight: 800 !important;
           }
           .personal-calendar-container .fc-event {
@@ -367,9 +379,13 @@ const PersonalTaskCalendar = ({
             margin-bottom: 3px !important;
             cursor: grab !important;
           }
-          .personal-calendar-container .fc-event-dragging {
+          .personal-calendar-container .fc-event-dragging,
+          .gu-mirror,
+          .fc-event-mirror,
+          .fc-external-task.fc-event-dragging {
             opacity: 0.3 !important;
             transition: none !important;
+            animation: none !important;
           }
           .personal-calendar-container .fc-event-mirror {
             opacity: 0.95 !important;
@@ -379,6 +395,7 @@ const PersonalTaskCalendar = ({
             pointer-events: none !important;
             will-change: transform, top, left;
             transition: none !important;
+            animation: none !important;
           }
           .personal-calendar-container .fc-highlight {
             background: rgba(56, 189, 248, 0.22) !important;
@@ -470,18 +487,22 @@ const PersonalTaskCalendar = ({
       {/* Unscheduled Tasks Section - Bidirectional Dropzone */}
       <div
         id="unscheduled-tasks-dropzone"
-        className="bg-[#1c2c38] rounded-2xl p-5 shadow-xl transition-all duration-200"
+        className="glass-panel rounded-3xl p-6 shadow-xl transition-all duration-200"
+        style={{
+          background: "var(--bg-surface)",
+          border: "1px solid var(--border-surface)",
+        }}
       >
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3.5 pb-2.5 border-b border-gray-700/50">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 pb-3" style={{ borderBottom: "1px solid var(--border-surface)" }}>
+          <div className="flex items-center gap-2.5">
             <span className="text-amber-400 text-lg">📌</span>
-            <h3 className="text-sm font-bold text-white">
+            <h3 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
               {isThai
                 ? `งานที่ยังไม่ได้กำหนดส่ง (${undatedTasks.length})`
                 : `Tasks Without Due Date (${undatedTasks.length})`}
             </h3>
           </div>
-          <span className="text-xs text-teal-400 font-medium flex items-center gap-1.5">
+          <span className="text-xs font-semibold flex items-center gap-1.5" style={{ color: "var(--brand-color)" }}>
             <span>🔄</span>
             <span>
               {isThai
@@ -503,24 +524,37 @@ const PersonalTaskCalendar = ({
                     key={task.id}
                     data-task={JSON.stringify(task)}
                     onClick={() => onEditTask(task)}
-                    className="fc-external-task flex items-center justify-between p-3 rounded-xl bg-slate-800/90 hover:bg-slate-700/80 active:bg-slate-700 shadow-md transition-colors cursor-grab active:cursor-grabbing select-none group"
+                    className="fc-external-task flex items-center justify-between p-3.5 rounded-2xl shadow-sm transition-colors hover:shadow-md cursor-grab active:cursor-grabbing select-none group"
+                    style={{
+                      background: "var(--bg-surface-hover)",
+                      border: "1px solid var(--border-surface)",
+                    }}
                   >
                     <div className="flex items-center gap-2.5 overflow-hidden pointer-events-none">
                       <span
                         className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                         style={{ backgroundColor: statusConf.color }}
                       ></span>
-                      <span className="text-xs font-semibold text-slate-200 truncate group-hover:text-white">
+                      <span className="text-xs font-bold truncate" style={{ color: "var(--text-primary)" }}>
                         {task.title}
                       </span>
                     </div>
-                    <span className="text-[10px] text-slate-400 group-hover:text-indigo-300 transition-colors flex-shrink-0 ml-2 pointer-events-none"></span>
+                    <span className="text-[10px] opacity-70 transition-colors flex-shrink-0 ml-2 pointer-events-none" style={{ color: "var(--text-secondary)" }}>
+                      ⋮⋮
+                    </span>
                   </div>
                 );
               })}
             </div>
           ) : (
-            <div className="py-6 px-4 text-center text-xs text-slate-400 rounded-2xl bg-slate-800/60 shadow-inner flex items-center justify-center gap-2">
+            <div 
+              className="py-6 px-4 text-center text-xs rounded-2xl shadow-inner flex items-center justify-center gap-2"
+              style={{
+                background: "var(--bg-surface-hover)",
+                color: "var(--text-secondary)",
+                border: "1px dashed var(--border-surface)",
+              }}
+            >
               <span>📥</span>
               <span>
                 {isThai

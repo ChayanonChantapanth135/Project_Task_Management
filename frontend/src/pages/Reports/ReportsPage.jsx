@@ -81,34 +81,15 @@ const ReportsPage = () => {
   }
 
   return (
-    <div ref={pageRef} className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans relative overflow-hidden">
+    <div 
+      ref={pageRef} 
+      className="min-h-screen flex flex-col font-sans relative overflow-hidden"
+      style={{
+        backgroundColor: "var(--bg-primary)",
+        color: "var(--text-primary)",
+      }}
+    >
       <Header />
-
-      {/* Background Animated Orbs — Mesh-style gradient */}
-      <div ref={orb1Ref} className="absolute top-[5%] left-[15%] w-[500px] h-[500px] rounded-full pointer-events-none"
-        style={{
-          background: "radial-gradient(circle, rgba(20,184,166,0.08) 0%, transparent 70%)",
-          filter: "blur(80px)",
-        }}
-      />
-      <div ref={orb2Ref} className="absolute top-[30%] right-[10%] w-[450px] h-[450px] rounded-full pointer-events-none"
-        style={{
-          background: "radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%)",
-          filter: "blur(90px)",
-        }}
-      />
-      <div ref={orb3Ref} className="absolute bottom-[10%] left-[25%] w-[550px] h-[550px] rounded-full pointer-events-none"
-        style={{
-          background: "radial-gradient(circle, rgba(168,85,247,0.07) 0%, transparent 70%)",
-          filter: "blur(100px)",
-        }}
-      />
-      <div ref={orb4Ref} className="absolute top-[60%] right-[30%] w-[400px] h-[400px] rounded-full pointer-events-none"
-        style={{
-          background: "radial-gradient(circle, rgba(6,182,212,0.06) 0%, transparent 70%)",
-          filter: "blur(70px)",
-        }}
-      />
 
       <main className="flex-1 p-4 md:p-6 max-w-7xl mx-auto w-full relative z-10">
         <div ref={headerRef}>

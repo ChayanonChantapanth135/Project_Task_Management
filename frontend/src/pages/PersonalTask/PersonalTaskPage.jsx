@@ -55,19 +55,25 @@ const PersonalTaskPage = () => {
   const columnTitle = data?.columns?.[activeColumnId]?.title || "";
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans relative">
+    <div 
+      className="min-h-screen flex flex-col font-sans relative"
+      style={{
+        backgroundColor: "var(--bg-primary)",
+        color: "var(--text-primary)",
+      }}
+    >
       <Header />
 
       {/* Background Static Blobs */}
-      <div className="absolute top-10 left-1/4 w-[400px] h-[400px] bg-teal-500/10 rounded-full filter blur-[100px] pointer-events-none -z-0"></div>
+      <div className="absolute top-10 left-1/4 w-[400px] h-[400px] bg-blue-500/10 rounded-full filter blur-[100px] pointer-events-none -z-0"></div>
       <div className="absolute top-1/3 right-1/4 w-[350px] h-[350px] bg-indigo-600/15 rounded-full filter blur-[110px] pointer-events-none -z-0"></div>
-      <div className="absolute bottom-10 left-1/3 w-[450px] h-[450px] bg-cyan-600/10 rounded-full filter blur-[120px] pointer-events-none -z-0"></div>
+      <div className="absolute bottom-10 left-1/3 w-[450px] h-[450px] bg-teal-600/10 rounded-full filter blur-[120px] pointer-events-none -z-0"></div>
 
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full relative z-10 space-y-6">
         {/* Title Header Section */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
           <div>
-            <h1 className="text-3xl font-black text-white tracking-wide flex items-center gap-3">
+            <h1 className="text-3xl font-black tracking-wide flex items-center gap-3">
               📋 {isThai ? "งานส่วนตัวของฉัน" : "Personal Tasks"}
             </h1>
             <p className="text-slate-400 text-sm mt-1">
@@ -78,15 +84,21 @@ const PersonalTaskPage = () => {
           </div>
 
           <div className="flex items-center flex-wrap gap-3">
-            {/* View Mode Toggle Switcher without white border */}
-            <div className="flex items-center gap-1 bg-[#1c2c38] p-1 rounded-xl shadow-md text-xs font-bold">
+            {/* View Mode Toggle Switcher */}
+            <div 
+              className="flex items-center gap-1 p-1 rounded-2xl shadow-md text-xs font-bold"
+              style={{
+                backgroundColor: "var(--bg-surface)",
+                border: "1px solid var(--border-surface)",
+              }}
+            >
               <button
                 type="button"
                 onClick={() => setViewMode("board")}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
                   viewMode === "board"
-                    ? "bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/40"
+                    ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/20"
                 }`}
               >
                 <span>📋</span>
@@ -96,10 +108,10 @@ const PersonalTaskPage = () => {
               <button
                 type="button"
                 onClick={() => setViewMode("calendar")}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
                   viewMode === "calendar"
-                    ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/40"
+                    ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/20"
                 }`}
               >
                 <span>📅</span>

@@ -70,17 +70,14 @@ export default function ReportHeader({
             </div>
 
             <h1
-              className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2"
+              className="text-3xl md:text-4xl font-black tracking-tight mb-2"
               style={{
-                background:
-                  "linear-gradient(135deg, #ffffff 0%, #e2e8f0 40%, #94a3b8 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
+                color: "var(--text-primary)",
               }}
             >
               {roleTitle}
             </h1>
-            <p className="text-sm text-slate-400 max-w-lg leading-relaxed">
+            <p className="text-sm max-w-lg leading-relaxed" style={{ color: "var(--text-secondary)" }}>
               {roleDesc}
             </p>
           </div>
@@ -89,21 +86,17 @@ export default function ReportHeader({
           <div className="flex items-center gap-3 flex-wrap">
             <button
               onClick={onRefresh}
-              className="group px-5 py-2.5 rounded-2xl text-xs font-bold transition-all duration-300 flex items-center gap-2"
+              className="group px-5 py-2.5 rounded-2xl text-xs font-bold transition-all duration-300 flex items-center gap-2 cursor-pointer"
               style={{
-                background: "rgba(30,41,59,0.7)",
-                color: "#94a3b8",
-                border: "1px solid rgba(255,255,255,0.06)",
+                background: "var(--bg-surface)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--border-surface)",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(30,41,59,0.9)";
-                e.currentTarget.style.color = "#e2e8f0";
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
+                e.currentTarget.style.background = "var(--bg-surface-hover)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(30,41,59,0.7)";
-                e.currentTarget.style.color = "#94a3b8";
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
+                e.currentTarget.style.background = "var(--bg-surface)";
               }}
             >
               <svg

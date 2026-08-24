@@ -3,13 +3,33 @@ import { formatDate, safeDateString } from "../lib/dateUtils";
 import { useLanguage } from "../lib/LanguageContext";
 
 const MONTH_NAMES_EN = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const MONTH_NAMES_TH = [
-  "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
-  "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
 ];
 
 const WEEKDAYS_EN = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
@@ -65,7 +85,10 @@ const CustomDateInput = ({
   // Close calendar popup on click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (containerRef.current && !containerRef.current.contains(event.target)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target)
+      ) {
         setIsOpen(false);
       }
     };
@@ -134,7 +157,9 @@ const CustomDateInput = ({
 
   // Selected date parsing
   const selectedIso = safeDateString(value);
-  let selYear = null, selMonth = null, selDay = null;
+  let selYear = null,
+    selMonth = null,
+    selDay = null;
   if (selectedIso) {
     const parts = selectedIso.split("-");
     selYear = parseInt(parts[0], 10);
@@ -254,7 +279,10 @@ const CustomDateInput = ({
           title="Choose Date"
           style={{ zIndex: 3, display: "flex", alignItems: "center" }}
         >
-          <ion-icon name="calendar-outline" style={{ fontSize: "18px", color: "#64748b" }}></ion-icon>
+          <ion-icon
+            name="calendar-outline"
+            style={{ fontSize: "18px", color: "#64748b" }}
+          ></ion-icon>
         </button>
       </div>
 
@@ -269,15 +297,17 @@ const CustomDateInput = ({
             right: 0,
             zIndex: 1050,
             width: "310px",
-            backgroundColor: "#ffffff",
+            backgroundColor: "var(--bg-surface)",
             borderRadius: "24px",
             padding: "20px",
-            boxShadow: "0 20px 40px -10px rgba(0, 50, 130, 0.12), 0 8px 16px -6px rgba(0, 0, 0, 0.06)",
-            border: "1px solid rgba(226, 232, 240, 0.8)",
+            boxShadow:
+              "0 20px 40px -10px rgba(0, 0, 0, 0.3), 0 8px 16px -6px rgba(0, 0, 0, 0.1)",
+            border: "1px solid var(--border-surface)",
             fontFamily: "inherit",
-            animation: openDirection === "up"
-              ? "customFadeInUp 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
-              : "customFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+            animation:
+              openDirection === "up"
+                ? "customFadeInUp 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
+                : "customFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         >
           <style>{`
@@ -295,8 +325,8 @@ const CustomDateInput = ({
               outline: none;
             }
             .date-cell-btn:hover:not(.selected):not(.today-selected) {
-              background-color: #f1f5f9 !important;
-              color: #0f172a !important;
+              background-color: var(--bg-surface-hover) !important;
+              color: var(--text-primary) !important;
             }
           `}</style>
 
@@ -317,31 +347,40 @@ const CustomDateInput = ({
                 width: "38px",
                 height: "38px",
                 borderRadius: "50%",
-                backgroundColor: "#ffffff",
-                border: "1px solid #f1f5f9",
+                backgroundColor: "var(--bg-surface)",
+                border: "1px solid var(--border-surface)",
                 boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 cursor: "pointer",
-                color: "#1e293b",
+                color: "var(--text-primary)",
                 transition: "all 0.15s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#f8fafc";
+                e.currentTarget.style.backgroundColor = "var(--bg-surface-hover)";
                 e.currentTarget.style.transform = "scale(1.05)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#ffffff";
+                e.currentTarget.style.backgroundColor = "var(--bg-surface)";
                 e.currentTarget.style.transform = "scale(1)";
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <polyline points="15 18 9 12 15 6"></polyline>
               </svg>
             </button>
 
-            {/* Month & Year Display Pill / Dropdowns */}
+            {/* Month & Year Interactive Pill Badges */}
             <div
               style={{
                 display: "flex",
@@ -349,42 +388,134 @@ const CustomDateInput = ({
                 gap: "8px",
               }}
             >
+              {/* Month Pill */}
               <div
                 style={{
-                  backgroundColor: "#ffffff",
-                  padding: "6px 12px",
-                  borderRadius: "10px",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                  border: "1px solid #f1f5f9",
-                  fontWeight: "700",
-                  fontSize: "15px",
-                  color: "#0f172a",
+                  position: "relative",
+                  backgroundColor: "var(--bg-surface)",
+                  padding: "6px 14px",
+                  borderRadius: "12px",
+                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
+                  border: "1px solid var(--border-surface)",
                   display: "flex",
                   alignItems: "center",
-                  gap: "4px",
+                  gap: "6px",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
                 }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "var(--bg-surface-hover)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "var(--bg-surface)")
+                }
               >
-                <span>{monthNames[viewMonth]}</span>
-                <span style={{ fontSize: "10px", color: "#2563eb" }}>▲</span>
+                <span
+                  style={{
+                    fontWeight: "600",
+                    fontSize: "12px",
+                    color: "var(--text-primary)",
+                    pointerEvents: "none",
+                  }}
+                >
+                  {monthNames[viewMonth]}
+                </span>
+                <span
+                  style={{
+                    fontSize: "9px",
+                    color: "var(--brand-color)",
+                    pointerEvents: "none",
+                    transform: "scale(0.85)",
+                  }}
+                >
+                  ▲
+                </span>
+
+                {/* Invisible select covering whole pill */}
+                <select
+                  value={viewMonth}
+                  onChange={(e) => setViewMonth(parseInt(e.target.value, 10))}
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    opacity: 0,
+                    cursor: "pointer",
+                    zIndex: 2,
+                  }}
+                >
+                  {monthNames.map((m, idx) => (
+                    <option key={idx} value={idx}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
               </div>
 
+              {/* Year Pill */}
               <div
                 style={{
-                  backgroundColor: "#ffffff",
-                  padding: "6px 12px",
-                  borderRadius: "10px",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                  border: "1px solid #f1f5f9",
-                  fontWeight: "700",
-                  fontSize: "15px",
-                  color: "#0f172a",
+                  position: "relative",
+                  backgroundColor: "var(--bg-surface)",
+                  padding: "6px 14px",
+                  borderRadius: "12px",
+                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
+                  border: "1px solid var(--border-surface)",
                   display: "flex",
                   alignItems: "center",
-                  gap: "4px",
+                  gap: "6px",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
                 }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "var(--bg-surface-hover)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "var(--bg-surface)")
+                }
               >
-                <span>{displayYear}</span>
-                <span style={{ fontSize: "10px", color: "#2563eb" }}>▲</span>
+                <span
+                  style={{
+                    fontWeight: "600",
+                    fontSize: "12px",
+                    color: "var(--text-primary)",
+                    pointerEvents: "none",
+                  }}
+                >
+                  {displayYear}
+                </span>
+                <span
+                  style={{
+                    fontSize: "9px",
+                    color: "var(--brand-color)",
+                    pointerEvents: "none",
+                    transform: "scale(0.85)",
+                  }}
+                >
+                  ▲
+                </span>
+
+                {/* Invisible select covering whole year pill */}
+                <select
+                  value={viewYear}
+                  onChange={(e) => setViewYear(parseInt(e.target.value, 10))}
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    opacity: 0,
+                    cursor: "pointer",
+                    zIndex: 2,
+                  }}
+                >
+                  {yearOptions.map((opt) => (
+                    <option key={opt.year} value={opt.year}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -396,26 +527,35 @@ const CustomDateInput = ({
                 width: "38px",
                 height: "38px",
                 borderRadius: "50%",
-                backgroundColor: "#ffffff",
-                border: "1px solid #f1f5f9",
+                backgroundColor: "var(--bg-surface)",
+                border: "1px solid var(--border-surface)",
                 boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 cursor: "pointer",
-                color: "#1e293b",
+                color: "var(--text-primary)",
                 transition: "all 0.15s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#f8fafc";
+                e.currentTarget.style.backgroundColor = "var(--bg-surface-hover)";
                 e.currentTarget.style.transform = "scale(1.05)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#ffffff";
+                e.currentTarget.style.backgroundColor = "var(--bg-surface)";
                 e.currentTarget.style.transform = "scale(1)";
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <polyline points="9 18 15 12 9 6"></polyline>
               </svg>
             </button>
@@ -437,7 +577,7 @@ const CustomDateInput = ({
                 style={{
                   fontSize: "13px",
                   fontWeight: "600",
-                  color: "#64748b",
+                  color: "var(--text-secondary)",
                   padding: "4px 0",
                 }}
               >
@@ -465,19 +605,19 @@ const CustomDateInput = ({
                 todayMonth === cell.month &&
                 todayDay === cell.day;
 
-              let bg = "#ffffff";
-              let color = cell.isCurrentMonth ? "#1e293b" : "#cbd5e1";
+              let bg = "transparent";
+              let color = cell.isCurrentMonth ? "var(--text-primary)" : "var(--text-secondary)";
               let fontWeight = "500";
               let shadow = "none";
 
               if (isSelected) {
-                bg = "#0052ff"; // vibrant royal blue from picture 2
+                bg = "var(--brand-color)";
                 color = "#ffffff";
                 fontWeight = "700";
-                shadow = "0 4px 10px rgba(0, 82, 255, 0.35)";
+                shadow = "0 4px 10px rgba(37, 99, 235, 0.35)";
               } else if (isToday) {
-                bg = "#e0e7ff"; // soft highlight blue
-                color = "#2563eb";
+                bg = "rgba(56, 189, 248, 0.15)";
+                color = "var(--brand-color)";
                 fontWeight = "700";
               }
 
@@ -485,7 +625,9 @@ const CustomDateInput = ({
                 <button
                   key={index}
                   type="button"
-                  onClick={() => handleSelectDate(cell.year, cell.month, cell.day)}
+                  onClick={() =>
+                    handleSelectDate(cell.year, cell.month, cell.day)
+                  }
                   className={`date-cell-btn ${isSelected ? "selected" : ""} ${isToday ? "today" : ""}`}
                   style={{
                     width: "100%",

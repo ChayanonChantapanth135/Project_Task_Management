@@ -50,7 +50,11 @@ const ResetPasswordFirstTimePage = () => {
   return (
     <div
       ref={containerRef}
-      className="min-h-screen flex items-center justify-center bg-[#153648] p-4 relative overflow-hidden font-sans selection:bg-teal-500 selection:text-white"
+      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden font-sans"
+      style={{
+        backgroundColor: "var(--bg-primary)",
+        color: "var(--text-primary)",
+      }}
     >
       {/* Background Animated GSAP Glowing Orbs */}
       <div

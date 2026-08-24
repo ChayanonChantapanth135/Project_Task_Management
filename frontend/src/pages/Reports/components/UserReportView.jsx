@@ -3,13 +3,13 @@ import { useLanguage } from "../../../lib/LanguageContext";
 import { formatDate } from "../../../lib/dateUtils";
 
 /* ── Reusable KPI Card ── */
-function KpiCard({ icon, iconGradient, label, value, valueColor = "text-white", accentColor }) {
+function KpiCard({ icon, iconGradient, label, value, valueColor = "", accentColor }) {
   return (
-    <div className="group relative rounded-3xl p-6 transition-all duration-500 hover:-translate-y-1"
+    <div className="group relative rounded-3xl p-6 transition-all duration-500 hover:-translate-y-1 shadow-md"
       style={{
-        background: "rgba(22,53,71,0.6)",
+        background: "var(--bg-surface)",
+        border: "1px solid var(--border-surface)",
         backdropFilter: "blur(16px)",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
       }}
     >
       <div className="absolute top-0 left-6 right-6 h-[2px] rounded-full opacity-60 group-hover:opacity-100 transition-opacity"
@@ -22,8 +22,8 @@ function KpiCard({ icon, iconGradient, label, value, valueColor = "text-white", 
           {icon}
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider truncate">{label}</p>
-          <h3 className={`text-2xl font-black mt-0.5 ${valueColor}`}>{value}</h3>
+          <p className="text-[11px] font-bold uppercase tracking-wider truncate" style={{ color: "var(--text-secondary)" }}>{label}</p>
+          <h3 className={`text-2xl font-black mt-0.5 ${valueColor}`} style={!valueColor ? { color: "var(--text-primary)" } : {}}>{value}</h3>
         </div>
       </div>
     </div>
@@ -47,7 +47,7 @@ function StatusPill({ status }) {
 }
 
 /* ── Completion Ring ── */
-function CompletionRing({ rate, gradientFrom = "#6366f1", gradientTo = "#a855f7", glowColor = "rgba(99,102,241,0.3)" }) {
+function CompletionRing({ rate, gradientFrom = "#6366f1", gradientTo = "#a855f7" }) {
   const { t } = useLanguage();
   return (
     <div className="text-center">
@@ -61,7 +61,7 @@ function CompletionRing({ rate, gradientFrom = "#6366f1", gradientTo = "#a855f7"
           </defs>
           <path
             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-            fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3.2"
+            fill="none" stroke="var(--border-surface)" strokeWidth="3.2"
           />
           <path
             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -73,8 +73,8 @@ function CompletionRing({ rate, gradientFrom = "#6366f1", gradientTo = "#a855f7"
           />
         </svg>
         <div className="absolute flex flex-col items-center">
-          <span className="text-3xl font-black text-white">{rate}%</span>
-          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{t("completed")}</span>
+          <span className="text-3xl font-black" style={{ color: "var(--text-primary)" }}>{rate}%</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-secondary)" }}>{t("completed")}</span>
         </div>
       </div>
     </div>
@@ -145,11 +145,15 @@ export default function UserReportView({ data }) {
       {/* ── Personal Rate Ring + Task Type Breakdown ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Ring */}
-        <div className="rounded-3xl p-8 flex flex-col justify-between"
-          style={{ background: "rgba(22,53,71,0.5)", backdropFilter: "blur(16px)", boxShadow: "0 16px 48px rgba(0,0,0,0.2)" }}
+        <div className="rounded-3xl p-8 flex flex-col justify-between shadow-lg"
+          style={{
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border-surface)",
+            backdropFilter: "blur(16px)",
+          }}
         >
           <div className="mb-4">
-            <h3 className="text-lg font-bold text-white flex items-center gap-3">
+            <h3 className="text-lg font-bold flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
               <span className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
                 style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))" }}
               >
@@ -159,12 +163,12 @@ export default function UserReportView({ data }) {
               </span>
               {t("personalWorkRateTitle")}
             </h3>
-            <p className="text-xs text-slate-400 mt-1 ml-11">{t("personalWorkRateDesc")}</p>
+            <p className="text-xs mt-1 ml-11" style={{ color: "var(--text-secondary)" }}>{t("personalWorkRateDesc")}</p>
           </div>
 
           <CompletionRing rate={myCompletionRate} />
 
-          <div className="w-full bg-slate-800/50 rounded-full h-2 overflow-hidden mt-6">
+          <div className="w-full rounded-full h-2 overflow-hidden mt-6" style={{ background: "var(--border-surface)" }}>
             <div className="h-full rounded-full transition-all duration-1000"
               style={{
                 width: `${myCompletionRate}%`,
@@ -175,11 +179,15 @@ export default function UserReportView({ data }) {
         </div>
 
         {/* Task Type Breakdown */}
-        <div className="lg:col-span-2 rounded-3xl p-8 flex flex-col justify-between"
-          style={{ background: "rgba(22,53,71,0.5)", backdropFilter: "blur(16px)", boxShadow: "0 16px 48px rgba(0,0,0,0.2)" }}
+        <div className="lg:col-span-2 rounded-3xl p-8 flex flex-col justify-between shadow-lg"
+          style={{
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border-surface)",
+            backdropFilter: "blur(16px)",
+          }}
         >
           <div className="mb-6">
-            <h3 className="text-lg font-bold text-white flex items-center gap-3">
+            <h3 className="text-lg font-bold flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
               <span className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
                 style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))" }}
               >
@@ -189,7 +197,7 @@ export default function UserReportView({ data }) {
               </span>
               {t("workloadDistributionTypeTitle")}
             </h3>
-            <p className="text-xs text-slate-400 mt-1 ml-11">{t("workloadDistributionTypeDesc")}</p>
+            <p className="text-xs mt-1 ml-11" style={{ color: "var(--text-secondary)" }}>{t("workloadDistributionTypeDesc")}</p>
           </div>
 
           {(() => {
@@ -301,7 +309,7 @@ export default function UserReportView({ data }) {
                 {displayTypes.map((item, i) => (
                   <div
                     key={i}
-                    className="rounded-2xl p-6 text-center transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between items-center"
+                    className="rounded-2xl p-6 text-center transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between items-center shadow-sm"
                     style={{ background: item.bg, border: `1px solid ${item.borderColor}` }}
                   >
                     <div
@@ -328,11 +336,15 @@ export default function UserReportView({ data }) {
       </div>
 
       {/* ── Personal Tasks Table ── */}
-      <div className="rounded-3xl p-8"
-        style={{ background: "rgba(22,53,71,0.5)", backdropFilter: "blur(16px)", boxShadow: "0 16px 48px rgba(0,0,0,0.2)" }}
+      <div className="rounded-3xl p-8 shadow-lg"
+        style={{
+          background: "var(--bg-surface)",
+          border: "1px solid var(--border-surface)",
+          backdropFilter: "blur(16px)",
+        }}
       >
         <div className="mb-6">
-          <h3 className="text-lg font-bold text-white flex items-center gap-3">
+          <h3 className="text-lg font-bold flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
             <span className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
               style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))" }}
             >
@@ -342,23 +354,27 @@ export default function UserReportView({ data }) {
             </span>
             {t("myTaskPerformanceSummaryTitle")}
           </h3>
-          <p className="text-xs text-slate-400 mt-1 ml-11">{t("myTaskPerformanceSummaryDesc")}</p>
+          <p className="text-xs mt-1 ml-11" style={{ color: "var(--text-secondary)" }}>{t("myTaskPerformanceSummaryDesc")}</p>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="text-[11px] text-slate-500 uppercase tracking-wider"
-                style={{ borderBottom: "1px solid rgba(51,65,85,0.4)" }}
+              <tr 
+                className="text-xs uppercase tracking-wider font-bold"
+                style={{
+                  color: "var(--text-secondary)",
+                  borderBottom: "1px solid var(--border-surface)",
+                }}
               >
-                <th className="py-3 px-4 font-bold">{t("taskNameLabel")}</th>
-                <th className="py-3 px-4 font-bold">{t("taskProjectLabel")}</th>
-                <th className="py-3 px-4 font-bold">{t("taskTypeLabel")}</th>
-                <th className="py-3 px-4 font-bold text-center">{t("taskStatusLabel")}</th>
-                <th className="py-3 px-4 font-bold text-center">{t("taskDueDateLabel")}</th>
+                <th className="py-3.5 px-4">{t("taskNameLabel")}</th>
+                <th className="py-3.5 px-4">{t("taskProjectLabel")}</th>
+                <th className="py-3.5 px-4">{t("taskTypeLabel")}</th>
+                <th className="py-3.5 px-4 text-center">{t("taskStatusLabel")}</th>
+                <th className="py-3.5 px-4 text-center">{t("taskDueDateLabel")}</th>
               </tr>
             </thead>
-            <tbody className="text-sm">
+            <tbody className="divide-y text-sm" style={{ borderColor: "var(--border-surface)" }}>
               {myTasks.length > 0 ? (
                 myTasks.map((tItem) => {
                   const isOverdue = (() => {
@@ -373,14 +389,13 @@ export default function UserReportView({ data }) {
 
                   return (
                     <tr key={tItem.id}
-                      className="transition-all duration-300 hover:bg-white/[0.03]"
-                      style={{ borderBottom: "1px solid rgba(51,65,85,0.15)" }}
+                      className="hover:bg-slate-500/5 transition-colors"
                     >
-                      <td className="py-3.5 px-4 font-semibold text-white">{tItem.title}</td>
-                      <td className="py-3.5 px-4 text-slate-400 text-xs">{tItem.projectName}</td>
+                      <td className="py-3.5 px-4 font-bold" style={{ color: "var(--text-primary)" }}>{tItem.title}</td>
+                      <td className="py-3.5 px-4 text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>{tItem.projectName}</td>
                       <td className="py-3.5 px-4">
                         <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold"
-                          style={{ background: "rgba(20,184,166,0.12)", color: "#2dd4bf" }}
+                          style={{ background: "rgba(20,184,166,0.12)", color: "#0d9488" }}
                         >
                           {formatTaskType(tItem.taskType || tItem.task_type)}
                         </span>
@@ -389,7 +404,7 @@ export default function UserReportView({ data }) {
                         <StatusPill status={tItem.status} />
                       </td>
                       <td className="py-3.5 px-4 text-center">
-                        <span className={`text-xs font-bold ${isOverdue ? "text-rose-400" : "text-slate-400"}`}>
+                        <span className={`text-xs font-bold ${isOverdue ? "text-rose-500" : ""}`} style={!isOverdue ? { color: "var(--text-secondary)" } : {}}>
                           {formatDate(tItem.due_date || tItem.dueDate, language)}
                         </span>
                       </td>

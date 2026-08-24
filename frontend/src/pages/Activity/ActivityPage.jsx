@@ -43,7 +43,14 @@ const ActivityPage = () => {
   } = useActivityLogs();
 
   return (
-    <div ref={pageRef} className="min-h-screen flex flex-col bg-[#153648] text-slate-100 font-sans selection:bg-teal-500 selection:text-white relative overflow-hidden">
+    <div 
+      ref={pageRef} 
+      className="min-h-screen flex flex-col font-sans relative overflow-hidden"
+      style={{
+        backgroundColor: "var(--bg-primary)",
+        color: "var(--text-primary)",
+      }}
+    >
       <Header />
 
       {/* GSAP Animated Ambient Orbs */}
@@ -55,13 +62,18 @@ const ActivityPage = () => {
         {/* Header Title Row */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-white flex items-center gap-3 tracking-tight">
+            <h2 className="text-2xl md:text-3xl font-extrabold flex items-center gap-3 tracking-tight" style={{ color: "var(--text-primary)" }}>
               <span>📋</span> {t("activityLogsTitle")}
             </h2>
-            <p className="text-xs text-slate-400 mt-1">{t("activityLogsSubtitle")}</p>
+            <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>{t("activityLogsSubtitle")}</p>
           </div>
           <button
-            className="px-5 py-2.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-2 transition-all"
+            className="px-5 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-sm hover:shadow-md"
+            style={{
+              background: "var(--bg-surface-hover)",
+              color: "var(--text-primary)",
+              border: "1px solid var(--border-surface)",
+            }}
             onClick={fetchLogs}
             title={t("refreshBtn")}
           >

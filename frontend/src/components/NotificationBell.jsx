@@ -393,7 +393,12 @@ const NotificationBell = () => {
       {/* Bell Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all focus:outline-none flex items-center justify-center"
+        className="relative p-2.5 rounded-2xl transition-all focus:outline-none flex items-center justify-center cursor-pointer shadow-sm"
+        style={{
+          background: "var(--bg-surface-hover)",
+          color: "var(--text-primary)",
+          border: "1px solid var(--border-surface)",
+        }}
         title={t("notifications") || "Notifications"}
         aria-label="Notifications"
       >
@@ -424,17 +429,34 @@ const NotificationBell = () => {
 
       {/* Notifications Popover Drawer */}
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 sm:w-96 rounded-2xl bg-[#0f172a]/95 backdrop-blur-2xl border-0 shadow-2xl z-50 overflow-hidden animate-fade-in text-slate-200">
+        <div 
+          className="absolute right-0 mt-3 w-80 sm:w-96 rounded-3xl backdrop-blur-2xl shadow-2xl z-50 overflow-hidden animate-fade-in"
+          style={{
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border-surface)",
+            boxShadow: "0 25px 60px rgba(0,0,0,0.18)",
+          }}
+        >
           {/* Header */}
-          <div className="p-4 border-b border-slate-800/40 flex items-center justify-between bg-slate-900/50">
-            <h3 className="text-base font-bold text-white tracking-wide">
+          <div 
+            className="p-4 flex items-center justify-between"
+            style={{
+              background: "var(--bg-surface-hover)",
+              borderBottom: "1px solid var(--border-surface)",
+            }}
+          >
+            <h3 className="text-base font-bold tracking-wide" style={{ color: "var(--text-primary)" }}>
               {t("notifications") || "การแจ้งเตือน"}
             </h3>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
                 disabled={loading}
-                className="text-xs font-semibold text-teal-400 hover:text-teal-300 transition-colors bg-teal-500/10 hover:bg-teal-500/20 px-3 py-1.5 rounded-xl whitespace-nowrap"
+                className="text-xs font-semibold px-3 py-1.5 rounded-xl whitespace-nowrap cursor-pointer transition-colors"
+                style={{
+                  background: "rgba(14, 165, 233, 0.15)",
+                  color: "var(--brand-color)",
+                }}
               >
                 {t("markAllAsRead") || "อ่านทั้งหมดแล้ว"}
               </button>
@@ -442,24 +464,39 @@ const NotificationBell = () => {
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex items-center border-b border-slate-800/40 bg-slate-900/30 px-3 py-2 gap-2 text-xs">
+          <div 
+            className="flex items-center px-3 py-2 gap-2 text-xs"
+            style={{
+              borderBottom: "1px solid var(--border-surface)",
+            }}
+          >
             <button
               onClick={() => setFilter("all")}
-              className={`px-3 py-1.5 rounded-xl font-semibold transition-all ${
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
                 filter === "all"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20"
-                  : "text-slate-400 hover:text-white hover:bg-slate-800"
+                  ? "text-white shadow-md"
+                  : "hover:bg-black/5 dark:hover:bg-white/5"
               }`}
+              style={
+                filter === "all"
+                  ? { background: "var(--brand-color)", color: "#ffffff" }
+                  : { color: "var(--text-secondary)" }
+              }
             >
               {t("all") || "ทั้งหมด"} ({notifications.length})
             </button>
             <button
               onClick={() => setFilter("unread")}
-              className={`px-3 py-1.5 rounded-xl font-semibold transition-all ${
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
                 filter === "unread"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20"
-                  : "text-slate-400 hover:text-white hover:bg-slate-800"
+                  ? "text-white shadow-md"
+                  : "hover:bg-black/5 dark:hover:bg-white/5"
               }`}
+              style={
+                filter === "unread"
+                  ? { background: "var(--brand-color)", color: "#ffffff" }
+                  : { color: "var(--text-secondary)" }
+              }
             >
               {t("unread") || "ยังไม่อ่าน"} ({unreadCount})
             </button>
@@ -467,7 +504,8 @@ const NotificationBell = () => {
               <button
                 onClick={handleClearAll}
                 disabled={loading}
-                className="ml-auto px-2.5 py-1.5 rounded-xl font-semibold text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 transition-all flex items-center gap-1 disabled:opacity-50"
+                className="ml-auto px-2.5 py-1.5 rounded-xl font-semibold text-rose-500 hover:text-rose-600 transition-all flex items-center gap-1 disabled:opacity-50 cursor-pointer"
+                style={{ background: "rgba(244, 63, 94, 0.1)" }}
                 title={t("clearAll") || "ล้างทั้งหมด"}
               >
                 <svg
@@ -489,11 +527,11 @@ const NotificationBell = () => {
           </div>
 
           {/* Notification Items List */}
-          <div className="max-h-80 overflow-y-auto divide-y divide-slate-800/30 custom-scrollbar">
+          <div className="max-h-80 overflow-y-auto divide-y custom-scrollbar" style={{ borderColor: "var(--border-surface)" }}>
             {filteredNotifications.length === 0 ? (
-              <div className="p-8 text-center text-slate-400">
+              <div className="p-8 text-center" style={{ color: "var(--text-secondary)" }}>
                 <svg
-                  className="w-12 h-12 mx-auto mb-3 text-slate-600"
+                  className="w-12 h-12 mx-auto mb-3 opacity-40"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -514,29 +552,33 @@ const NotificationBell = () => {
                 <div
                   key={item.id}
                   onClick={() => handleMarkAsRead(item)}
-                  className={`p-3.5 flex gap-3 transition-colors cursor-pointer relative group ${
-                    !item.is_read
-                      ? "bg-indigo-950/30 hover:bg-indigo-900/40"
-                      : "hover:bg-slate-800/40"
-                  }`}
+                  className="p-3.5 flex gap-3 transition-colors cursor-pointer relative group"
+                  style={{
+                    backgroundColor: !item.is_read ? "var(--bg-surface-hover)" : "transparent",
+                    borderBottom: "1px solid var(--border-surface)",
+                  }}
                 >
                   {/* Unread Glow Dot */}
                   {!item.is_read && (
-                    <span className="absolute left-1.5 top-5 w-2 h-2 rounded-full bg-teal-400 shadow-sm shadow-teal-400"></span>
+                    <span 
+                      className="absolute left-1.5 top-5 w-2 h-2 rounded-full shadow-sm"
+                      style={{ background: "var(--brand-color)", boxShadow: "0 0 6px var(--brand-color)" }}
+                    ></span>
                   )}
 
                   {getNotificationIcon(item.type)}
 
                   <div className="flex-1 min-w-0 pr-4">
                     <h4
-                      className={`text-xs font-semibold truncate ${!item.is_read ? "text-white" : "text-slate-300"}`}
+                      className="text-xs font-bold truncate mb-0.5"
+                      style={{ color: "var(--text-primary)" }}
                     >
                       {getNotificationTitle(item)}
                     </h4>
-                    <p className="text-xs text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">
+                    <p className="text-xs line-clamp-2 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
                       {getNotificationMessage(item)}
                     </p>
-                    <span className="text-[10px] text-slate-500 mt-1 block">
+                    <span className="text-[10px] mt-1 block font-medium" style={{ color: "var(--text-secondary)", opacity: 0.75 }}>
                       {formatTimeAgo(item.created_at)}
                     </span>
                   </div>

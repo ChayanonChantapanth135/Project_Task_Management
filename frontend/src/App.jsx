@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard/DashboardPage";
 import Login from "./pages/Login/LoginPage";
 // import Register from './pages/Register'
 import { LanguageProvider } from "./lib/LanguageContext";
+import { ThemeProvider } from "./lib/ThemeContext";
 import Profile from "./pages/Profile/ProfilePage";
 import MyTask from "./pages/MyTasks/MyTasksPage";
 import ManageUsers from "./pages/ManageUser/ManageUserPage";
@@ -42,10 +43,11 @@ function ScrollToTop() {
 function App() {
   return (
     <LanguageProvider>
-      <BrowserRouter>
-        <ScrollToTop />
-        <SessionTimeoutHandler />
-        <Routes>
+      <ThemeProvider>
+        <BrowserRouter>
+          <ScrollToTop />
+          <SessionTimeoutHandler />
+          <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/Home" element={<Home />} />
@@ -141,8 +143,9 @@ function App() {
               </ProtectedRoute>
             }
           />
-        </Routes>
-      </BrowserRouter>
+          </Routes>
+        </BrowserRouter>
+      </ThemeProvider>
     </LanguageProvider>
   );
 }

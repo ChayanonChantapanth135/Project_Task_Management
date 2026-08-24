@@ -12,16 +12,16 @@ const ProjectCard = ({
 }) => {
   const { language } = useLanguage();
   const statusLower = project.status?.toLowerCase();
-  let badgeClass = "bg-amber-500/20 text-amber-300";
+  let badgeClass = "badge-status-todo";
   let statusText = t("statusPending");
   if (statusLower === "completed") {
-    badgeClass = "bg-emerald-500/20 text-emerald-300";
+    badgeClass = "badge-status-completed";
     statusText = t("statusCompleted");
   } else if (statusLower === "in_progress" || statusLower === "in progress") {
-    badgeClass = "bg-indigo-500/20 text-indigo-300";
+    badgeClass = "badge-status-in-progress";
     statusText = t("statusInProgress");
   } else if (statusLower === "review" || statusLower === "reviewing") {
-    badgeClass = "bg-pink-500/20 text-pink-300";
+    badgeClass = "badge-status-in-review";
     statusText = t("statusReview");
   }
 

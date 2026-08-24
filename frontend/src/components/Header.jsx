@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Dropdown } from "react-bootstrap";
-import logoB from "../assets/LogoW.png";
+import logoW from "../assets/LogoW.png";
+import logoB from "../assets/LogoB.png";
 import { signOut, getCurrentUser } from "../lib/auth";
 import { useLanguage } from "../lib/LanguageContext";
+import { useTheme } from "../lib/ThemeContext";
 import axios from "axios";
 import LanguageSwitcher from "./LanguageSwitcher";
 import NotificationBell from "./NotificationBell";
@@ -19,139 +21,17 @@ const Header = () => {
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { t } = useLanguage();
+  const {
+    appearance,
+    setAppearance,
+    accentColor,
+    setAccentColor,
+    isDark,
+    currentAccent,
+    availableAccents,
+  } = useTheme();
 
   const [showThemeModal, setShowThemeModal] = useState(false);
-  const [appearance, setAppearance] = useState(
-    () => localStorage.getItem("appearance") || "Dark",
-  );
-  const [accentColor, setAccentColor] = useState(
-    () => localStorage.getItem("accentColor") || "Blue",
-  );
-
-  useEffect(() => {
-    localStorage.setItem("appearance", appearance);
-
-    let mode = appearance;
-    if (appearance === "Auto") {
-      mode = window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "Dark"
-        : "Light";
-    }
-
-    if (mode === "Light") {
-      document.body.style.backgroundColor = "#f8fafc";
-      document.body.style.color = "#0f172a";
-      document.documentElement.classList.add("light");
-      document.documentElement.classList.remove("dark");
-    } else {
-      document.body.style.backgroundColor = "#153648";
-      document.body.style.color = "#f1f5f9";
-      document.documentElement.classList.add("dark");
-      document.documentElement.classList.remove("light");
-    }
-  }, [appearance]);
-
-  useEffect(() => {
-    localStorage.setItem("accentColor", accentColor);
-    const colorMaps = {
-      Black: {
-        600: "#0f0f0f",
-        500: "#1e1e1e",
-        400: "#3c3c3c",
-        300: "#7c7c7c",
-        200: "#bcbcbc",
-      },
-      Purple: {
-        600: "#9333ea",
-        500: "#a855f7",
-        400: "#c084fc",
-        300: "#d8b4fe",
-        200: "#e9d5ff",
-      },
-      Blue: {
-        600: "#2563eb",
-        500: "#3b82f6",
-        400: "#60a5fa",
-        300: "#93c5fd",
-        200: "#bfdbfe",
-      },
-      Pink: {
-        600: "#db2777",
-        500: "#ec4899",
-        400: "#f472b6",
-        300: "#f9a8d4",
-        200: "#fbcfe8",
-      },
-      Violet: {
-        600: "#7c3aed",
-        500: "#8b5cf6",
-        400: "#a78bfa",
-        300: "#c4b5fd",
-        200: "#ddd6fe",
-      },
-      Indigo: {
-        600: "#4f46e5",
-        500: "#6366f1",
-        400: "#818cf8",
-        300: "#a5b4fc",
-        200: "#c7d2fe",
-      },
-      Orange: {
-        600: "#ea580c",
-        500: "#f97316",
-        400: "#fb923c",
-        300: "#fdbb2f",
-        200: "#ffedd5",
-      },
-      Teal: {
-        600: "#0d9488",
-        500: "#14b8a6",
-        400: "#2dd4bf",
-        300: "#5eead4",
-        200: "#99f6e4",
-      },
-      Bronze: {
-        600: "#854d0e",
-        500: "#a16207",
-        400: "#ca8a04",
-        300: "#fef08a",
-        200: "#fef9c3",
-      },
-      Mint: {
-        600: "#059669",
-        500: "#10b981",
-        400: "#34d399",
-        300: "#6ee7b7",
-        200: "#a7f3d0",
-      },
-    };
-    const activeMap = colorMaps[accentColor] || colorMaps.Blue;
-    document.documentElement.style.setProperty(
-      "--color-indigo-600",
-      activeMap["600"],
-    );
-    document.documentElement.style.setProperty(
-      "--color-indigo-500",
-      activeMap["500"],
-    );
-    document.documentElement.style.setProperty(
-      "--color-indigo-400",
-      activeMap["400"],
-    );
-    document.documentElement.style.setProperty(
-      "--color-indigo-300",
-      activeMap["300"],
-    );
-    document.documentElement.style.setProperty(
-      "--color-indigo-200",
-      activeMap["200"],
-    );
-    document.documentElement.style.setProperty(
-      "--accent-color",
-      activeMap["500"],
-    );
-  }, [accentColor]);
-
   useEffect(() => {
     const checkUser = async () => {
       try {
@@ -208,18 +88,9 @@ const Header = () => {
           {/* Logo */}
           <Link
             to="/Home"
-            className="flex items-center gap-3 no-underline group"
+            className="flex items-center gap-2 no-underline group"
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 to-cyan-500 p-0.5 shadow-lg shadow-teal-500/20 group-hover:scale-105 transition-transform">
-              <div className="w-full h-full bg-[#153648] rounded-[10px] flex items-center justify-center">
-                <img
-                  src={logoB}
-                  alt="Logo"
-                  className="w-6 h-6 filter invert mix-blend-screen"
-                />
-              </div>
-            </div>
-            <span className="text-lg font-black tracking-wider text-white">
+            <span className="text-xl font-black tracking-wider transition-transform group-hover:scale-105" style={{ color: "var(--text-primary)" }}>
               PROJECT <span className="gradient-text">TASK</span>
             </span>
           </Link>
@@ -550,14 +421,22 @@ const Header = () => {
       {/* Themes Modal */}
       {showThemeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4 overflow-y-auto">
-          <div className="bg-[#1e1e1e] rounded-2xl w-full max-w-md p-6 relative shadow-2xl text-slate-200 my-auto">
+          <div 
+            className="rounded-3xl w-full max-w-md p-6 relative shadow-2xl my-auto transition-all"
+            style={{
+              background: "var(--bg-surface)",
+              border: "1px solid var(--border-surface)",
+              color: "var(--text-primary)",
+            }}
+          >
             {/* Modal Title */}
-            <h3 className="text-lg font-bold text-white mb-6">Themes</h3>
+            <h3 className="text-xl font-bold mb-6" style={{ color: "var(--text-primary)" }}>Themes</h3>
 
             {/* Close Button */}
             <button
               onClick={() => setShowThemeModal(false)}
-              className="absolute top-6 right-6 text-slate-400 hover:text-white transition-colors"
+              className="absolute top-6 right-6 cursor-pointer opacity-70 hover:opacity-100 transition-opacity"
+              style={{ color: "var(--text-secondary)" }}
             >
               <svg
                 className="w-4 h-4"
@@ -576,29 +455,30 @@ const Header = () => {
 
             {/* Appearance Section */}
             <div className="mb-6">
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-                Appearance
+              <h4 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "var(--text-secondary)" }}>
+                APPEARANCE
               </h4>
               <div className="flex gap-4">
                 {/* Light */}
                 <div className="flex flex-col items-center gap-2">
                   <div
                     onClick={() => setAppearance("Light")}
-                    className={`w-28 h-16 rounded-xl border-2 flex flex-col p-1.5 cursor-pointer bg-white transition-all ${
+                    className={`w-28 h-16 rounded-2xl border-2 flex flex-col p-2 cursor-pointer bg-white transition-all ${
                       appearance === "Light"
-                        ? "border-[#3b82f6]"
-                        : "border-transparent"
+                        ? "border-[#3b82f6] shadow-lg shadow-blue-500/20"
+                        : "border-slate-200/80 opacity-80 hover:opacity-100"
                     }`}
                   >
                     <div className="flex items-center gap-1.5 mb-1.5">
-                      <div className="w-3 h-3 rounded bg-[#3b82f6]"></div>
+                      <div className="w-3 h-3 rounded-full bg-[#3b82f6]"></div>
                       <div className="h-1.5 w-10 bg-slate-200 rounded"></div>
                     </div>
                     <div className="h-1 w-14 bg-slate-200 rounded mb-1"></div>
                     <div className="h-1 w-10 bg-slate-200 rounded"></div>
                   </div>
                   <span
-                    className={`text-xs font-bold ${appearance === "Light" ? "text-white" : "text-slate-400"}`}
+                    className="text-xs font-bold"
+                    style={{ color: appearance === "Light" ? "var(--text-primary)" : "var(--text-secondary)" }}
                   >
                     Light
                   </span>
@@ -608,21 +488,22 @@ const Header = () => {
                 <div className="flex flex-col items-center gap-2">
                   <div
                     onClick={() => setAppearance("Dark")}
-                    className={`w-28 h-16 rounded-xl border-2 flex flex-col p-1.5 cursor-pointer bg-[#2c2c2c] transition-all ${
+                    className={`w-28 h-16 rounded-2xl border-2 flex flex-col p-2 cursor-pointer bg-[#2c2c2c] transition-all ${
                       appearance === "Dark"
-                        ? "border-[#3b82f6]"
-                        : "border-transparent"
+                        ? "border-[#3b82f6] shadow-lg shadow-blue-500/20"
+                        : "border-transparent opacity-80 hover:opacity-100"
                     }`}
                   >
                     <div className="flex items-center gap-1.5 mb-1.5">
-                      <div className="w-3 h-3 rounded bg-[#3b82f6]"></div>
-                      <div className="h-1.5 w-10 bg-slate-700 rounded"></div>
+                      <div className="w-3 h-3 rounded-full bg-[#3b82f6]"></div>
+                      <div className="h-1.5 w-10 bg-slate-600 rounded"></div>
                     </div>
-                    <div className="h-1 w-14 bg-slate-700 rounded mb-1"></div>
-                    <div className="h-1 w-10 bg-slate-700 rounded"></div>
+                    <div className="h-1 w-14 bg-slate-600 rounded mb-1"></div>
+                    <div className="h-1 w-10 bg-slate-600 rounded"></div>
                   </div>
                   <span
-                    className={`text-xs font-bold ${appearance === "Dark" ? "text-white" : "text-slate-400"}`}
+                    className="text-xs font-bold"
+                    style={{ color: appearance === "Dark" ? "var(--text-primary)" : "var(--text-secondary)" }}
                   >
                     Dark
                   </span>
@@ -632,23 +513,24 @@ const Header = () => {
                 <div className="flex flex-col items-center gap-2">
                   <div
                     onClick={() => setAppearance("Auto")}
-                    className={`w-28 h-16 rounded-xl border-2 flex overflow-hidden cursor-pointer transition-all ${
+                    className={`w-28 h-16 rounded-2xl border-2 flex overflow-hidden cursor-pointer transition-all ${
                       appearance === "Auto"
-                        ? "border-[#3b82f6]"
-                        : "border-transparent"
+                        ? "border-[#3b82f6] shadow-lg shadow-blue-500/20"
+                        : "border-slate-300/40 opacity-80 hover:opacity-100"
                     }`}
                   >
-                    <div className="flex-1 bg-white p-1.5 flex flex-col animate-none">
-                      <div className="w-3 h-3 rounded bg-[#3b82f6] mb-1.5"></div>
+                    <div className="flex-1 bg-white p-2 flex flex-col">
+                      <div className="w-3 h-3 rounded-full bg-[#3b82f6] mb-1.5"></div>
                       <div className="h-1 w-8 bg-slate-200 rounded"></div>
                     </div>
-                    <div className="flex-1 bg-[#2c2c2c] p-1.5 flex flex-col">
+                    <div className="flex-1 bg-[#2c2c2c] p-2 flex flex-col">
                       <div className="h-3 w-8 mb-1.5"></div>
-                      <div className="h-1 w-8 bg-slate-700 rounded"></div>
+                      <div className="h-1 w-8 bg-slate-600 rounded"></div>
                     </div>
                   </div>
                   <span
-                    className={`text-xs font-bold ${appearance === "Auto" ? "text-white" : "text-slate-400"}`}
+                    className="text-xs font-bold"
+                    style={{ color: appearance === "Auto" ? "var(--text-primary)" : "var(--text-secondary)" }}
                   >
                     Auto
                   </span>
@@ -658,42 +540,43 @@ const Header = () => {
 
             {/* Accent Color Section */}
             <div>
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-                ClickUp theme
+              <h4 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "var(--text-secondary)" }}>
+                CLICKUP THEME
               </h4>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { name: "Black", code: "#1e1e1e" },
-                  { name: "Purple", code: "#a855f7" },
-                  { name: "Blue", code: "#3b82f6" },
-                  { name: "Pink", code: "#ec4899" },
-                  { name: "Violet", code: "#8b5cf6" },
-                  { name: "Indigo", code: "#6366f1" },
-                  { name: "Orange", code: "#f97316" },
-                  { name: "Teal", code: "#14b8a6" },
-                  { name: "Bronze", code: "#a16207" },
-                  { name: "Mint", code: "#10b981" },
-                ].map((color) => (
+              <div className="grid grid-cols-3 gap-2.5">
+                {Object.values(availableAccents).map((color) => (
                   <div
                     key={color.name}
                     onClick={() => setAccentColor(color.name)}
-                    className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
-                      accentColor === color.name
-                        ? "bg-[#3b82f6]/10 border border-[#3b82f6]"
-                        : "bg-[#18181c] hover:bg-[#25252a]"
-                    }`}
+                    className="flex items-center justify-between px-3 py-2.5 rounded-2xl cursor-pointer transition-all shadow-sm"
+                    style={{
+                      background: accentColor === color.name 
+                        ? "rgba(59, 130, 246, 0.15)" 
+                        : "var(--bg-surface-hover)",
+                      border: accentColor === color.name 
+                        ? `1.5px solid ${color.code}` 
+                        : "1px solid var(--border-surface)",
+                    }}
                   >
                     <div className="flex items-center gap-2">
                       <span
-                        className="w-4 h-4 rounded-md"
+                        className="w-3.5 h-3.5 rounded-full flex-shrink-0 shadow-sm"
                         style={{ backgroundColor: color.code }}
                       ></span>
-                      <span className="text-xs font-bold text-slate-300">
+                      <span 
+                        className="text-xs font-semibold"
+                        style={{ 
+                          color: accentColor === color.name ? "var(--text-primary)" : "var(--text-secondary)" 
+                        }}
+                      >
                         {color.name}
                       </span>
                     </div>
                     {accentColor === color.name && (
-                      <div className="w-4 h-4 rounded bg-[#3b82f6] flex items-center justify-center">
+                      <div 
+                        className="w-4 h-4 rounded-full flex items-center justify-center text-white"
+                        style={{ backgroundColor: color.code }}
+                      >
                         <svg
                           className="w-2.5 h-2.5 text-white"
                           fill="none"

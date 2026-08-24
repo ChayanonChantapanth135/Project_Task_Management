@@ -3,13 +3,13 @@ import { useLanguage } from "../../../lib/LanguageContext";
 import { formatDate } from "../../../lib/dateUtils";
 
 /* ── Reusable KPI Card ── */
-function KpiCard({ icon, iconGradient, label, value, valueColor = "text-white", accentColor }) {
+function KpiCard({ icon, iconGradient, label, value, valueColor = "", accentColor }) {
   return (
-    <div className="group relative rounded-3xl p-6 transition-all duration-500 hover:-translate-y-1"
+    <div className="group relative rounded-3xl p-6 transition-all duration-500 hover:-translate-y-1 shadow-md"
       style={{
-        background: "rgba(22,53,71,0.6)",
+        background: "var(--bg-surface)",
+        border: "1px solid var(--border-surface)",
         backdropFilter: "blur(16px)",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
       }}
     >
       <div className="absolute top-0 left-6 right-6 h-[2px] rounded-full opacity-60 group-hover:opacity-100 transition-opacity"
@@ -22,8 +22,8 @@ function KpiCard({ icon, iconGradient, label, value, valueColor = "text-white", 
           {icon}
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider truncate">{label}</p>
-          <h3 className={`text-2xl font-black mt-0.5 ${valueColor}`}>{value}</h3>
+          <p className="text-[11px] font-bold uppercase tracking-wider truncate" style={{ color: "var(--text-secondary)" }}>{label}</p>
+          <h3 className={`text-2xl font-black mt-0.5 ${valueColor}`} style={!valueColor ? { color: "var(--text-primary)" } : {}}>{value}</h3>
         </div>
       </div>
     </div>
@@ -112,16 +112,16 @@ export default function TeamLeaderReportView({ data }) {
       </div>
 
       {/* ── Team Tasks Table ── */}
-      <div className="rounded-3xl p-8"
+      <div className="rounded-3xl p-8 shadow-lg"
         style={{
-          background: "rgba(22,53,71,0.5)",
+          background: "var(--bg-surface)",
+          border: "1px solid var(--border-surface)",
           backdropFilter: "blur(16px)",
-          boxShadow: "0 16px 48px rgba(0,0,0,0.2)",
         }}
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h3 className="text-lg font-bold text-white flex items-center gap-3">
+            <h3 className="text-lg font-bold flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
               <span className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
                 style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))" }}
               >
@@ -131,37 +131,37 @@ export default function TeamLeaderReportView({ data }) {
               </span>
               {t("activeTeamTasksTitle") || "Team Tasks Execution"}
             </h3>
-            <p className="text-xs text-slate-400 mt-1 ml-11">{t("activeTeamTasksDesc") || "Track tasks assigned to your team members"}</p>
+            <p className="text-xs mt-1 ml-11" style={{ color: "var(--text-secondary)" }}>{t("activeTeamTasksDesc") || "Track tasks assigned to your team members"}</p>
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex items-center bg-slate-900/60 p-1.5 rounded-2xl gap-1 shrink-0 text-xs">
+          <div className="flex items-center p-1.5 rounded-2xl gap-1 shrink-0 text-xs" style={{ background: "var(--bg-surface-hover)", border: "1px solid var(--border-surface)" }}>
             <button
               onClick={() => setTaskFilter("active")}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
                 taskFilter === "active"
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20"
-                  : "text-slate-400 hover:text-white"
+                  : "text-slate-400 hover:text-slate-200"
               }`}
             >
               {language === "th" ? `กำลังดำเนินการ (${activeTlTasks.length})` : `Active (${activeTlTasks.length})`}
             </button>
             <button
               onClick={() => setTaskFilter("completed")}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
                 taskFilter === "completed"
                   ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/20"
-                  : "text-slate-400 hover:text-white"
+                  : "text-slate-400 hover:text-slate-200"
               }`}
             >
               {language === "th" ? `เสร็จสิ้น (${completedTlTasks.length})` : `Completed (${completedTlTasks.length})`}
             </button>
             <button
               onClick={() => setTaskFilter("all")}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
                 taskFilter === "all"
-                  ? "bg-slate-700 text-white"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20"
+                  : "text-slate-400 hover:text-slate-200"
               }`}
             >
               {language === "th" ? `ทั้งหมด (${tlTasks.length})` : `All (${tlTasks.length})`}
@@ -170,19 +170,23 @@ export default function TeamLeaderReportView({ data }) {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="text-[11px] text-slate-500 uppercase tracking-wider"
-                style={{ borderBottom: "1px solid rgba(51,65,85,0.4)" }}
+              <tr 
+                className="text-xs uppercase tracking-wider font-bold"
+                style={{
+                  color: "var(--text-secondary)",
+                  borderBottom: "1px solid var(--border-surface)",
+                }}
               >
-                <th className="py-3 px-4 font-bold">{t("taskNameLabel")}</th>
-                <th className="py-3 px-4 font-bold">{t("taskProjectLabel")}</th>
-                <th className="py-3 px-4 font-bold">{t("taskAssigneeLabel")}</th>
-                <th className="py-3 px-4 font-bold text-center">{t("taskStatusLabel")}</th>
-                <th className="py-3 px-4 font-bold text-center">{t("taskDueDateLabel")}</th>
+                <th className="py-3.5 px-4">{t("taskNameLabel")}</th>
+                <th className="py-3.5 px-4">{t("taskProjectLabel")}</th>
+                <th className="py-3.5 px-4">{t("taskAssigneeLabel")}</th>
+                <th className="py-3.5 px-4 text-center">{t("taskStatusLabel")}</th>
+                <th className="py-3.5 px-4 text-center">{t("taskDueDateLabel")}</th>
               </tr>
             </thead>
-            <tbody className="text-sm">
+            <tbody className="divide-y text-sm" style={{ borderColor: "var(--border-surface)" }}>
               {displayedTasks.length > 0 ? (
                 displayedTasks.map((tItem) => {
                   const isOverdue = (() => {
@@ -197,19 +201,18 @@ export default function TeamLeaderReportView({ data }) {
 
                   return (
                     <tr key={tItem.id}
-                      className="transition-all duration-300 hover:bg-white/[0.03]"
-                      style={{ borderBottom: "1px solid rgba(51,65,85,0.15)" }}
+                      className="transition-all duration-300 hover:bg-slate-500/5"
                     >
-                      <td className="py-3.5 px-4 font-semibold text-white">{tItem.title}</td>
-                      <td className="py-3.5 px-4 text-slate-400 text-xs">{tItem.projectName}</td>
+                      <td className="py-3.5 px-4 font-bold" style={{ color: "var(--text-primary)" }}>{tItem.title}</td>
+                      <td className="py-3.5 px-4 text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>{tItem.projectName}</td>
                       <td className="py-3.5 px-4">
-                        <span className="text-teal-300 font-bold text-xs">{tItem.assigned_to_name || "-"}</span>
+                        <span className="font-bold text-xs" style={{ color: "var(--brand-color)" }}>{tItem.assigned_to_name || "-"}</span>
                       </td>
                       <td className="py-3.5 px-4 text-center">
                         <StatusPill status={tItem.status} />
                       </td>
                       <td className="py-3.5 px-4 text-center">
-                        <span className={`text-xs font-bold ${isOverdue ? "text-rose-400" : "text-slate-400"}`}>
+                        <span className={`text-xs font-bold ${isOverdue ? "text-rose-500" : ""}`} style={!isOverdue ? { color: "var(--text-secondary)" } : {}}>
                           {formatDate(tItem.due_date || tItem.dueDate, language)}
                         </span>
                       </td>

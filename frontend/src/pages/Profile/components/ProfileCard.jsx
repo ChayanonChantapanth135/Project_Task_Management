@@ -58,7 +58,7 @@ const ProfileCard = ({
 
       {/* Badges */}
       <div className="flex flex-wrap gap-2 justify-center mb-6">
-        <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-indigo-500/20 text-indigo-300">
+        <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-indigo-500/20 text-indigo-400">
           🛡️ {(() => {
             const r = String(user?.role || "").toLowerCase().trim();
             if (r === "manager" || r === "project_manager" || r === "project manager") return "Project Manager";
@@ -70,25 +70,33 @@ const ProfileCard = ({
             return (user?.role || "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
           })()}
         </span>
-        <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-emerald-500/20 text-emerald-300">
+        <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-emerald-500/20 text-emerald-500">
           ✨ {user?.status === "active" ? "Active" : "Suspended"}
         </span>
       </div>
 
-      <div className="w-full text-left bg-slate-800/40 rounded-2xl p-4 text-xs text-slate-300 space-y-2">
-        <div className="flex justify-between">
-          <span className="text-slate-400">{t("profileCreated")}:</span>
-          <span>
+      <div 
+        className="w-full text-left rounded-2xl p-4 text-xs space-y-2.5 shadow-inner"
+        style={{
+          background: "var(--bg-surface-hover)",
+          border: "1px solid var(--border-surface)",
+        }}
+      >
+        <div className="flex justify-between items-center">
+          <span className="font-semibold" style={{ color: "var(--text-secondary)" }}>
+            {t("profileCreated") || "Created"}:
+          </span>
+          <span className="font-bold" style={{ color: "var(--text-primary)" }}>
             {user?.created_at
               ? formatDate(user.created_at, language)
               : "-"}
           </span>
         </div>
-        <div className="flex justify-between">
-          <span className="text-slate-400">
-            {t("profileRoleLevel")}:
+        <div className="flex justify-between items-center">
+          <span className="font-semibold" style={{ color: "var(--text-secondary)" }}>
+            {t("profileRoleLevel") || "Role Level"}:
           </span>
-          <span className="capitalize">
+          <span className="font-bold capitalize" style={{ color: "var(--text-primary)" }}>
             {(() => {
               const r = String(user?.role || "").toLowerCase().trim();
               if (r === "manager" || r === "project_manager" || r === "project manager") return "Project Manager";

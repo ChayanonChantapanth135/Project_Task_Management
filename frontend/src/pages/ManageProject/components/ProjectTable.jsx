@@ -147,22 +147,22 @@ const ProjectTable = ({
                     {/* Status Pill */}
                     <td className="py-4 px-6 text-center whitespace-nowrap" style={deadlineStyle}>
                       {(() => {
-                        let badgeClass = "bg-amber-500/20 text-amber-300";
+                        let badgeClass = "badge-status-todo";
                         let statusText = t("statusPending") || "Pending";
                         if (statusLower === "completed") {
-                          badgeClass = "bg-emerald-500/20 text-emerald-300";
+                          badgeClass = "badge-status-completed";
                           statusText = t("statusCompleted") || "Completed";
                         } else if (
                           statusLower === "in_progress" ||
                           statusLower === "in progress"
                         ) {
-                          badgeClass = "bg-indigo-500/20 text-indigo-300";
+                          badgeClass = "badge-status-in-progress";
                           statusText = t("statusInProgress") || "In Progress";
                         } else if (
                           statusLower === "review" ||
                           statusLower === "reviewing"
                         ) {
-                          badgeClass = "bg-pink-500/20 text-pink-300";
+                          badgeClass = "badge-status-in-review";
                           statusText = t("statusReview") || "Reviewing";
                         }
                         return (
