@@ -47,7 +47,8 @@ const PersonalTaskPage = () => {
       const success = await createTask(activeColumnId, formData);
       if (success) setIsModalOpen(false);
     } else if (modalMode === "edit") {
-      const success = await updateTask(currentTask.id, formData);
+      const taskId = currentTask.dbId || currentTask.id;
+      const success = await updateTask(taskId, formData);
       if (success) setIsModalOpen(false);
     }
   };

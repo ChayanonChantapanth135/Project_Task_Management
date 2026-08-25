@@ -698,14 +698,14 @@ const TaskDetailModal = ({
               <>
                 <button
                   type="button"
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full text-xs font-semibold whitespace-nowrap border border-white/10 transition-all"
+                  className="px-4 py-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white rounded-full text-xs font-semibold whitespace-nowrap border border-red-500/30 transition-all cursor-pointer"
                   onClick={() => setIsEditing(false)}
                 >
                   {language === "th" ? "ยกเลิก" : "Cancel"}
                 </button>
                 <button
                   type="button"
-                  className="px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-lg"
+                  className="px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-lg cursor-pointer"
                   onClick={onSave}
                 >
                   {language === "th" ? "บันทึกข้อมูล" : "Save Changes"}
@@ -715,7 +715,7 @@ const TaskDetailModal = ({
               <>
                 <button
                   type="button"
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full text-xs font-semibold whitespace-nowrap border border-white/10 transition-all"
+                  className="px-4 py-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white rounded-full text-xs font-semibold whitespace-nowrap border border-red-500/30 transition-all cursor-pointer"
                   onClick={() => setShowViewModal(false)}
                 >
                   {t("cancelBtn") || "Cancel"}

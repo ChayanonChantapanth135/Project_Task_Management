@@ -114,32 +114,31 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
                   : "shadow-sm hover:shadow-md"
           }`}
           style={{
-            backgroundColor: snapshot.isDragging 
-              ? "var(--bg-surface-hover)" 
-              : dateStatus === "overdue" 
-                ? "rgba(220, 38, 38, 0.08)" 
-                : dateStatus === "due-soon" 
-                  ? "rgba(217, 119, 6, 0.08)" 
+            backgroundColor: snapshot.isDragging
+              ? "var(--bg-surface-hover)"
+              : dateStatus === "overdue"
+                ? "rgba(220, 38, 38, 0.08)"
+                : dateStatus === "due-soon"
+                  ? "rgba(217, 119, 6, 0.08)"
                   : "var(--bg-surface-hover)",
-            border: dateStatus === "overdue"
-              ? "1px solid rgba(220, 38, 38, 0.25)"
-              : dateStatus === "due-soon"
-                ? "1px solid rgba(217, 119, 6, 0.25)"
-                : "1px solid var(--border-surface)",
+            border:
+              dateStatus === "overdue"
+                ? "1px solid rgba(220, 38, 38, 0.25)"
+                : dateStatus === "due-soon"
+                  ? "1px solid rgba(217, 119, 6, 0.25)"
+                  : "1px solid var(--border-surface)",
             ...provided.draggableProps.style,
           }}
         >
           <div className="flex items-start justify-between gap-1.5 mb-1">
-            <h4
+            <h6
               className={`text-sm font-semibold leading-snug flex-1 ${
-                task.is_completed
-                  ? "line-through opacity-60"
-                  : ""
+                task.is_completed ? "line-through opacity-60" : ""
               }`}
               style={{ color: "var(--text-primary)" }}
             >
               {task.title}
-            </h4>
+            </h6>
 
             {/* Delete Button */}
             <div className="flex items-center gap-1 flex-shrink-0 ml-1 opacity-50 group-hover:opacity-100 transition-opacity">

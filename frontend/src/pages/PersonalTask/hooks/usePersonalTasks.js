@@ -677,7 +677,8 @@ export const usePersonalTasks = () => {
 
   const updateTask = async (taskId, { title, task_date }) => {
     try {
-      await axios.put(`${API_URL}/auth/personal-tasks/${taskId}`, {
+      const cleanId = String(taskId).replace(/^task-/, "");
+      await axios.put(`${API_URL}/auth/personal-tasks/${cleanId}`, {
         title,
         task_date,
       });

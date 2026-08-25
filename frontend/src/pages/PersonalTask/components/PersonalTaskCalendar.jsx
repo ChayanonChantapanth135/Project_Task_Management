@@ -236,10 +236,11 @@ const PersonalTaskCalendar = ({
 
     return (
       <div
-        className="flex items-center gap-1.5 px-2 py-1 rounded-md w-full overflow-hidden text-xs font-medium cursor-grab active:cursor-grabbing select-none hover:brightness-110"
+        className="flex items-center gap-1.5 px-2 py-1 rounded-md w-full overflow-hidden text-xs font-medium select-none hover:brightness-110"
         style={{
           backgroundColor: statusConf.bg,
           borderLeft: `3px solid ${statusConf.color}`,
+          boxSizing: "border-box",
         }}
         title={`${eventInfo.event.title} (${isThai ? statusConf.labelTh : statusConf.labelEn})`}
       >
@@ -262,7 +263,7 @@ const PersonalTaskCalendar = ({
     <div className="space-y-6">
       {/* Calendar Card Container */}
       <div 
-        className="glass-panel rounded-3xl p-6 md:p-8 shadow-xl"
+        className="rounded-3xl p-6 md:p-8 shadow-xl relative"
         style={{
           background: "var(--bg-surface)",
           border: "1px solid var(--border-surface)",
@@ -373,34 +374,40 @@ const PersonalTaskCalendar = ({
             color: var(--brand-color) !important;
             font-weight: 800 !important;
           }
+          .personal-calendar-container .fc table {
+            border-collapse: collapse !important;
+            box-sizing: border-box !important;
+          }
+          .personal-calendar-container .fc td,
+          .personal-calendar-container .fc th {
+            box-sizing: border-box !important;
+          }
           .personal-calendar-container .fc-event {
             background: transparent !important;
             border: none !important;
-            margin-bottom: 3px !important;
+            margin: 0 0 3px 0 !important;
             cursor: grab !important;
           }
-          .personal-calendar-container .fc-event-dragging,
-          .gu-mirror,
-          .fc-event-mirror,
-          .fc-external-task.fc-event-dragging {
-            opacity: 0.3 !important;
-            transition: none !important;
-            animation: none !important;
-          }
-          .personal-calendar-container .fc-event-mirror {
-            opacity: 0.95 !important;
-            transform: scale(1.03) !important;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7) !important;
+          .personal-calendar-container .fc-event.fc-event-mirror {
             z-index: 99999 !important;
             pointer-events: none !important;
-            will-change: transform, top, left;
-            transition: none !important;
-            animation: none !important;
+            cursor: grabbing !important;
+          }
+          .personal-calendar-container .fc-event-dragging {
+            opacity: 0.3 !important;
+          }
+          .personal-calendar-container .fc .fc-daygrid-day-frame {
+            min-height: 100% !important;
+            position: relative !important;
+          }
+          .personal-calendar-container .fc .fc-daygrid-day-bg {
+            position: absolute !important;
+            inset: 0 !important;
           }
           .personal-calendar-container .fc-highlight {
-            background: rgba(56, 189, 248, 0.22) !important;
-            border: 2px dashed rgba(56, 189, 248, 0.7) !important;
-            border-radius: 0.5rem !important;
+            background: rgba(56, 189, 248, 0.25) !important;
+            border: 2px dashed rgba(56, 189, 248, 0.8) !important;
+            box-sizing: border-box !important;
           }
           .personal-calendar-container .fc-daygrid-day-events {
             min-height: 4.5rem;
@@ -464,8 +471,9 @@ const PersonalTaskCalendar = ({
             events={events}
             editable={true}
             droppable={true}
+            snapDuration="24:00:00"
             dragRevertDuration={0}
-            eventDragMinDistance={1}
+            eventDragMinDistance={3}
             drop={handleExternalDrop}
             eventDragStart={handleEventDragStart}
             eventDragStop={handleEventDragStop}

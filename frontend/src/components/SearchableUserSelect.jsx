@@ -18,11 +18,38 @@ export default function SearchableUserSelect({
   allowedRoles = null,
   required = false,
   className = "",
+  placement = "auto", // "auto" | "top" | "bottom"
   name = "assignedTo",
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [openDirection, setOpenDirection] = useState("down"); // "down" | "up"
   const containerRef = useRef(null);
+
+  // Auto calculate direction or follow placement
+  useEffect(() => {
+    if (placement === "top") {
+      setOpenDirection("up");
+      return;
+    }
+    if (placement === "bottom") {
+      setOpenDirection("down");
+      return;
+    }
+
+    if (isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const dropdownHeight = 280;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+
+      if (spaceBelow < dropdownHeight || spaceAbove > spaceBelow) {
+        setOpenDirection("up");
+      } else {
+        setOpenDirection("down");
+      }
+    }
+  }, [isOpen, placement]);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -134,11 +161,17 @@ export default function SearchableUserSelect({
       {/* Dropdown Menu */}
       {isOpen && (
         <div
-          className="position-absolute w-100 bg-white border rounded shadow-sm mt-1"
+          className="position-absolute w-100 bg-white border rounded shadow-lg"
           style={{
-            zIndex: 1050,
-            maxHeight: "300px",
+            ...(openDirection === "up"
+              ? { bottom: "calc(100% + 4px)", marginBottom: 0 }
+              : { top: "calc(100% + 4px)", marginTop: 0 }),
+            left: 0,
+            zIndex: 1055,
+            maxHeight: "280px",
             overflowY: "auto",
+            borderRadius: "0.75rem",
+            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
           }}
         >
           {/* Search Box */}

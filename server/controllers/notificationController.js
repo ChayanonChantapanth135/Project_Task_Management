@@ -44,20 +44,27 @@ export const getUserNotifications = async (req, res) => {
  * ทำเครื่องหมายการแจ้งเตือนเดี่ยวว่าอ่านแล้ว (และอัปเดตสถานะงานเป็น In Progress หากงานนั้นมีสถานะเป็น Pending)
  */
 export const markAsRead = async (req, res) => {
-  try {
-    const userId = req.userId;
-    const { id } = req.params;
+  const userId = req.userId;
+  const { id } = req.params;
 
-    const db = await connectToDatabase();
+  if (!userId) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  const db = await connectToDatabase();
+  const connection = await db.getConnection();
+
+  try {
+    await connection.beginTransaction();
 
     // 1. ดึงรายละเอียดของแจ้งเตือนรายการนี้
-    const [notifRows] = await db.query(
+    const [notifRows] = await connection.query(
       `SELECT task_id, user_id FROM notifications WHERE id = ? AND user_id = ?`,
       [id, userId]
     );
 
     // 2. ทำเครื่องหมายอ่านแล้ว
-    await db.query(
+    await connection.query(
       `UPDATE notifications 
        SET is_read = 1, read_status = 1 
        WHERE id = ? AND user_id = ?`,
@@ -67,30 +74,30 @@ export const markAsRead = async (req, res) => {
     // 3. หากแจ้งเตือนนี้เชื่อมโยงกับงาน ให้เปลี่ยนสถานะงานจาก Pending เป็น In Progress ทันที
     if (notifRows.length > 0 && notifRows[0].task_id) {
       const taskId = notifRows[0].task_id;
-      const [taskRows] = await db.query(
+      const [taskRows] = await connection.query(
         `SELECT id, project_id, status FROM tasks WHERE id = ? AND deleted_at IS NULL`,
         [taskId]
       );
 
       if (taskRows.length > 0 && taskRows[0].status === 'Pending') {
-        await db.query(
+        await connection.query(
           `UPDATE tasks SET status = 'In Progress' WHERE id = ?`,
           [taskId]
         );
 
         // บันทึกประวัติการเปลี่ยนสถานะงาน
-        await db.query(
+        await connection.query(
           "INSERT INTO task_history (task_id, action, details, changed_by) VALUES (?, 'status_change', ?, ?)",
           [taskId, `เปลี่ยนสถานะเป็น In Progress อัตโนมัติเมื่อกดอ่านการแจ้งเตือน`, userId]
         );
-        await db.query(
+        await connection.query(
           "INSERT INTO task_status_history (task_id, status, changed_by) VALUES (?, 'In Progress', ?)",
           [taskId, userId]
         );
 
         // อัปเดตสถานะโปรเจกต์หลักถ้าจำเป็น
         if (taskRows[0].project_id) {
-          const [tasks] = await db.query(
+          const [tasks] = await connection.query(
             "SELECT status FROM tasks WHERE project_id = ? AND deleted_at IS NULL",
             [taskRows[0].project_id]
           );
@@ -99,7 +106,7 @@ export const markAsRead = async (req, res) => {
             const completedCount = tasks.filter(t => t.status && t.status.toLowerCase() === 'completed').length;
             const progress = Math.round((completedCount / tasks.length) * 100);
 
-            const [projRows] = await db.query("SELECT status FROM projects WHERE id = ?", [taskRows[0].project_id]);
+            const [projRows] = await connection.query("SELECT status FROM projects WHERE id = ?", [taskRows[0].project_id]);
             const oldStatus = projRows[0]?.status;
 
             let newStatus = 'In Progress';
@@ -110,28 +117,28 @@ export const markAsRead = async (req, res) => {
             }
 
             if (newStatus !== oldStatus) {
-              await db.query("UPDATE projects SET status = ? WHERE id = ?", [newStatus, taskRows[0].project_id]);
+              await connection.query("UPDATE projects SET status = ? WHERE id = ?", [newStatus, taskRows[0].project_id]);
               if (newStatus === 'Reviewing') {
                 // Send reviewing notifications
                 try {
                   const pId = taskRows[0].project_id;
-                  const [pData] = await db.query("SELECT name, created_by FROM projects WHERE id = ?", [pId]);
+                  const [pData] = await connection.query("SELECT name, created_by FROM projects WHERE id = ?", [pId]);
                   const pName = pData[0]?.name || `ID ${pId}`;
                   const pCreator = pData[0]?.created_by;
 
                   const targetIds = new Set();
                   if (pCreator) targetIds.add(Number(pCreator));
-                  const [mRows] = await db.query("SELECT id FROM users WHERE role = 'manager' AND deleted_at IS NULL");
+                  const [mRows] = await connection.query("SELECT id FROM users WHERE role = 'manager' AND deleted_at IS NULL");
                   mRows.forEach(m => targetIds.add(Number(m.id)));
-                  const [tlRows] = await db.query("SELECT user_id FROM project_team_leaders WHERE project_id = ?", [pId]);
+                  const [tlRows] = await connection.query("SELECT user_id FROM project_team_leaders WHERE project_id = ?", [pId]);
                   tlRows.forEach(tl => targetIds.add(Number(tl.user_id)));
 
                   for (const uid of targetIds) {
                     const title = 'โปรเจกต์รอตรวจสอบ';
                     const message = `โปรเจกต์ "${pName}" มีสถานะเป็น Reviewing (รอตรวจสอบ)`;
-                    const [recent] = await db.query("SELECT id FROM notifications WHERE user_id = ? AND title = ? AND message = ? AND created_at >= NOW() - INTERVAL 1 MINUTE", [uid, title, message]);
+                    const [recent] = await connection.query("SELECT id FROM notifications WHERE user_id = ? AND title = ? AND message = ? AND created_at >= NOW() - INTERVAL 1 MINUTE", [uid, title, message]);
                     if (recent.length === 0) {
-                      await db.query("INSERT INTO notifications (user_id, title, message, type, link, is_read, read_status) VALUES (?, ?, ?, 'project', '/Projects', 0, 0)", [uid, title, message]);
+                      await connection.query("INSERT INTO notifications (user_id, title, message, type, link, is_read, read_status) VALUES (?, ?, ?, 'project', ?, 0, 0)", [uid, title, message, `/Projects?projectId=${pId}`]);
                     }
                   }
                 } catch (notifErr) {
@@ -144,10 +151,14 @@ export const markAsRead = async (req, res) => {
       }
     }
 
+    await connection.commit();
     return res.status(200).json({ message: 'Notification marked as read and task updated to In Progress' });
   } catch (error) {
+    await connection.rollback();
     console.error('Error marking notification as read:', error);
     return res.status(500).json({ message: 'Server error updating notification' });
+  } finally {
+    connection.release();
   }
 };
 
@@ -155,50 +166,77 @@ export const markAsRead = async (req, res) => {
  * ทำเครื่องหมายการแจ้งเตือนทั้งหมดว่าอ่านแล้ว (และอัปเดตสถานะงานทั้งหมดของแจ้งเตือนนั้นเป็น In Progress)
  */
 export const markAllAsRead = async (req, res) => {
-  try {
-    const userId = req.userId;
-    const db = await connectToDatabase();
+  const userId = req.userId;
+  if (!userId) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
 
-    // ดึงงานที่ยังไม่ได้อ่าน
-    const [unreadNotifs] = await db.query(
+  const db = await connectToDatabase();
+  const connection = await db.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    // 1. ดึงงานที่ยังไม่ได้อ่าน
+    const [unreadNotifs] = await connection.query(
       `SELECT DISTINCT task_id FROM notifications 
        WHERE user_id = ? AND (is_read = 0 OR is_read IS NULL) AND task_id IS NOT NULL`,
       [userId]
     );
 
-    // ทำเครื่องหมายอ่านทั้งหมด
-    await db.query(
+    // 2. ทำเครื่องหมายอ่านทั้งหมด
+    await connection.query(
       `UPDATE notifications 
        SET is_read = 1, read_status = 1 
        WHERE user_id = ?`,
       [userId]
     );
 
-    // อัปเดตงานทั้งหมดที่มีสถานะ Pending เป็น In Progress
-    for (const item of unreadNotifs) {
-      if (item.task_id) {
-        const [taskRows] = await db.query(
-          `SELECT id, project_id, status FROM tasks WHERE id = ? AND status = 'Pending' AND deleted_at IS NULL`,
-          [item.task_id]
+    // 3. อัปเดตงานทั้งหมดที่มีสถานะ Pending เป็น In Progress
+    if (unreadNotifs.length > 0) {
+      const taskIds = unreadNotifs.map(n => n.task_id).filter(Boolean);
+
+      if (taskIds.length > 0) {
+        // ดึงเฉพาะ Task ที่เป็น Pending เพื่ออัปเดต
+        const [pendingTasks] = await connection.query(
+          `SELECT id FROM tasks WHERE id IN (?) AND status = 'Pending' AND deleted_at IS NULL`,
+          [taskIds]
         );
-        if (taskRows.length > 0) {
-          await db.query(`UPDATE tasks SET status = 'In Progress' WHERE id = ?`, [item.task_id]);
-          await db.query(
-            "INSERT INTO task_history (task_id, action, details, changed_by) VALUES (?, 'status_change', ?, ?)",
-            [item.task_id, `เปลี่ยนสถานะเป็น In Progress อัตโนมัติเมื่อกดอ่านการแจ้งเตือนทั้งหมด`, userId]
+
+        if (pendingTasks.length > 0) {
+          const pendingIds = pendingTasks.map(t => t.id);
+
+          // Batch Update สถานะ Tasks
+          await connection.query(
+            `UPDATE tasks SET status = 'In Progress' WHERE id IN (?)`,
+            [pendingIds]
           );
-          await db.query(
-            "INSERT INTO task_status_history (task_id, status, changed_by) VALUES (?, 'In Progress', ?)",
-            [item.task_id, userId]
+
+          // บันทึกประวัติด้วย Promise.all รันแบบขนาน
+          await Promise.all(
+            pendingIds.map(async (tId) => {
+              await connection.query(
+                "INSERT INTO task_history (task_id, action, details, changed_by) VALUES (?, 'status_change', ?, ?)",
+                [tId, 'เปลี่ยนสถานะเป็น In Progress อัตโนมัติเมื่อกดอ่านการแจ้งเตือนทั้งหมด', userId]
+              );
+              await connection.query(
+                "INSERT INTO task_status_history (task_id, status, changed_by) VALUES (?, 'In Progress', ?)",
+                [tId, userId]
+              );
+            })
           );
         }
       }
     }
 
+    await connection.commit();
     return res.status(200).json({ message: 'All notifications marked as read and tasks updated' });
   } catch (error) {
+    await connection.rollback();
     console.error('Error marking all notifications as read:', error);
     return res.status(500).json({ message: 'Server error updating notifications' });
+  } finally {
+    connection.release();
   }
 };
 

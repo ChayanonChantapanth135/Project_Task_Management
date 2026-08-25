@@ -644,7 +644,7 @@ async function notifyProjectReviewing({ db, projectId, excludeUserId = null }) {
         const title = 'โปรเจกต์รอตรวจสอบ';
         const message = `โปรเจกต์ "${projectName}" มีสถานะเป็น Reviewing (รอตรวจสอบ)`;
         const type = 'project';
-        const link = '/Projects';
+        const link = `/Projects?projectId=${projectId}`;
 
         for (const uid of targetUserIds) {
             // ป้องกันการยิงแจ้งเตือนซ้ำซ้อนในเวลาไล่เลี่ยกัน (ภายใน 1 นาที)
@@ -774,11 +774,12 @@ export const createProject = async (req, res) => {
             try {
                 await db.query(
                     `INSERT INTO notifications (user_id, title, message, type, link, is_read, read_status) 
-                     VALUES (?, ?, ?, 'project', '/Projects', 0, 0)`,
+                     VALUES (?, ?, ?, 'project', ?, 0, 0)`,
                     [
                         teamLeaderId,
                         'คุณได้รับมอบหมายเป็น Team Leader',
-                        `คุณได้รับมอบหมายให้เป็นหัวหน้าโปรเจกต์ "${name}"`
+                        `คุณได้รับมอบหมายให้เป็นหัวหน้าโปรเจกต์ "${name}"`,
+                        `/Projects?projectId=${projectId}`
                     ]
                 );
             } catch (notifErr) {
@@ -839,11 +840,12 @@ export const updateProject = async (req, res) => {
                 try {
                     await db.query(
                         `INSERT INTO notifications (user_id, title, message, type, link, is_read, read_status) 
-                         VALUES (?, ?, ?, 'project', '/Projects', 0, 0)`,
+                         VALUES (?, ?, ?, 'project', ?, 0, 0)`,
                         [
                             teamLeaderId,
                             'คุณได้รับมอบหมายเป็น Team Leader',
-                            `คุณได้รับมอบหมายให้เป็นหัวหน้าโปรเจกต์ "${name}"`
+                            `คุณได้รับมอบหมายให้เป็นหัวหน้าโปรเจกต์ "${name}"`,
+                            `/Projects?projectId=${id}`
                         ]
                     );
                 } catch (tlNotifErr) {
@@ -882,7 +884,7 @@ export const updateProject = async (req, res) => {
                 title: 'อัปเดตข้อมูลโปรเจกต์',
                 message: `โปรเจกต์ "${name}" มีการอัปเดตข้อมูลใหม่`,
                 type: 'project',
-                link: '/Projects',
+                link: `/Projects?projectId=${id}`,
                 excludeUserId: userId
             });
         }
@@ -971,7 +973,7 @@ export const createTask = async (req, res) => {
         for (const leaderId of leadersToNotify) {
             await db.query(
                 "INSERT INTO notifications (user_id, task_id, title, message, type, link, is_read, read_status) VALUES (?, ?, ?, ?, ?, ?, 0, 0)",
-                [leaderId, taskId, 'งานใหม่ในโปรเจกต์', `มีงานใหม่ "${title}" ในโปรเจกต์ "${projectName}"`, 'task', '/AllTasks']
+                [leaderId, taskId, 'งานใหม่ในโปรเจกต์', `มีงานใหม่ "${title}" ในโปรเจกต์ "${projectName}"`, 'project', `/Projects?projectId=${projectId}`]
             );
         }
 

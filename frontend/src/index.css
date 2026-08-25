@@ -78,26 +78,33 @@
   color: #ffffff !important;
 }
 
-/* Input Border Styling */
-select, input, textarea {
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
+/* Default Input Border Styling */
+input, select, textarea {
+  outline: none;
 }
 
-select:focus, input:focus, textarea:focus {
-  border: none !important;
-  outline: none !important;
-  box-shadow: 0 0 0 2px var(--brand-color) !important;
+input:focus, select:focus, textarea:focus {
+  outline: none;
 }
 
 /* Modals & White Form Containers */
+.modal-content {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+
 .modal-content input,
 .modal-content select,
 .modal-content textarea,
+.modal-content .form-control,
+.modal-content .form-select,
 .modal-body input,
 .modal-body select,
 .modal-body textarea,
+.modal-body .form-control,
+.modal-body .form-select,
 .bg-white input,
 .bg-white select,
 .bg-white textarea,
@@ -105,7 +112,9 @@ select:focus, input:focus, textarea:focus {
 .swal2-popup select,
 .swal2-popup textarea,
 .swal2-input {
-  border: 1.5px solid var(--border-surface) !important;
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  border: 1.5px solid #CBD5E1 !important;
   border-radius: 0.75rem !important;
   transition: all 0.2s ease-in-out;
 }
@@ -113,9 +122,13 @@ select:focus, input:focus, textarea:focus {
 .modal-content input:focus,
 .modal-content select:focus,
 .modal-content textarea:focus,
+.modal-content .form-control:focus,
+.modal-content .form-select:focus,
 .modal-body input:focus,
 .modal-body select:focus,
 .modal-body textarea:focus,
+.modal-body .form-control:focus,
+.modal-body .form-select:focus,
 .bg-white input:focus,
 .bg-white select:focus,
 .bg-white textarea:focus,
@@ -123,9 +136,27 @@ select:focus, input:focus, textarea:focus {
 .swal2-popup select:focus,
 .swal2-popup textarea:focus,
 .swal2-input:focus {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
   border-color: var(--brand-color) !important;
   outline: none !important;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+}
+
+.modal-content input::placeholder,
+.modal-content textarea::placeholder,
+.modal-body input::placeholder,
+.modal-body textarea::placeholder {
+  color: #94A3B8 !important;
+}
+
+.modal-content input[readonly],
+.modal-body input[readonly],
+.modal-content .bg-light,
+.modal-body .bg-light {
+  background-color: #F8FAFC !important;
+  color: #334155 !important;
+  border: 1.5px solid #E2E8F0 !important;
 }
 
 /* Bootstrap Button & Segmented Overrides */
@@ -294,6 +325,54 @@ footer a:hover {
 .badge-status-urgent {
   background-color: rgba(220, 38, 38, 0.15) !important;
   color: var(--status-urgent) !important;
+}
+
+/* Light Theme High Contrast Status & Priority Badges */
+.light .badge-status-completed {
+  background-color: rgba(22, 163, 74, 0.18) !important;
+  color: #15803d !important; /* Deeper Green */
+  font-weight: 700 !important;
+}
+
+.light .badge-status-in-progress {
+  background-color: rgba(37, 99, 235, 0.18) !important;
+  color: #1d4ed8 !important; /* Deeper Blue */
+  font-weight: 700 !important;
+}
+
+.light .badge-status-in-review {
+  background-color: rgba(217, 119, 6, 0.18) !important;
+  color: #b45309 !important; /* Deeper Amber */
+  font-weight: 700 !important;
+}
+
+.light .badge-status-todo {
+  background-color: rgba(100, 116, 139, 0.18) !important;
+  color: #334155 !important; /* Deeper Slate */
+  font-weight: 700 !important;
+}
+
+/* Priority Badges in Light Theme */
+.light .bg-red-500\/20,
+.light .bg-rose-500\/20 {
+  background-color: rgba(239, 68, 68, 0.18) !important;
+  color: #b91c1c !important; /* Deeper Red for High */
+  font-weight: 700 !important;
+}
+
+.light .bg-amber-500\/20,
+.light .bg-yellow-500\/20,
+.light .bg-orange-500\/20 {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+  color: #b45309 !important; /* Deeper Orange/Amber for Medium */
+  font-weight: 700 !important;
+}
+
+.light .bg-blue-500\/20,
+.light .bg-sky-500\/20 {
+  background-color: rgba(59, 130, 246, 0.18) !important;
+  color: #1d4ed8 !important; /* Deeper Blue for Low */
+  font-weight: 700 !important;
 }
 
 /* ========================================================================= */

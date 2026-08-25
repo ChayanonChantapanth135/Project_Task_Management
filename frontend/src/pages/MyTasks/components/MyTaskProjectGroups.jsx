@@ -103,16 +103,16 @@ export default function MyTaskProjectGroups({
               <tbody className="divide-y text-sm" style={{ borderColor: "var(--border-surface)" }}>
                 {group.tasks.map((task) => {
                   const statusColors = {
-                    Pending: "bg-amber-500/10 text-amber-500",
-                    "In Progress": "bg-sky-500/10 text-sky-500",
-                    Reviewing: "bg-purple-500/10 text-purple-500",
-                    Completed: "bg-emerald-500/10 text-emerald-500",
+                    Pending: "badge-status-todo",
+                    "In Progress": "badge-status-in-progress",
+                    Reviewing: "badge-status-in-review",
+                    Completed: "badge-status-completed",
                   };
 
                   const priorityColors = {
-                    High: "bg-rose-500/10 text-rose-500",
-                    Medium: "bg-orange-500/10 text-orange-500",
-                    Low: "bg-slate-500/20 text-slate-400",
+                    High: "bg-red-500/20 text-red-400",
+                    Medium: "bg-amber-500/20 text-amber-400",
+                    Low: "bg-blue-500/20 text-blue-400",
                   };
 
                   const translateStatus = (status) => {

@@ -3,13 +3,19 @@ import React from "react";
 const ContactForm = ({ formData, setFormData, handleSubmit, t }) => {
   return (
     <div className="lg:col-span-7">
-      <div className="glass-panel rounded-3xl p-8 shadow-2xl">
-        <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+      <div 
+        className="rounded-3xl p-8 shadow-xl"
+        style={{
+          backgroundColor: "var(--bg-surface)",
+          border: "1px solid var(--border-surface)",
+        }}
+      >
+        <h2 className="text-xl font-bold mb-6 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
           <span>✉️</span> {t("sendMessageTitle")}
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-secondary)" }}>
               {t("formFullName")} *
             </label>
             <input
@@ -20,12 +26,17 @@ const ContactForm = ({ formData, setFormData, handleSubmit, t }) => {
                 setFormData({ ...formData, fullName: e.target.value })
               }
               placeholder={t("formFullNamePlaceholder")}
-              className="w-full bg-slate-900/70 hover:bg-slate-900 focus:bg-slate-900 text-white rounded-xl px-4 py-3 text-sm border-0 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+              className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all shadow-sm"
+              style={{
+                backgroundColor: "var(--bg-surface-hover)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--border-surface)",
+              }}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-secondary)" }}>
               {t("formEmail")} *
             </label>
             <input
@@ -36,12 +47,17 @@ const ContactForm = ({ formData, setFormData, handleSubmit, t }) => {
                 setFormData({ ...formData, email: e.target.value })
               }
               placeholder={t("formEmailPlaceholder")}
-              className="w-full bg-slate-900/70 hover:bg-slate-900 focus:bg-slate-900 text-white rounded-xl px-4 py-3 text-sm border-0 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+              className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all shadow-sm"
+              style={{
+                backgroundColor: "var(--bg-surface-hover)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--border-surface)",
+              }}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-secondary)" }}>
               {t("formSubject")} *
             </label>
             <input
@@ -52,12 +68,17 @@ const ContactForm = ({ formData, setFormData, handleSubmit, t }) => {
                 setFormData({ ...formData, subject: e.target.value })
               }
               placeholder={t("formSubjectPlaceholder")}
-              className="w-full bg-slate-900/70 hover:bg-slate-900 focus:bg-slate-900 text-white rounded-xl px-4 py-3 text-sm border-0 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+              className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all shadow-sm"
+              style={{
+                backgroundColor: "var(--bg-surface-hover)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--border-surface)",
+              }}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-secondary)" }}>
               {t("formMessage")} *
             </label>
             <textarea
@@ -68,13 +89,21 @@ const ContactForm = ({ formData, setFormData, handleSubmit, t }) => {
                 setFormData({ ...formData, message: e.target.value })
               }
               placeholder={t("formMessagePlaceholder")}
-              className="w-full bg-slate-900/70 hover:bg-slate-900 focus:bg-slate-900 text-white rounded-xl px-4 py-3 text-sm border-0 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+              className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all shadow-sm resize-y"
+              style={{
+                backgroundColor: "var(--bg-surface-hover)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--border-surface)",
+              }}
             ></textarea>
           </div>
 
           <button
             type="submit"
-            className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-400 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-teal-500/25 transition-all glow-button"
+            className="w-full py-3.5 px-6 rounded-xl text-white font-bold text-sm shadow-lg transition-all glow-button cursor-pointer hover:scale-101 active:scale-99"
+            style={{
+              backgroundColor: "var(--brand-color, #0d9488)",
+            }}
           >
             {t("sendMessageBtn")}
           </button>

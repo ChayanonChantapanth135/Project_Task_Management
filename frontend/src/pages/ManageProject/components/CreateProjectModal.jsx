@@ -101,7 +101,7 @@ const CreateProjectModal = ({
           <div className="d-flex justify-content-end gap-2 pt-3 border-top mt-4">
             <button
               type="button"
-              className="btn btn-secondary px-4 py-2 rounded-lg"
+              className="btn btn-outline-danger px-4 py-2 rounded-lg"
               onClick={() => setShowCreateModal(false)}
             >
               {t("cancelBtn")}

@@ -267,6 +267,7 @@ export const initializeDatabase = async () => {
       
       // Performance Indexes
       "CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON notifications (user_id, is_read)",
+      "CREATE INDEX IF NOT EXISTS idx_notifications_user_created ON notifications (user_id, created_at DESC)",
       "CREATE INDEX IF NOT EXISTS idx_activity_logs_created_at ON activity_logs (created_at DESC)",
       "CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks (status)",
       "CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks (due_date)",

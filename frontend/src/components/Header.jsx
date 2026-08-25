@@ -90,7 +90,10 @@ const Header = () => {
             to="/Home"
             className="flex items-center gap-2 no-underline group"
           >
-            <span className="text-xl font-black tracking-wider transition-transform group-hover:scale-105" style={{ color: "var(--text-primary)" }}>
+            <span
+              className="text-xl font-black tracking-wider transition-transform group-hover:scale-105"
+              style={{ color: "var(--text-primary)" }}
+            >
               PROJECT <span className="gradient-text">TASK</span>
             </span>
           </Link>
@@ -420,8 +423,8 @@ const Header = () => {
 
       {/* Themes Modal */}
       {showThemeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4 overflow-y-auto">
-          <div 
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60  animate-fade-in p-4 overflow-y-auto">
+          <div
             className="rounded-3xl w-full max-w-md p-6 relative shadow-2xl my-auto transition-all"
             style={{
               background: "var(--bg-surface)",
@@ -430,7 +433,12 @@ const Header = () => {
             }}
           >
             {/* Modal Title */}
-            <h3 className="text-xl font-bold mb-6" style={{ color: "var(--text-primary)" }}>Themes</h3>
+            <h3
+              className="text-xl font-bold mb-6"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Themes
+            </h3>
 
             {/* Close Button */}
             <button
@@ -455,7 +463,10 @@ const Header = () => {
 
             {/* Appearance Section */}
             <div className="mb-6">
-              <h4 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "var(--text-secondary)" }}>
+              <h4
+                className="text-xs font-bold uppercase tracking-wider mb-3"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 APPEARANCE
               </h4>
               <div className="flex gap-4">
@@ -478,7 +489,12 @@ const Header = () => {
                   </div>
                   <span
                     className="text-xs font-bold"
-                    style={{ color: appearance === "Light" ? "var(--text-primary)" : "var(--text-secondary)" }}
+                    style={{
+                      color:
+                        appearance === "Light"
+                          ? "var(--text-primary)"
+                          : "var(--text-secondary)",
+                    }}
                   >
                     Light
                   </span>
@@ -503,7 +519,12 @@ const Header = () => {
                   </div>
                   <span
                     className="text-xs font-bold"
-                    style={{ color: appearance === "Dark" ? "var(--text-primary)" : "var(--text-secondary)" }}
+                    style={{
+                      color:
+                        appearance === "Dark"
+                          ? "var(--text-primary)"
+                          : "var(--text-secondary)",
+                    }}
                   >
                     Dark
                   </span>
@@ -530,7 +551,12 @@ const Header = () => {
                   </div>
                   <span
                     className="text-xs font-bold"
-                    style={{ color: appearance === "Auto" ? "var(--text-primary)" : "var(--text-secondary)" }}
+                    style={{
+                      color:
+                        appearance === "Auto"
+                          ? "var(--text-primary)"
+                          : "var(--text-secondary)",
+                    }}
                   >
                     Auto
                   </span>
@@ -540,7 +566,10 @@ const Header = () => {
 
             {/* Accent Color Section */}
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "var(--text-secondary)" }}>
+              <h4
+                className="text-xs font-bold uppercase tracking-wider mb-3"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 CLICKUP THEME
               </h4>
               <div className="grid grid-cols-3 gap-2.5">
@@ -550,12 +579,14 @@ const Header = () => {
                     onClick={() => setAccentColor(color.name)}
                     className="flex items-center justify-between px-3 py-2.5 rounded-2xl cursor-pointer transition-all shadow-sm"
                     style={{
-                      background: accentColor === color.name 
-                        ? "rgba(59, 130, 246, 0.15)" 
-                        : "var(--bg-surface-hover)",
-                      border: accentColor === color.name 
-                        ? `1.5px solid ${color.code}` 
-                        : "1px solid var(--border-surface)",
+                      background:
+                        accentColor === color.name
+                          ? "rgba(59, 130, 246, 0.15)"
+                          : "var(--bg-surface-hover)",
+                      border:
+                        accentColor === color.name
+                          ? `1.5px solid ${color.code}`
+                          : "1px solid var(--border-surface)",
                     }}
                   >
                     <div className="flex items-center gap-2">
@@ -563,17 +594,20 @@ const Header = () => {
                         className="w-3.5 h-3.5 rounded-full flex-shrink-0 shadow-sm"
                         style={{ backgroundColor: color.code }}
                       ></span>
-                      <span 
+                      <span
                         className="text-xs font-semibold"
-                        style={{ 
-                          color: accentColor === color.name ? "var(--text-primary)" : "var(--text-secondary)" 
+                        style={{
+                          color:
+                            accentColor === color.name
+                              ? "var(--text-primary)"
+                              : "var(--text-secondary)",
                         }}
                       >
                         {color.name}
                       </span>
                     </div>
                     {accentColor === color.name && (
-                      <div 
+                      <div
                         className="w-4 h-4 rounded-full flex items-center justify-center text-white"
                         style={{ backgroundColor: color.code }}
                       >

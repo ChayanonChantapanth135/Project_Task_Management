@@ -44,6 +44,7 @@ const CustomDateInput = ({
   disabled = false,
   required = false,
   placement = "auto", // "auto" | "top" | "bottom"
+  style = {},
 }) => {
   const { language } = useLanguage();
   const [inputText, setInputText] = useState("");
@@ -256,32 +257,51 @@ const CustomDateInput = ({
   const weekdays = language === "th" ? WEEKDAYS_TH : WEEKDAYS_EN;
   const displayYear = language === "th" ? viewYear + 543 : viewYear;
 
+  // Generate 50 years forward and 50 years backward for the year selector
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: 101 }, (_, i) => {
+    const y = currentYear - 50 + i;
+    return {
+      year: y,
+      label: language === "th" ? String(y + 543) : String(y),
+    };
+  });
+
   return (
     <div className="position-relative w-100" ref={containerRef}>
       {/* Input row */}
       <div className="position-relative d-flex align-items-center">
         <input
           type="text"
-          className={className}
+          className={`${className} cursor-pointer`}
           value={inputText}
           onChange={handleTextChange}
           placeholder={placeholder}
           disabled={disabled}
           required={required}
-          onClick={() => !disabled && setIsOpen(true)}
-          style={{ paddingRight: "2.5rem" }}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!disabled) setIsOpen((prev) => !prev);
+          }}
+          style={{
+            paddingRight: "2.5rem",
+            ...style,
+          }}
         />
         <button
           type="button"
-          className="btn btn-link p-0 position-absolute end-0 me-2 text-decoration-none border-0 bg-transparent text-muted"
-          onClick={() => !disabled && setIsOpen((prev) => !prev)}
+          className="btn btn-link p-0 position-absolute end-0 me-2 text-decoration-none border-0 bg-transparent text-muted cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!disabled) setIsOpen((prev) => !prev);
+          }}
           disabled={disabled}
           title="Choose Date"
-          style={{ zIndex: 3, display: "flex", alignItems: "center" }}
+          style={{ zIndex: 5, display: "flex", alignItems: "center", cursor: "pointer" }}
         >
           <ion-icon
             name="calendar-outline"
-            style={{ fontSize: "18px", color: "#64748b" }}
+            style={{ fontSize: "18px", color: "#64748b", pointerEvents: "none" }}
           ></ion-icon>
         </button>
       </div>

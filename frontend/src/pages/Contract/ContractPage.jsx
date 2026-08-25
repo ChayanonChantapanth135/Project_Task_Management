@@ -104,16 +104,29 @@ const ContractPage = () => {
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-10 animate-fade-in-up relative z-10">
         {/* Hero Header */}
-        <div className="glass-panel rounded-3xl p-8 md:p-12 mb-10 shadow-2xl relative overflow-hidden text-center flex flex-col items-center">
+        <div 
+          className="rounded-3xl p-8 md:p-12 mb-10 shadow-xl relative overflow-hidden text-center flex flex-col items-center"
+          style={{
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border-surface)",
+          }}
+        >
           <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
           <div className="relative z-10 max-w-3xl flex flex-col items-center">
-            <span className="inline-block px-3.5 py-1.5 rounded-full bg-cyan-500/20 text-cyan-300 text-xs font-extrabold tracking-wider mb-4 uppercase">
+            <span 
+              className="inline-block px-3.5 py-1.5 rounded-full text-xs font-extrabold tracking-wider mb-4 uppercase shadow-sm"
+              style={{
+                background: "rgba(6, 182, 212, 0.15)",
+                color: "#0891b2",
+                border: "1px solid rgba(6, 182, 212, 0.3)",
+              }}
+            >
               📞 {t("contractTitle")}
             </span>
-            <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4 tracking-tight">
+            <h1 className="text-3xl md:text-5xl font-black leading-tight mb-4 tracking-tight" style={{ color: "var(--text-primary)" }}>
               {t("contractTitle")}
             </h1>
-            <p className="text-sm md:text-base text-slate-300 leading-relaxed font-medium">
+            <p className="text-sm md:text-base leading-relaxed font-medium" style={{ color: "var(--text-secondary)" }}>
               {t("contractSubtitle")}
             </p>
           </div>
@@ -122,10 +135,9 @@ const ContractPage = () => {
         {/* Success Alert Toast */}
         {submitted && (
           <div 
-            className="mb-8 w-full py-4 px-6 rounded-2xl bg-[#0e3b40] text-emerald-400 text-sm font-semibold flex items-center gap-3 shadow-xl border-0 animate-fade-in-down"
-            style={{ border: "none" }}
+            className="mb-8 w-full py-4 px-6 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-sm font-semibold flex items-center gap-3 shadow-lg border border-emerald-500/30 animate-fade-in-down"
           >
-            <span className="w-5 h-5 rounded bg-emerald-500 text-slate-950 flex items-center justify-center text-xs font-black">
+            <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-black">
               ✓
             </span>
             <span>{t("sendMessageSuccess")}</span>

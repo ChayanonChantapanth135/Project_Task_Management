@@ -95,19 +95,29 @@ const NotificationBell = () => {
       const isAdmin = role === "admin";
 
       if (!targetLink) {
-        // Fallback: if no link, navigate based on notification type
-        targetLink = "/Dashboard";
+        if (taskId) {
+          targetLink = isAdmin ? `/AllTasks?taskId=${taskId}` : `/MyTasks?taskId=${taskId}`;
+        } else {
+          targetLink = "/Dashboard";
+        }
       }
 
-      // Non-admin users: redirect /AllTasks to /MyTasks
-      if (!isAdmin && targetLink === "/AllTasks") {
-        targetLink = "/MyTasks";
-      }
+      const isProjectNotif = item.type === "project" || /Team Leader|หัวหน้าโปรเจกต์|งานใหม่ในโปรเจกต์|New task in project|โปรเจกต์/i.test(item.title || "") || (targetLink && targetLink.startsWith("/Projects"));
+      if (isProjectNotif && targetLink && targetLink.startsWith("/Projects")) {
+        // Keep targetLink as /Projects?projectId=... directly
+      } else {
+        // Non-admin users: redirect /AllTasks to /MyTasks
+        if (!isAdmin && targetLink.startsWith("/AllTasks")) {
+          targetLink = targetLink.replace("/AllTasks", "/MyTasks");
+        }
 
-      // If notification has a task_id, append query param to trigger popup modal
-      if (taskId && (targetLink.includes("/MyTasks") || targetLink.includes("/AllTasks"))) {
-        const separator = targetLink.includes("?") ? "&" : "?";
-        targetLink = `${targetLink}${separator}taskId=${taskId}`;
+        // If notification has a task_id and targetLink is MyTasks or AllTasks without taskId param yet
+        if (taskId && (targetLink.includes("/MyTasks") || targetLink.includes("/AllTasks"))) {
+          if (!targetLink.includes("taskId=")) {
+            const separator = targetLink.includes("?") ? "&" : "?";
+            targetLink = `${targetLink}${separator}taskId=${taskId}`;
+          }
+        }
       }
     } catch (e) {
       targetLink = link || "/Dashboard";
