@@ -297,11 +297,18 @@ const ViewTaskModal = ({
   };
 
   const translateStatus = (status) => {
-    const s = String(status).toLowerCase();
-    if (s === "completed") return "เสร็จสมบูรณ์";
-    if (s === "in progress" || s === "in_progress") return "กำลังทำ";
-    if (s === "reviewing" || s === "review") return "รอตรวจสอบ";
-    return "รอดำเนินการ";
+    const s = String(status || "").toLowerCase().trim();
+    if (language === "th") {
+      if (s === "completed" || s === "เสร็จสมบูรณ์") return "เสร็จสมบูรณ์";
+      if (s === "in progress" || s === "in_progress" || s === "กำลังทำ") return "กำลังทำ";
+      if (s === "reviewing" || s === "review" || s === "รอตรวจสอบ") return "รอตรวจสอบ";
+      return "รอดำเนินการ";
+    } else {
+      if (s === "completed" || s === "เสร็จสมบูรณ์") return "Completed";
+      if (s === "in progress" || s === "in_progress" || s === "กำลังทำ") return "In Progress";
+      if (s === "reviewing" || s === "review" || s === "รอตรวจสอบ") return "Reviewing";
+      return "Pending";
+    }
   };
 
   return (
@@ -587,7 +594,7 @@ const ViewTaskModal = ({
             <div>
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <span className="fw-bold text-slate-800 text-sm">
-                  ไฟล์แนบ ({files.length})
+                  {language === "th" ? "ไฟล์แนบ" : "Attachments"} ({files.length})
                 </span>
                 <input
                   type="file"
@@ -601,7 +608,9 @@ const ViewTaskModal = ({
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
                 >
-                  {uploading ? "กำลังอัปโหลด..." : "📤 อัปโหลด"}
+                  {uploading
+                    ? (language === "th" ? "กำลังอัปโหลด..." : "Uploading...")
+                    : (language === "th" ? "📤 อัปโหลด" : "📤 Upload")}
                 </button>
               </div>
               
@@ -623,14 +632,14 @@ const ViewTaskModal = ({
                           📎 {file.filename}
                         </a>
                         <span className="text-muted" style={{ fontSize: "10px" }}>
-                          โดย {file.fullname || file.username}
+                          {language === "th" ? "โดย" : "by"} {file.fullname || file.username}
                         </span>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="text-center text-muted text-xs py-3">
-                    ไม่มีไฟล์แนบ
+                    {language === "th" ? "ไม่มีไฟล์แนบ" : "No attachments"}
                   </div>
                 )}
               </div>
@@ -639,14 +648,14 @@ const ViewTaskModal = ({
             {/* ความคิดเห็น */}
             <div>
               <span className="fw-bold text-slate-800 text-sm mb-2 d-block">
-                ความคิดเห็น ({comments.length})
+                {language === "th" ? "ความคิดเห็น" : "Comments"} ({comments.length})
               </span>
               
               <form onSubmit={handleAddComment} className="mb-3">
                 <textarea
                   className="form-control text-sm rounded-lg mb-2"
                   rows="2"
-                  placeholder="เขียนความคิดเห็น..."
+                  placeholder={language === "th" ? "เขียนความคิดเห็น..." : "Write a comment..."}
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   required
@@ -655,7 +664,7 @@ const ViewTaskModal = ({
                   type="submit"
                   className="btn btn-sm btn-primary px-3 text-xs text-white"
                 >
-                  🚀 ส่งความคิดเห็น
+                  🚀 {language === "th" ? "ส่งความคิดเห็น" : "Send Comment"}
                 </button>
               </form>
 
@@ -674,7 +683,7 @@ const ViewTaskModal = ({
                   ))
                 ) : (
                   <div className="text-center text-muted text-xs py-4">
-                    ยังไม่มีความคิดเห็น
+                    {language === "th" ? "ยังไม่มีความคิดเห็น" : "No comments yet"}
                   </div>
                 )}
               </div>
@@ -708,17 +717,17 @@ const ViewTaskModal = ({
                           ></div>
                           <div>
                             <span className="fw-bold text-dark">{h.fullname || h.username || "System"}</span>{" "}
-                            เปลี่ยนสถานะ
+                            {language === "th" ? "เปลี่ยนสถานะ" : "changed status"}
                             {prevStatus ? (
                               <>
-                                {" "}จาก{" "}
+                                {" "}{language === "th" ? "จาก" : "from"}{" "}
                                 <span className={`badge px-2 py-0.5 rounded ${getStatusBadgeClass(prevStatus)}`}>
                                   {translateStatus(prevStatus)}
                                 </span>{" "}
-                                เป็น{" "}
+                                {language === "th" ? "เป็น" : "to"}{" "}
                               </>
                             ) : (
-                              " เป็น "
+                              language === "th" ? " เป็น " : " to "
                             )}
                             <span className={`badge px-2 py-0.5 rounded ${getStatusBadgeClass(h.status)}`}>
                               {translateStatus(h.status)}
@@ -733,7 +742,7 @@ const ViewTaskModal = ({
                   </div>
                 ) : (
                   <div className="text-center text-muted text-xs py-4">
-                    ยังไม่มีประวัติการเปลี่ยนสถานะ
+                    {language === "th" ? "ยังไม่มีประวัติการเปลี่ยนสถานะ" : "No status history yet"}
                   </div>
                 )}
               </div>

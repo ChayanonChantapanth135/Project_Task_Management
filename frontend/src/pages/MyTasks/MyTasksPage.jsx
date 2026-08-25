@@ -14,6 +14,7 @@ import TaskDetailModal from "../AllTasks/components/TaskDetailModal";
 
 const MyTasksPage = () => {
   const { t, language } = useLanguage();
+  const pageRef = useRef(null);
 
   const {
     currentUser,
@@ -40,28 +41,15 @@ const MyTasksPage = () => {
     filteredTasks
   } = useMyTasks();
 
-  // Animation Refs
-  const pageRef = useRef(null);
-  const blob1Ref = useRef(null);
-  const blob2Ref = useRef(null);
-  const blob3Ref = useRef(null);
-
-  // Background Ambient Animations
-  useGSAP(() => {
-    gsap.to(blob1Ref.current, { x: 50, y: -30, duration: 8, repeat: -1, yoyo: true, ease: "sine.inOut" });
-    gsap.to(blob2Ref.current, { x: -40, y: 40, duration: 10, repeat: -1, yoyo: true, ease: "sine.inOut" });
-    gsap.to(blob3Ref.current, { x: 30, y: 20, duration: 9, repeat: -1, yoyo: true, ease: "sine.inOut" });
-  }, { scope: pageRef });
-
   // Grid Stagger Entrance Animation for project cards
   useGSAP(() => {
-    if (!loading && filteredTasks.length > 0) {
+    if (!loading && filteredTasks.length > 0 && pageRef.current) {
       gsap.fromTo(".project-group-card", 
         { opacity: 0, y: 30 },
         { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: "power3.out" }
       );
     }
-  }, [loading, filteredTasks]);
+  }, { scope: pageRef, dependencies: [loading, filteredTasks] });
 
   return (
     <div 
@@ -75,9 +63,9 @@ const MyTasksPage = () => {
       <Header />
 
       {/* Background Animated Blobs */}
-      <div ref={blob1Ref} className="absolute top-10 left-1/4 w-[400px] h-[400px] bg-teal-500/10 rounded-full filter blur-[100px] pointer-events-none"></div>
-      <div ref={blob2Ref} className="absolute top-1/3 right-1/4 w-[350px] h-[350px] bg-indigo-600/15 rounded-full filter blur-[110px] pointer-events-none"></div>
-      <div ref={blob3Ref} className="absolute bottom-10 left-1/3 w-[450px] h-[450px] bg-cyan-600/10 rounded-full filter blur-[120px] pointer-events-none"></div>
+      <div className="absolute top-10 left-1/4 w-[400px] h-[400px] bg-teal-500/10 rounded-full filter blur-[100px] pointer-events-none ambient-blob-1"></div>
+      <div className="absolute top-1/3 right-1/4 w-[350px] h-[350px] bg-indigo-600/15 rounded-full filter blur-[110px] pointer-events-none ambient-blob-2"></div>
+      <div className="absolute bottom-10 left-1/3 w-[450px] h-[450px] bg-cyan-600/10 rounded-full filter blur-[120px] pointer-events-none ambient-blob-3"></div>
 
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full relative z-10">
         
@@ -184,7 +172,12 @@ const MyTasksPage = () => {
       {showViewModal && selectedTask && (
         <TaskDetailModal
           showViewModal={showViewModal}
-          setShowViewModal={setShowViewModal}
+          setShowViewModal={(val) => {
+            setShowViewModal(val);
+            if (!val) {
+              window.history.replaceState({}, document.title, window.location.pathname);
+            }
+          }}
           selectedTask={selectedTask}
           tempStatus={tempStatus}
           setTempStatus={setTempStatus}

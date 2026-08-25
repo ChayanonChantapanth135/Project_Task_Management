@@ -182,7 +182,12 @@ const ProjectTable = ({
                     <td className="py-4 px-6 text-center rounded-r-2xl whitespace-nowrap" style={deadlineStyle}>
                       <div className="inline-flex items-center justify-center gap-2">
                         <button
-                          className="px-4 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white text-xs font-semibold transition-all shadow-sm cursor-pointer"
+                          className="px-4 py-1.5 text-xs font-bold rounded-2xl transition-all cursor-pointer shadow-sm hover:shadow-md"
+                          style={{
+                            background: "var(--bg-surface-hover)",
+                            color: "var(--text-primary)",
+                            border: "1px solid var(--border-surface)",
+                          }}
                           onClick={() => handleViewDetails(project)}
                         >
                           {language === "th" ? "จัดการ" : "Manage"}

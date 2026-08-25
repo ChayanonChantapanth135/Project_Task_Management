@@ -94,17 +94,43 @@ const NotificationBell = () => {
       const role = (user?.role || "").toLowerCase();
       const isAdmin = role === "admin";
 
-      if (!targetLink) {
-        if (taskId) {
-          targetLink = isAdmin ? `/AllTasks?taskId=${taskId}` : `/MyTasks?taskId=${taskId}`;
-        } else {
-          targetLink = "/Dashboard";
-        }
-      }
+      const titleAndMsg = `${item.title || ""} ${item.message || ""}`;
+      const isTeamLeaderNotif = /Team Leader|หัวหน้าโปรเจกต์/i.test(titleAndMsg);
+      const isProjectNotif = item.type === "project" || isTeamLeaderNotif || /งานใหม่ในโปรเจกต์|New task in project|โปรเจกต์/i.test(titleAndMsg) || (targetLink && targetLink.startsWith("/Projects"));
+      const isTaskNotif = item.type === "task" || /New Task Assigned|งานใหม่ที่ได้รับมอบหมาย|ได้รับมอบหมายงานใหม่|Task Status Updated|อัปเดตสถานะงาน/i.test(titleAndMsg) || taskId;
 
-      const isProjectNotif = item.type === "project" || /Team Leader|หัวหน้าโปรเจกต์|งานใหม่ในโปรเจกต์|New task in project|โปรเจกต์/i.test(item.title || "") || (targetLink && targetLink.startsWith("/Projects"));
-      if (isProjectNotif && targetLink && targetLink.startsWith("/Projects")) {
-        // Keep targetLink as /Projects?projectId=... directly
+      const timestamp = Date.now();
+
+      if (isTeamLeaderNotif || (isProjectNotif && !taskId)) {
+        if (targetLink && targetLink.startsWith("/Projects") && targetLink.includes("projectId=")) {
+          const separator = targetLink.includes("?") ? "&" : "?";
+          targetLink = `${targetLink}${separator}_t=${timestamp}`;
+        } else if (item.project_id) {
+          targetLink = `/Projects?projectId=${item.project_id}&_t=${timestamp}`;
+        } else {
+          // Extract project name from message if link has no ID
+          const projMatch = item.message?.match(/["“'`](.*?)["”'`]/);
+          if (projMatch && projMatch[1]) {
+            targetLink = `/Projects?openProjectName=${encodeURIComponent(projMatch[1].trim())}&_t=${timestamp}`;
+          } else {
+            targetLink = `/Projects?_t=${timestamp}`;
+          }
+        }
+      } else if (isTaskNotif || taskId) {
+        const basePath = isAdmin ? "/AllTasks" : "/MyTasks";
+        if (taskId) {
+          targetLink = `${basePath}?taskId=${taskId}&_t=${timestamp}`;
+        } else {
+          // Extract task name if taskId is missing
+          const taskMatch = item.message?.match(/["“'`](.*?)["”'`]/);
+          if (taskMatch && taskMatch[1]) {
+            targetLink = `${basePath}?openTaskName=${encodeURIComponent(taskMatch[1].trim())}&_t=${timestamp}`;
+          } else {
+            targetLink = `${basePath}?_t=${timestamp}`;
+          }
+        }
+      } else if (!targetLink) {
+        targetLink = "/Dashboard";
       } else {
         // Non-admin users: redirect /AllTasks to /MyTasks
         if (!isAdmin && targetLink.startsWith("/AllTasks")) {
@@ -115,7 +141,10 @@ const NotificationBell = () => {
         if (taskId && (targetLink.includes("/MyTasks") || targetLink.includes("/AllTasks"))) {
           if (!targetLink.includes("taskId=")) {
             const separator = targetLink.includes("?") ? "&" : "?";
-            targetLink = `${targetLink}${separator}taskId=${taskId}`;
+            targetLink = `${targetLink}${separator}taskId=${taskId}&_t=${timestamp}`;
+          } else {
+            const separator = targetLink.includes("?") ? "&" : "?";
+            targetLink = `${targetLink}${separator}_t=${timestamp}`;
           }
         }
       }

@@ -237,12 +237,12 @@ const UserModal = ({
               {/* Active Toggle Switch */}
               <div>
                 <label
-                  className="form-label text-secondary mb-2 d-block"
-                  style={{ fontSize: "0.85rem", fontWeight: "600" }}
+                  className="form-label mb-2 d-block"
+                  style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-secondary)" }}
                 >
                   {t("modalStatusLabel") || "สถานะการใช้งาน"}
                 </label>
-                <div className="form-check form-switch d-flex align-items-center gap-2">
+                <div className="form-check form-switch d-flex align-items-center gap-3">
                   <input
                     className="form-check-input"
                     type="checkbox"
@@ -250,13 +250,21 @@ const UserModal = ({
                     name="isActive"
                     checked={formData.isActive}
                     onChange={handleInputChange}
+                    style={{
+                      width: "2.8rem",
+                      height: "1.4rem",
+                      cursor: "pointer",
+                    }}
                   />
                   <label
-                    className="form-check-label text-secondary"
+                    className="form-check-label fw-bold cursor-pointer"
                     htmlFor="isActiveCheck"
-                    style={{ fontSize: "0.9rem", fontWeight: "600" }}
+                    style={{
+                      fontSize: "0.9rem",
+                      color: formData.isActive ? "#10b981" : "#ef4444",
+                    }}
                   >
-                    {t("modalActiveLabel")}
+                    {formData.isActive ? (t("statusActive") || "Active") : (t("statusSuspended") || "Suspended")}
                   </label>
                 </div>
               </div>

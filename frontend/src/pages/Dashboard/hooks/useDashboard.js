@@ -112,14 +112,21 @@ export const useDashboard = () => {
     if (isAdminOrManager || isTeamLeader) {
       return projects
         .filter((project) => {
-          if (isAdminOrManager) return true;
+          if (isAdmin) return true;
+          if (isManager) {
+            return (
+              Number(project.created_by) === Number(currentUser?.id) ||
+              Number(project.manager_id) === Number(currentUser?.id) ||
+              Number(project.managerId) === Number(currentUser?.id)
+            );
+          }
           if (isTeamLeader) {
             return (
-              project.teamLeaderId === currentUser?.id ||
-              project.team_leader_id === currentUser?.id ||
+              Number(project.teamLeaderId) === Number(currentUser?.id) ||
+              Number(project.team_leader_id) === Number(currentUser?.id) ||
               project.teamLeaderName === currentUser?.fullname ||
               project.teamLeaderName === currentUser?.name ||
-              project.created_by === currentUser?.id
+              Number(project.created_by) === Number(currentUser?.id)
             );
           }
           return false;

@@ -274,17 +274,31 @@ input:focus, select:focus, textarea:focus {
   50% { opacity: 0.6; filter: blur(50px); }
 }
 
-.animate-pulse-glow {
-  animation: pulseGlow 6s ease-in-out infinite;
+@keyframes blobFloat1 {
+  0%, 100% { transform: translate(0px, 0px); }
+  50% { transform: translate(50px, -35px); }
 }
 
-@keyframes floatSlow {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-15px) rotate(3deg); }
+@keyframes blobFloat2 {
+  0%, 100% { transform: translate(0px, 0px); }
+  50% { transform: translate(-45px, 45px); }
 }
 
-.animate-float {
-  animation: floatSlow 7s ease-in-out infinite;
+@keyframes blobFloat3 {
+  0%, 100% { transform: translate(0px, 0px); }
+  50% { transform: translate(35px, 25px); }
+}
+
+.ambient-blob-1 {
+  animation: blobFloat1 8s ease-in-out infinite;
+}
+
+.ambient-blob-2 {
+  animation: blobFloat2 10s ease-in-out infinite;
+}
+
+.ambient-blob-3 {
+  animation: blobFloat3 9s ease-in-out infinite;
 }
 
 /* Bootstrap Link Overrides */
@@ -563,7 +577,7 @@ footer a:hover {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
 }
 
-.light .modal-content input,
+.light .modal-content input:not(.form-check-input),
 .light .modal-content select,
 .light .modal-content textarea,
 .light .modal-content .form-control,
@@ -573,13 +587,22 @@ footer a:hover {
   border: 1px solid #CBD5E1 !important;
 }
 
-.light .modal-content input:focus,
+.light .modal-content input:not(.form-check-input):focus,
 .light .modal-content select:focus,
 .light .modal-content textarea:focus,
 .light .modal-content .form-control:focus,
 .light .modal-content .form-select:focus {
   background-color: #FFFFFF !important;
   border-color: var(--brand-color) !important;
+}
+
+.form-check-input:checked {
+  background-color: #0d6efd !important;
+  border-color: #0d6efd !important;
+}
+
+.form-check-input {
+  cursor: pointer;
 }
 
 .light .swal2-popup {

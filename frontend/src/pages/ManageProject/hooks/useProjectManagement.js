@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import axios from "axios";
 import { getCurrentUser } from "../../../lib/auth";
 import { safeDateString } from "../../../lib/dateUtils";
 
 export const useProjectManagement = (t) => {
+  const location = useLocation();
   const [currentUser, setCurrentUser] = useState({
     id: 1,
     name: "Admin User",
@@ -135,20 +137,52 @@ export const useProjectManagement = (t) => {
     fetchUsers();
   }, []);
 
-  // Auto-open Project Detail modal if projectId or openProject is present in URL search params
+  // Auto-open Project Detail modal if projectId, openProject, or openProjectName is present in URL search params
   useEffect(() => {
-    if (projects.length > 0) {
-      const params = new URLSearchParams(window.location.search);
+    const checkAndOpenProject = async () => {
+      const params = new URLSearchParams(location.search);
       const targetProjectId = params.get("projectId") || params.get("openProject");
-      if (targetProjectId) {
-        const found = projects.find((p) => Number(p.id) === Number(targetProjectId));
-        if (found) {
-          setSelectedProject(found);
-          setShowDetailModal(true);
+      const targetProjectName = params.get("openProjectName");
+
+      if (targetProjectId || targetProjectName) {
+        if (projects.length > 0) {
+          const found = projects.find((p) => {
+            if (targetProjectId && Number(p.id) === Number(targetProjectId)) return true;
+            if (targetProjectName && (p.name || "").trim().toLowerCase() === targetProjectName.trim().toLowerCase()) return true;
+            return false;
+          });
+          if (found) {
+            setSelectedProject(found);
+            setShowDetailModal(true);
+            return;
+          }
+        }
+        // Fallback: If not found in current state or projects still loading, fetch directly
+        try {
+          const res = await axios.get("/auth/projects");
+          const found = res.data.find((p) => {
+            if (targetProjectId && Number(p.id) === Number(targetProjectId)) return true;
+            if (targetProjectName && (p.name || "").trim().toLowerCase() === targetProjectName.trim().toLowerCase()) return true;
+            return false;
+          });
+          if (found) {
+            if (found.end_date) found.endDate = safeDateString(found.end_date);
+            if (found.tasks) {
+              found.tasks = found.tasks.map((t) => {
+                if (t.due_date) t.dueDate = safeDateString(t.due_date);
+                return t;
+              });
+            }
+            setSelectedProject(found);
+            setShowDetailModal(true);
+          }
+        } catch (err) {
+          console.error("Error auto-opening project:", err);
         }
       }
-    }
-  }, [projects]);
+    };
+    checkAndOpenProject();
+  }, [projects, location.search]);
 
   const filteredProjects = projects.filter((p) => {
     const role = (currentUser?.role || roleSimulation || "").toLowerCase().trim().replace(/\s+/g, "_");
@@ -159,12 +193,12 @@ export const useProjectManagement = (t) => {
     } else if (role === "manager" || role === "project_manager") {
       // Manager sees projects created by them or where they are designated manager/leader
       const isCreator = Number(p.created_by) === userId;
-      const isLeader = Number(p.teamLeaderId) === userId;
+      const isLeader = Number(p.teamLeaderId) === userId || Number(p.team_leader_id) === userId;
       if (!isCreator && !isLeader) return false;
     } else {
-      // Staff roles (storyboard, animation, designer, programmer, etc.)
+      // Staff roles (storyboard, animation, designer, programmer, team_leader, etc.)
       // Can only see projects that are relevant to them (they have a task assigned or are assigned to the project)
-      const isLeader = Number(p.teamLeaderId) === userId;
+      const isLeader = Number(p.teamLeaderId) === userId || Number(p.team_leader_id) === userId;
       const isCreator = Number(p.created_by) === userId;
       const hasAssignedTask = p.tasks && Array.isArray(p.tasks) && p.tasks.some(
         (t) => Number(t.assigned_to) === userId || Number(t.assignedTo) === userId

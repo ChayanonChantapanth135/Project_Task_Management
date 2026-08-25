@@ -197,16 +197,16 @@ const TaskDetailModal = ({
   };
 
   const translateStatus = (status) => {
-    const s = String(status).toLowerCase();
+    const s = String(status || "").toLowerCase().trim();
     if (language === "th") {
-      if (s === "completed") return "เสร็จสมบูรณ์";
-      if (s === "in progress" || s === "in_progress") return "กำลังทำ";
-      if (s === "reviewing" || s === "review") return "รอตรวจสอบ";
+      if (s === "completed" || s === "เสร็จสมบูรณ์") return "เสร็จสมบูรณ์";
+      if (s === "in progress" || s === "in_progress" || s === "กำลังทำ") return "กำลังทำ";
+      if (s === "reviewing" || s === "review" || s === "รอตรวจสอบ") return "รอตรวจสอบ";
       return "รอดำเนินการ";
     } else {
-      if (s === "completed") return "Completed";
-      if (s === "in progress" || s === "in_progress") return "In Progress";
-      if (s === "reviewing" || s === "review") return "Reviewing";
+      if (s === "completed" || s === "เสร็จสมบูรณ์") return "Completed";
+      if (s === "in progress" || s === "in_progress" || s === "กำลังทำ") return "In Progress";
+      if (s === "reviewing" || s === "review" || s === "รอตรวจสอบ") return "Reviewing";
       return "Pending";
     }
   };

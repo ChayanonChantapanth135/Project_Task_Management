@@ -35,44 +35,6 @@ const ProfilePage = () => {
   } = useProfile();
 
   const fileInputRef = useRef(null);
-  const pageRef = useRef(null);
-  const blob1Ref = useRef(null);
-  const blob2Ref = useRef(null);
-  const blob3Ref = useRef(null);
-
-  // GSAP Background animations
-  useGSAP(() => {
-    if (blob1Ref.current) {
-      gsap.to(blob1Ref.current, {
-        x: 50,
-        y: -30,
-        duration: 8,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      });
-    }
-    if (blob2Ref.current) {
-      gsap.to(blob2Ref.current, {
-        x: -40,
-        y: 40,
-        duration: 10,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      });
-    }
-    if (blob3Ref.current) {
-      gsap.to(blob3Ref.current, {
-        x: 30,
-        y: 20,
-        duration: 9,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      });
-    }
-  });
 
   if (loading) {
     return (
@@ -89,7 +51,6 @@ const ProfilePage = () => {
 
   return (
     <div
-      ref={pageRef}
       className="min-h-screen flex flex-col font-sans relative overflow-hidden"
       style={{
         backgroundColor: "var(--bg-primary)",
@@ -98,19 +59,10 @@ const ProfilePage = () => {
     >
       <Header />
 
-      {/* GSAP Animated Ambient Orbs */}
-      <div
-        ref={blob1Ref}
-        className="absolute top-10 left-1/4 w-[400px] h-[400px] bg-teal-500/10 rounded-full filter blur-[100px] pointer-events-none"
-      ></div>
-      <div
-        ref={blob2Ref}
-        className="absolute top-1/3 right-1/4 w-[350px] h-[350px] bg-indigo-600/15 rounded-full filter blur-[110px] pointer-events-none"
-      ></div>
-      <div
-        ref={blob3Ref}
-        className="absolute bottom-10 left-1/3 w-[450px] h-[450px] bg-cyan-600/10 rounded-full filter blur-[120px] pointer-events-none"
-      ></div>
+      {/* Ambient Orbs */}
+      <div className="absolute top-10 left-1/4 w-[400px] h-[400px] bg-teal-500/10 rounded-full filter blur-[100px] pointer-events-none ambient-blob-1"></div>
+      <div className="absolute top-1/3 right-1/4 w-[350px] h-[350px] bg-indigo-600/15 rounded-full filter blur-[110px] pointer-events-none ambient-blob-2"></div>
+      <div className="absolute bottom-10 left-1/3 w-[450px] h-[450px] bg-cyan-600/10 rounded-full filter blur-[120px] pointer-events-none ambient-blob-3"></div>
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-8 relative z-10">
         {/* Title */}

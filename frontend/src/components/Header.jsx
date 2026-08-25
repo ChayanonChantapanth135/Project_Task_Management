@@ -437,7 +437,7 @@ const Header = () => {
               className="text-xl font-bold mb-6"
               style={{ color: "var(--text-primary)" }}
             >
-              Themes
+              {t("themes")}
             </h3>
 
             {/* Close Button */}
@@ -467,7 +467,7 @@ const Header = () => {
                 className="text-xs font-bold uppercase tracking-wider mb-3"
                 style={{ color: "var(--text-secondary)" }}
               >
-                APPEARANCE
+                {t("appearance")}
               </h4>
               <div className="flex gap-4">
                 {/* Light */}
@@ -496,7 +496,7 @@ const Header = () => {
                           : "var(--text-secondary)",
                     }}
                   >
-                    Light
+                    {t("appearanceLight")}
                   </span>
                 </div>
 
@@ -526,7 +526,7 @@ const Header = () => {
                           : "var(--text-secondary)",
                     }}
                   >
-                    Dark
+                    {t("appearanceDark")}
                   </span>
                 </div>
 
@@ -558,7 +558,7 @@ const Header = () => {
                           : "var(--text-secondary)",
                     }}
                   >
-                    Auto
+                    {t("appearanceAuto")}
                   </span>
                 </div>
               </div>
@@ -570,64 +570,68 @@ const Header = () => {
                 className="text-xs font-bold uppercase tracking-wider mb-3"
                 style={{ color: "var(--text-secondary)" }}
               >
-                CLICKUP THEME
+                {t("clickupTheme")}
               </h4>
               <div className="grid grid-cols-3 gap-2.5">
-                {Object.values(availableAccents).map((color) => (
-                  <div
-                    key={color.name}
-                    onClick={() => setAccentColor(color.name)}
-                    className="flex items-center justify-between px-3 py-2.5 rounded-2xl cursor-pointer transition-all shadow-sm"
-                    style={{
-                      background:
-                        accentColor === color.name
-                          ? "rgba(59, 130, 246, 0.15)"
-                          : "var(--bg-surface-hover)",
-                      border:
-                        accentColor === color.name
-                          ? `1.5px solid ${color.code}`
-                          : "1px solid var(--border-surface)",
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="w-3.5 h-3.5 rounded-full flex-shrink-0 shadow-sm"
-                        style={{ backgroundColor: color.code }}
-                      ></span>
-                      <span
-                        className="text-xs font-semibold"
-                        style={{
-                          color:
-                            accentColor === color.name
-                              ? "var(--text-primary)"
-                              : "var(--text-secondary)",
-                        }}
-                      >
-                        {color.name}
-                      </span>
-                    </div>
-                    {accentColor === color.name && (
-                      <div
-                        className="w-4 h-4 rounded-full flex items-center justify-center text-white"
-                        style={{ backgroundColor: color.code }}
-                      >
-                        <svg
-                          className="w-2.5 h-2.5 text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                {Object.values(availableAccents).map((color) => {
+                  const colorKey = `accent${color.name}`;
+                  const colorLabel = t(colorKey) || color.name;
+                  return (
+                    <div
+                      key={color.name}
+                      onClick={() => setAccentColor(color.name)}
+                      className="flex items-center justify-between px-3 py-2.5 rounded-2xl cursor-pointer transition-all shadow-sm"
+                      style={{
+                        background:
+                          accentColor === color.name
+                            ? "rgba(59, 130, 246, 0.15)"
+                            : "var(--bg-surface-hover)",
+                        border:
+                          accentColor === color.name
+                            ? `1.5px solid ${color.code}`
+                            : "1px solid var(--border-surface)",
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="w-3.5 h-3.5 rounded-full flex-shrink-0 shadow-sm"
+                          style={{ backgroundColor: color.code }}
+                        ></span>
+                        <span
+                          className="text-xs font-semibold"
+                          style={{
+                            color:
+                              accentColor === color.name
+                                ? "var(--text-primary)"
+                                : "var(--text-secondary)",
+                          }}
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="3"
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
+                          {colorLabel}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                ))}
+                      {accentColor === color.name && (
+                        <div
+                          className="w-4 h-4 rounded-full flex items-center justify-center text-white"
+                          style={{ backgroundColor: color.code }}
+                        >
+                          <svg
+                            className="w-2.5 h-2.5 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="3"
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

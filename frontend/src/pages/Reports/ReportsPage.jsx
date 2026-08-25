@@ -31,20 +31,10 @@ const ReportsPage = () => {
 
   // Animation Refs
   const pageRef = useRef(null);
-  const orb1Ref = useRef(null);
-  const orb2Ref = useRef(null);
-  const orb3Ref = useRef(null);
-  const orb4Ref = useRef(null);
   const headerRef = useRef(null);
   const contentRef = useRef(null);
 
   useGSAP(() => {
-    // Floating orbs — smooth infinite motion
-    gsap.to(orb1Ref.current, { x: 60, y: -40, duration: 12, repeat: -1, yoyo: true, ease: "sine.inOut" });
-    gsap.to(orb2Ref.current, { x: -50, y: 50, duration: 14, repeat: -1, yoyo: true, ease: "sine.inOut" });
-    gsap.to(orb3Ref.current, { x: 40, y: 30, duration: 11, repeat: -1, yoyo: true, ease: "sine.inOut" });
-    gsap.to(orb4Ref.current, { x: -30, y: -20, duration: 13, repeat: -1, yoyo: true, ease: "sine.inOut" });
-
     // Header entrance
     if (headerRef.current) {
       gsap.fromTo(headerRef.current,

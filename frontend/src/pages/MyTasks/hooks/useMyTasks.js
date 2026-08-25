@@ -126,21 +126,28 @@ export const useMyTasks = () => {
     return () => window.removeEventListener("taskStatusUpdated", handleStatusUpdate);
   }, []);
 
-  // Auto-open modal if taskId or openTask is present in URL search params
+  // Auto-open modal if taskId, openTask, or openTaskName is present in URL search params
   useEffect(() => {
-    if (myTasks.length > 0) {
+    const checkAndOpenTask = () => {
       const params = new URLSearchParams(window.location.search);
       const targetTaskId = params.get("taskId") || params.get("openTask");
-      if (targetTaskId) {
-        const found = myTasks.find((t) => Number(t.id) === Number(targetTaskId));
+      const targetTaskName = params.get("openTaskName");
+
+      if ((targetTaskId || targetTaskName) && myTasks.length > 0) {
+        const found = myTasks.find((t) => {
+          if (targetTaskId && Number(t.id) === Number(targetTaskId)) return true;
+          if (targetTaskName && (t.title || "").trim().toLowerCase() === targetTaskName.trim().toLowerCase()) return true;
+          return false;
+        });
         if (found) {
           setSelectedTask(found);
           setTempStatus(found.status);
           setShowViewModal(true);
         }
       }
-    }
-  }, [myTasks]);
+    };
+    checkAndOpenTask();
+  }, [myTasks, window.location.search]);
 
   const handleUpdateTask = async (updatedDetails) => {
     if (!selectedTask) return;

@@ -12,9 +12,6 @@ import LoginForm from "./components/LoginForm";
  */
 const LoginPage = () => {
   const { language, t } = useLanguage();
-  const containerRef = useRef(null);
-  const orb1Ref = useRef(null);
-  const orb2Ref = useRef(null);
 
   const {
     values,
@@ -27,43 +24,21 @@ const LoginPage = () => {
     handleSubmit,
   } = useLogin(t);
 
-  useGSAP(() => {
-    gsap.to(orb1Ref.current, {
-      x: 40,
-      y: -40,
-      duration: 6,
-      repeat: -1,
-      yoyo: true,
-      ease: "sine.inOut",
-    });
-    gsap.to(orb2Ref.current, {
-      x: -40,
-      y: 40,
-      duration: 8,
-      repeat: -1,
-      yoyo: true,
-      ease: "sine.inOut",
-    });
-  }, { scope: containerRef });
-
   return (
     <div
-      ref={containerRef}
       className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden font-sans"
       style={{
         backgroundColor: "var(--bg-primary)",
         color: "var(--text-primary)",
       }}
     >
-      {/* Background Animated GSAP Glowing Orbs */}
+      {/* Background Animated Glowing Orbs */}
       <div
-        ref={orb1Ref}
-        className="absolute -top-20 -left-20 w-[500px] h-[500px] bg-teal-500/25 rounded-full filter blur-[120px] pointer-events-none"
-      />
+        className="absolute top-1/4 -left-20 w-96 h-96 bg-indigo-600/20 rounded-full filter blur-[100px] pointer-events-none ambient-blob-1"
+      ></div>
       <div
-        ref={orb2Ref}
-        className="absolute -bottom-20 -right-20 w-[500px] h-[500px] bg-cyan-500/20 rounded-full filter blur-[120px] pointer-events-none"
-      />
+        className="absolute bottom-1/4 -right-20 w-96 h-96 bg-purple-600/20 rounded-full filter blur-[100px] pointer-events-none ambient-blob-2"
+      ></div>
 
       {/* Language Switcher Positioned Top-Right */}
       <div className="absolute top-6 right-6 z-20">

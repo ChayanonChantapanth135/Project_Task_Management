@@ -124,7 +124,12 @@ const TaskTable = ({
                     <td className="py-4 px-6 text-center text-slate-400 font-mono whitespace-nowrap" style={deadlineStyle}>{formatDate(task.dueDate, language)}</td>
                     <td className="py-4 px-6 text-center whitespace-nowrap rounded-r-2xl" style={deadlineStyle}>
                       <button
-                        className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white rounded-xl transition-all text-xs"
+                        className="px-4 py-1.5 text-xs font-bold rounded-2xl transition-all cursor-pointer shadow-sm hover:shadow-md"
+                        style={{
+                          background: "var(--bg-surface-hover)",
+                          color: "var(--text-primary)",
+                          border: "1px solid var(--border-surface)",
+                        }}
                         onClick={() => onManageClick(task)}
                       >
                         {language === "th" ? "จัดการ" : "Manage"}

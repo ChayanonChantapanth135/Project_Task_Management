@@ -15,37 +15,6 @@ import { Link } from "react-router-dom";
 const HomePage = () => {
   const { t } = useLanguage();
   const isLoggedIn = !!localStorage.getItem("userToken");
-  const heroRef = useRef(null);
-  const blob1Ref = useRef(null);
-  const blob2Ref = useRef(null);
-  const blob3Ref = useRef(null);
-
-  useGSAP(() => {
-    gsap.to(blob1Ref.current, {
-      x: 60,
-      y: -40,
-      duration: 8,
-      repeat: -1,
-      yoyo: true,
-      ease: "sine.inOut",
-    });
-    gsap.to(blob2Ref.current, {
-      x: -50,
-      y: 50,
-      duration: 10,
-      repeat: -1,
-      yoyo: true,
-      ease: "sine.inOut",
-    });
-    gsap.to(blob3Ref.current, {
-      x: 40,
-      y: 30,
-      duration: 9,
-      repeat: -1,
-      yoyo: true,
-      ease: "sine.inOut",
-    });
-  }, { scope: heroRef });
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -66,7 +35,6 @@ const HomePage = () => {
 
   return (
     <div 
-      ref={heroRef} 
       className="min-h-screen flex flex-col font-sans relative overflow-hidden"
       style={{
         backgroundColor: "var(--bg-primary)",
@@ -75,10 +43,10 @@ const HomePage = () => {
     >
       <Header />
 
-      {/* GSAP Animated Ambient Orbs */}
-      <div ref={blob1Ref} className="absolute top-10 left-1/4 w-[450px] h-[450px] bg-indigo-600/20 rounded-full filter blur-[100px] pointer-events-none"></div>
-      <div ref={blob2Ref} className="absolute top-40 right-1/4 w-[400px] h-[400px] bg-violet-600/20 rounded-full filter blur-[110px] pointer-events-none"></div>
-      <div ref={blob3Ref} className="absolute bottom-10 left-1/3 w-[500px] h-[500px] bg-pink-600/15 rounded-full filter blur-[120px] pointer-events-none"></div>
+      {/* Ambient Orbs */}
+      <div className="absolute top-10 left-1/4 w-[450px] h-[450px] bg-indigo-600/20 rounded-full filter blur-[100px] pointer-events-none ambient-blob-1"></div>
+      <div className="absolute top-40 right-1/4 w-[400px] h-[400px] bg-violet-600/20 rounded-full filter blur-[110px] pointer-events-none ambient-blob-2"></div>
+      <div className="absolute bottom-10 left-1/3 w-[500px] h-[500px] bg-pink-600/15 rounded-full filter blur-[120px] pointer-events-none ambient-blob-3"></div>
 
       <main className="flex-1 z-10">
         {/* Hero Section */}

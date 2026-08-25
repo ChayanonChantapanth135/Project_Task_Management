@@ -18,42 +18,8 @@ import { useDashboard } from "./hooks/useDashboard";
  * คอมโพเนนต์หน้าแดชบอร์ดสรุปผล (DashboardPage Component) - Redesigned Dark Luxe Glassmorphism Theme
  */
 const DashboardPage = () => {
-  const navigate = useNavigate();
   const { t, language } = useLanguage();
-  const pageRef = useRef(null);
-  const blob1Ref = useRef(null);
-  const blob2Ref = useRef(null);
-  const blob3Ref = useRef(null);
-
-  useGSAP(
-    () => {
-      gsap.to(blob1Ref.current, {
-        x: 60,
-        y: -40,
-        duration: 8,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      });
-      gsap.to(blob2Ref.current, {
-        x: -50,
-        y: 50,
-        duration: 10,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      });
-      gsap.to(blob3Ref.current, {
-        x: 40,
-        y: 30,
-        duration: 9,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      });
-    },
-    { scope: pageRef },
-  );
+  const navigate = useNavigate();
 
   const {
     isAdmin,
@@ -69,7 +35,6 @@ const DashboardPage = () => {
 
   return (
     <div
-      ref={pageRef}
       className="min-h-screen flex flex-col font-sans relative overflow-hidden"
       style={{
         backgroundColor: "var(--bg-primary)",
@@ -78,19 +43,10 @@ const DashboardPage = () => {
     >
       <Header />
 
-      {/* GSAP Animated Ambient Orbs */}
-      <div
-        ref={blob1Ref}
-        className="absolute top-10 left-1/4 w-[450px] h-[450px] bg-teal-500/15 rounded-full filter blur-[100px] pointer-events-none"
-      ></div>
-      <div
-        ref={blob2Ref}
-        className="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-indigo-600/20 rounded-full filter blur-[110px] pointer-events-none"
-      ></div>
-      <div
-        ref={blob3Ref}
-        className="absolute bottom-10 left-1/3 w-[500px] h-[500px] bg-cyan-600/15 rounded-full filter blur-[120px] pointer-events-none"
-      ></div>
+      {/* Ambient Orbs */}
+      <div className="absolute top-10 left-1/4 w-[450px] h-[450px] bg-teal-500/15 rounded-full filter blur-[100px] pointer-events-none ambient-blob-1"></div>
+      <div className="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-indigo-600/20 rounded-full filter blur-[110px] pointer-events-none ambient-blob-2"></div>
+      <div className="absolute bottom-10 left-1/3 w-[500px] h-[500px] bg-cyan-600/15 rounded-full filter blur-[120px] pointer-events-none ambient-blob-3"></div>
 
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full animate-fade-in-up relative z-10">
         {/* Stats Cards */}
@@ -308,18 +264,12 @@ const DashboardPage = () => {
                   showConfirmButton: true,
                   confirmButtonText: isTask
                     ? language === "th"
-                      ? "📌 ไปที่งานนี้"
-                      : "📌 Go to My Tasks"
+                      ? " ไปที่งานนี้"
+                      : " Go to My Tasks"
                     : language === "th"
-                      ? "📁 ไปที่โปรเจกต์นี้"
-                      : "📁 Go to Projects",
+                      ? " ไปที่โปรเจกต์นี้"
+                      : " Go to Projects",
                   confirmButtonColor: "#0d9488",
-                  showDenyButton: !isTask,
-                  denyButtonText:
-                    language === "th"
-                      ? "📋 ดูงานทั้งหมด"
-                      : "📋 Go to All Tasks",
-                  denyButtonColor: "#6366f1",
                   showCancelButton: true,
                   cancelButtonText:
                     t("close") || (language === "th" ? "ปิด" : "Close"),
@@ -332,12 +282,18 @@ const DashboardPage = () => {
                 }).then((result) => {
                   if (result.isConfirmed) {
                     if (isTask) {
-                      navigate("/MyTasks");
+                      const taskId = props.taskId || info.event.id;
+                      navigate(
+                        taskId ? `/MyTasks?taskId=${taskId}` : "/MyTasks",
+                      );
                     } else {
-                      navigate("/Projects");
+                      const projectId = props.projectId || info.event.id;
+                      navigate(
+                        projectId
+                          ? `/Projects?projectId=${projectId}`
+                          : "/Projects",
+                      );
                     }
-                  } else if (result.isDenied) {
-                    navigate("/AllTasks");
                   }
                 });
               }}
