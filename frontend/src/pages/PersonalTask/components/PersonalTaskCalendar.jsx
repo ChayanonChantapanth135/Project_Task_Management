@@ -262,7 +262,7 @@ const PersonalTaskCalendar = ({
   return (
     <div className="space-y-6">
       {/* Calendar Card Container */}
-      <div 
+      <div
         className="rounded-3xl p-6 md:p-8 shadow-xl relative"
         style={{
           background: "var(--bg-surface)",
@@ -270,23 +270,32 @@ const PersonalTaskCalendar = ({
         }}
       >
         {/* Header toolbar stats & legend */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4" style={{ borderBottom: "1px solid var(--border-surface)" }}>
+        <div
+          className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4"
+          style={{ borderBottom: "1px solid var(--border-surface)" }}
+        >
           <div className="flex items-center gap-3">
             <span className="text-2xl">📅</span>
             <div>
-              <h2 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>
+              <h2
+                className="text-lg font-bold"
+                style={{ color: "var(--text-primary)" }}
+              >
                 {isThai ? "ปฏิทินงานส่วนตัว" : "Personal Tasks Calendar"}
               </h2>
-              <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+              <p
+                className="text-xs mt-0.5"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 {isThai
-                  ? "💡 ลากและวางการ์ดเพื่อเปลี่ยนกำหนดส่ง หรือคลิกที่ช่องวันที่เพื่อสร้างงานใหม่"
-                  : "💡 Drag and drop cards to change due dates, or click a date to add a new task"}
+                  ? "ลากและวางการ์ดเพื่อเปลี่ยนกำหนดส่ง หรือคลิกที่ช่องวันที่เพื่อสร้างงานใหม่"
+                  : "Drag and drop cards to change due dates, or click a date to add a new task"}
               </p>
             </div>
           </div>
 
           {/* Status Color Legend */}
-          <div 
+          <div
             className="flex items-center gap-4 text-xs font-semibold px-4 py-2 rounded-2xl shadow-sm"
             style={{
               background: "var(--bg-surface-hover)",
@@ -299,7 +308,9 @@ const PersonalTaskCalendar = ({
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-[#f59e0b]"></span>
-              <span style={{ color: "var(--text-secondary)" }}>In Progress</span>
+              <span style={{ color: "var(--text-secondary)" }}>
+                In Progress
+              </span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-[#00b884]"></span>
@@ -501,17 +512,26 @@ const PersonalTaskCalendar = ({
           border: "1px solid var(--border-surface)",
         }}
       >
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 pb-3" style={{ borderBottom: "1px solid var(--border-surface)" }}>
+        <div
+          className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 pb-3"
+          style={{ borderBottom: "1px solid var(--border-surface)" }}
+        >
           <div className="flex items-center gap-2.5">
             <span className="text-amber-400 text-lg">📌</span>
-            <h3 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
+            <h3
+              className="text-sm font-bold"
+              style={{ color: "var(--text-primary)" }}
+            >
               {isThai
                 ? `งานที่ยังไม่ได้กำหนดส่ง (${undatedTasks.length})`
                 : `Tasks Without Due Date (${undatedTasks.length})`}
             </h3>
           </div>
-          <span className="text-xs font-semibold flex items-center gap-1.5" style={{ color: "var(--brand-color)" }}>
-            <span>🔄</span>
+          <span
+            className="text-xs font-semibold flex items-center gap-1.5"
+            style={{ color: "var(--brand-color)" }}
+          >
+            <span></span>
             <span>
               {isThai
                 ? "ลากงานขึ้นปฏิทินเพื่อใส่วันที่ หรือลากงานจากปฏิทินลงมาที่นี่เพื่อยกเลิกกำหนดส่ง"
@@ -543,11 +563,17 @@ const PersonalTaskCalendar = ({
                         className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                         style={{ backgroundColor: statusConf.color }}
                       ></span>
-                      <span className="text-xs font-bold truncate" style={{ color: "var(--text-primary)" }}>
+                      <span
+                        className="text-xs font-bold truncate"
+                        style={{ color: "var(--text-primary)" }}
+                      >
                         {task.title}
                       </span>
                     </div>
-                    <span className="text-[10px] opacity-70 transition-colors flex-shrink-0 ml-2 pointer-events-none" style={{ color: "var(--text-secondary)" }}>
+                    <span
+                      className="text-[10px] opacity-70 transition-colors flex-shrink-0 ml-2 pointer-events-none"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
                       ⋮⋮
                     </span>
                   </div>
@@ -555,7 +581,7 @@ const PersonalTaskCalendar = ({
               })}
             </div>
           ) : (
-            <div 
+            <div
               className="py-6 px-4 text-center text-xs rounded-2xl shadow-inner flex items-center justify-center gap-2"
               style={{
                 background: "var(--bg-surface-hover)",
@@ -563,7 +589,7 @@ const PersonalTaskCalendar = ({
                 border: "1px dashed var(--border-surface)",
               }}
             >
-              <span>📥</span>
+              <span></span>
               <span>
                 {isThai
                   ? "ไม่มีงานค้าง (คุณสามารถลากงานจากบนปฏิทินลงมาวางที่นี่เพื่อยกเลิกกำหนดส่งได้)"

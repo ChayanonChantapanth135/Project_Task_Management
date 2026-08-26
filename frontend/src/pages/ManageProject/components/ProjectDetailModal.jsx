@@ -16,10 +16,23 @@ const ProjectDetailModal = ({
   t,
 }) => {
   const { language } = useLanguage();
+  const userRole = (currentUser?.role || "").toLowerCase().trim().replace(/\s+/g, "_");
+  const isCreatorOfProject = Number(selectedProject?.created_by) === Number(currentUser?.id);
   const isTeamLeaderOfProject =
     Number(selectedProject?.teamLeaderId) === Number(currentUser?.id) ||
     Number(selectedProject?.team_leader_id) === Number(currentUser?.id);
-  const canAddTask = canManage || isTeamLeaderOfProject;
+
+  // canManageProject: Admin หรือ Creator ของโปรเจกต์นี้ หรือ Manager ที่สร้างโปรเจกต์นี้
+  const isManagerRole = userRole === "manager" || userRole === "project_manager";
+  const canManageProject = userRole === "admin" || (isManagerRole && isCreatorOfProject) || (!isManagerRole && canManage);
+
+  const canAddTask = canManageProject || isTeamLeaderOfProject;
+
+  const currentUid = Number(currentUser?.id);
+  const isManagerInOthersProject = isManagerRole && !isCreatorOfProject;
+
+  // แสดงรายชื่อ Task ทั้งหมดในโปรเจกต์ แต่จะควบคุมการกดปุ่ม "View Task Detail" ตามสิทธิ์
+  const displayTasks = selectedProject?.tasks || [];
 
   const getTaskStyle = (task) => {
     if (task.status === "Completed") return {};
@@ -147,8 +160,8 @@ const ProjectDetailModal = ({
                   paddingRight: "4px",
                 }}
               >
-                {selectedProject.tasks && selectedProject.tasks.length > 0 ? (
-                  selectedProject.tasks.map((task) => (
+                {displayTasks && displayTasks.length > 0 ? (
+                  displayTasks.map((task) => (
                     <div
                       key={task.id}
                       className="list-group-item d-flex align-items-center justify-content-between py-3 rounded-2xl mb-1 border-0"
@@ -201,11 +214,10 @@ const ProjectDetailModal = ({
                       {/* Right: View Task Detail Button (Fixed width container to keep alignment) */}
                       <div className="ms-3 d-flex justify-content-end" style={{ width: "125px", minWidth: "125px" }}>
                         {(() => {
-                          const currentUid = Number(currentUser?.id);
                           const isAssigned =
                             Number(task.assigned_to) === currentUid ||
                             Number(task.assignedTo) === currentUid;
-                          const canViewDetail = canManage || isTeamLeaderOfProject || isAssigned;
+                          const canViewDetail = canManageProject || isTeamLeaderOfProject || isAssigned;
 
                           if (!canViewDetail) {
                             return null;

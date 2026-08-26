@@ -137,47 +137,70 @@ export const useProjectManagement = (t) => {
     fetchUsers();
   }, []);
 
-  // Auto-open Project Detail modal if projectId, openProject, or openProjectName is present in URL search params
+  // Auto-open Project Detail and Task Detail modal if projectId / taskId / openTaskName are in URL params
   useEffect(() => {
     const checkAndOpenProject = async () => {
       const params = new URLSearchParams(location.search);
       const targetProjectId = params.get("projectId") || params.get("openProject");
       const targetProjectName = params.get("openProjectName");
+      const targetTaskId = params.get("taskId") || params.get("openTask");
+      const targetTaskName = params.get("openTaskName");
 
-      if (targetProjectId || targetProjectName) {
+      if (targetProjectId || targetProjectName || targetTaskId) {
+        let matchedProject = null;
+
         if (projects.length > 0) {
-          const found = projects.find((p) => {
+          matchedProject = projects.find((p) => {
             if (targetProjectId && Number(p.id) === Number(targetProjectId)) return true;
             if (targetProjectName && (p.name || "").trim().toLowerCase() === targetProjectName.trim().toLowerCase()) return true;
+            if (targetTaskId && p.tasks && p.tasks.some(t => Number(t.id) === Number(targetTaskId))) return true;
+            if (targetTaskName && p.tasks && p.tasks.some(t => (t.title || "").trim().toLowerCase() === targetTaskName.trim().toLowerCase())) return true;
             return false;
           });
-          if (found) {
-            setSelectedProject(found);
-            setShowDetailModal(true);
-            return;
+        }
+
+        // Fallback: If not found in current state or projects still loading, fetch directly
+        if (!matchedProject) {
+          try {
+            const res = await axios.get("/auth/projects");
+            matchedProject = res.data.find((p) => {
+              if (targetProjectId && Number(p.id) === Number(targetProjectId)) return true;
+              if (targetProjectName && (p.name || "").trim().toLowerCase() === targetProjectName.trim().toLowerCase()) return true;
+              if (targetTaskId && p.tasks && p.tasks.some(t => Number(t.id) === Number(targetTaskId))) return true;
+              if (targetTaskName && p.tasks && p.tasks.some(t => (t.title || "").trim().toLowerCase() === targetTaskName.trim().toLowerCase())) return true;
+              return false;
+            });
+            if (matchedProject) {
+              if (matchedProject.end_date) matchedProject.endDate = safeDateString(matchedProject.end_date);
+              if (matchedProject.tasks) {
+                matchedProject.tasks = matchedProject.tasks.map((t) => {
+                  if (t.due_date) t.dueDate = safeDateString(t.due_date);
+                  return t;
+                });
+              }
+            }
+          } catch (err) {
+            console.error("Error auto-opening project:", err);
           }
         }
-        // Fallback: If not found in current state or projects still loading, fetch directly
-        try {
-          const res = await axios.get("/auth/projects");
-          const found = res.data.find((p) => {
-            if (targetProjectId && Number(p.id) === Number(targetProjectId)) return true;
-            if (targetProjectName && (p.name || "").trim().toLowerCase() === targetProjectName.trim().toLowerCase()) return true;
-            return false;
-          });
-          if (found) {
-            if (found.end_date) found.endDate = safeDateString(found.end_date);
-            if (found.tasks) {
-              found.tasks = found.tasks.map((t) => {
-                if (t.due_date) t.dueDate = safeDateString(t.due_date);
-                return t;
-              });
+
+        if (matchedProject) {
+          setSelectedProject(matchedProject);
+          setShowDetailModal(true);
+
+          // If a task is also targeted, open the task detail modal as well
+          if (targetTaskId || targetTaskName) {
+            const matchedTask = matchedProject.tasks?.find((t) => {
+              if (targetTaskId && Number(t.id) === Number(targetTaskId)) return true;
+              if (targetTaskName && (t.title || "").trim().toLowerCase() === targetTaskName.trim().toLowerCase()) return true;
+              return false;
+            });
+            if (matchedTask) {
+              setSelectedTask(matchedTask);
+              setTempStatus(matchedTask.status || "Pending");
+              setShowViewTaskModal(true);
             }
-            setSelectedProject(found);
-            setShowDetailModal(true);
           }
-        } catch (err) {
-          console.error("Error auto-opening project:", err);
         }
       }
     };
@@ -191,10 +214,12 @@ export const useProjectManagement = (t) => {
     if (role === "admin") {
       // Admin sees everything
     } else if (role === "manager" || role === "project_manager") {
-      // Manager sees projects created by them or where they are designated manager/leader
+      // Project Manager sees projects created by them OR projects where they have assigned task(s)
       const isCreator = Number(p.created_by) === userId;
-      const isLeader = Number(p.teamLeaderId) === userId || Number(p.team_leader_id) === userId;
-      if (!isCreator && !isLeader) return false;
+      const hasAssignedTask = p.tasks && Array.isArray(p.tasks) && p.tasks.some(
+        (t) => Number(t.assigned_to) === userId || Number(t.assignedTo) === userId
+      );
+      if (!isCreator && !hasAssignedTask) return false;
     } else {
       // Staff roles (storyboard, animation, designer, programmer, team_leader, etc.)
       // Can only see projects that are relevant to them (they have a task assigned or are assigned to the project)

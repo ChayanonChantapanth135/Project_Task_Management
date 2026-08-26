@@ -11,7 +11,14 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Helper to delete old avatar file
+// ==========================================
+// 🛠️ HELPER FUNCTIONS (ฟังก์ชันช่วยเหลือทั่วไป)
+// ==========================================
+
+/**
+ * ลบไฟล์รูปโปรไฟล์ (Avatar) เก่าออกจากโฟลเดอร์ uploads เมื่อมีการอัปโหลดรูปใหม่
+ * @param {string} avatarPath - พาธหรือ URL ของรูปเดิม
+ */
 function deleteOldAvatar(avatarPath) {
     if (!avatarPath) return;
     try {
@@ -37,7 +44,13 @@ function deleteOldAvatar(avatarPath) {
     }
 }
 
-// Helper to log user activity
+/**
+ * บันทึกประวัติกิจกรรมการทำงานของผู้ใช้ลงตาราง activity_logs (ป้องกันการบันทึกซ้ำซ้อนภายใน 10 วินาที)
+ * @param {object} db - Database connection
+ * @param {number|null} userId - รหัสผู้ใช้งานที่ทำรายการ
+ * @param {string} action - ชื่อกิจกรรม เช่น 'Login', 'Create Task'
+ * @param {string} details - รายละเอียดของกิจกรรม
+ */
 async function logActivity(db, userId, action, details) {
     try {
         // Prevent duplicate inserts from concurrent/race requests within 10 seconds
@@ -90,7 +103,11 @@ async function logActivity(db, userId, action, details) {
     }
 }
 
-// Helper to format phone number
+/**
+ * แปลงรูปแบบเบอร์โทรศัพท์ให้อยู่ในมาตรฐานสากล (+66...)
+ * @param {string} phone - เบอร์โทรศัพท์ที่ผู้ใช้กรอก
+ * @returns {string|null}
+ */
 function formatPhoneNumber(phone) {
     if (!phone) return null;
     let cleaned = String(phone).trim().replace(/[\s-]/g, '');
@@ -100,7 +117,9 @@ function formatPhoneNumber(phone) {
     return cleaned;
 }
 
-// Helper สำหรับส่งแจ้งเตือนเฉพาะผู้ใช้งานที่เกี่ยวข้องกับโปรเจกต์ (ผู้สร้าง, หัวหน้าทีม, ผู้รับผิดชอบงานในโปรเจกต์)
+/**
+ * ส่งการแจ้งเตือน (In-App Notification) ไปยังสมาชิกทั้งหมดในโปรเจกต์ (ผู้สร้าง, Team Leader, ผู้รับผิดชอบงาน)
+ */
 async function notifyProjectMembers({ db, projectId, taskId = null, title, message, type = 'project', link = null, excludeUserId = null }) {
   try {
     if (!projectId) return;
@@ -146,8 +165,17 @@ async function notifyProjectMembers({ db, projectId, taskId = null, title, messa
   }
 }
 
-// --- AUTH CONTROLLERS ---
+// ==========================================
+// 🔐 AUTHENTICATION CONTROLLERS (ระบบล็อกอินและสมาชิก)
+// ==========================================
 
+/**
+ * เข้าสู่ระบบ (Login)
+ * - ตรวจสอบอีเมล, รหัสผ่าน
+ * - ตรวจสอบสถานะบัญชี (suspended)
+ * - ออก JWT Token มีอายุ 40 นาที
+ * - บันทึก Activity Log และแจ้งเตือนหากต้องบังคับเปลี่ยนรหัสผ่านครั้งแรก
+ */
 export const login = async (req, res) => {
     const { email, password } = req.body;
     console.log('Login request received:', { email });
@@ -211,6 +239,9 @@ export const login = async (req, res) => {
     }
 };
 
+/**
+ * ต่ออายุ Token (Refresh JWT Token) เมื่อใกล้หมดอายุ
+ */
 export const refresh = async (req, res) => {
     const { token } = req.body;
     if (!token) return res.status(400).json({ message: 'Token required' });
@@ -245,6 +276,9 @@ export const refresh = async (req, res) => {
     }
 };
 
+/**
+ * ออกจากระบบ (Logout) และบันทึกประวัติการออกจากระบบ
+ */
 export const logout = async (req, res) => {
     const { userId } = req.body;
     try {
@@ -261,8 +295,13 @@ export const logout = async (req, res) => {
     }
 };
 
-// --- USER MANAGEMENT CONTROLLERS ---
+// ==========================================
+// 👥 USER MANAGEMENT CONTROLLERS (จัดการผู้ใช้งาน)
+// ==========================================
 
+/**
+ * ดึงรายชื่อผู้ใช้ทั้งหมดในระบบ (รองรับ Query Parameter includeDeleted=true เพื่อดูผู้ใช้ที่ถูกลบชั่วคราว)
+ */
 export const getUsers = async (req, res) => {
     const { includeDeleted } = req.query;
     try {
@@ -279,6 +318,9 @@ export const getUsers = async (req, res) => {
     }
 };
 
+/**
+ * ดึงข้อมูลผู้ใช้งานรายบุคคลตาม ID
+ */
 export const getUserById = async (req, res) => {
     const { id } = req.params;
     try {
@@ -292,6 +334,12 @@ export const getUserById = async (req, res) => {
     }
 };
 
+/**
+ * เพิ่มผู้ใช้งานใหม่เข้าสู่ระบบ
+ * - เข้ารหัสผ่านด้วย bcrypt (Hash)
+ * - ส่งอีเมลต้อนรับพร้อมรหัสผ่านชั่วคราวผ่าน emailService
+ * - บันทึกประวัติ Activity Log
+ */
 export const createUser = async (req, res) => {
     const { fullname, email, password, phone, role, status } = req.body;
     try {
@@ -342,6 +390,9 @@ export const createUser = async (req, res) => {
     }
 };
 
+/**
+ * แก้ไขข้อมูลผู้ใช้งาน (ชื่อ, อีเมล, สิทธิ์/Role, สถานะ, รหัสผ่าน, รูปโปรไฟล์)
+ */
 export const updateUser = async (req, res) => {
     const { id } = req.params;
     const { fullname, email, password, phone, role, status, creatorId, currentPassword } = req.body;
@@ -424,6 +475,9 @@ export const updateUser = async (req, res) => {
     }
 };
 
+/**
+ * ลบผู้ใช้แบบ Soft-delete (ซ่อนโดยตั้งเวลา deleted_at = NOW())
+ */
 export const softDeleteUser = async (req, res) => {
     const { id } = req.params;
     const { creatorId } = req.query;
@@ -443,6 +497,9 @@ export const softDeleteUser = async (req, res) => {
     }
 };
 
+/**
+ * กู้คืนผู้ใช้งานที่ถูก Soft-delete ให้กลับมาใช้งานได้ตามปกติ
+ */
 export const restoreUser = async (req, res) => {
     const { id } = req.params;
     const { creatorId } = req.body;
@@ -462,6 +519,9 @@ export const restoreUser = async (req, res) => {
     }
 };
 
+/**
+ * ลบผู้ใช้งานออกจากฐานข้อมูลอย่างถาวร (Hard Delete) พร้อมลบไฟล์รูปโปรไฟล์
+ */
 export const permanentDeleteUser = async (req, res) => {
     const { id } = req.params;
     const { creatorId } = req.query;
@@ -484,6 +544,9 @@ export const permanentDeleteUser = async (req, res) => {
     }
 };
 
+/**
+ * อัปโหลดและเปลี่ยนรูปโปรไฟล์ (Avatar) ของผู้ใช้งาน
+ */
 export const uploadAvatar = async (req, res) => {
     const { id } = req.params;
     try {
@@ -508,6 +571,9 @@ export const uploadAvatar = async (req, res) => {
     }
 };
 
+/**
+ * นำเข้าผู้ใช้งานแบบกลุ่ม (Bulk Import Users จากไฟล์ Excel / CSV)
+ */
 export const importUsers = async (req, res) => {
     const { users, userId } = req.body;
     if (!users || !Array.isArray(users)) {
@@ -587,8 +653,13 @@ export const importUsers = async (req, res) => {
     }
 };
 
-// --- PROJECT & TASK CONTROLLERS ---
+// ==========================================
+// 📁 PROJECT & TASK CONTROLLERS (จัดการโปรเจกต์และงาน)
+// ==========================================
 
+/**
+ * ดึงรายชื่อผู้ใช้ที่สามารถรับหน้าที่เป็น Team Leader (หัวหน้าทีม)
+ */
 export const getTeamLeaders = async (req, res) => {
     try {
         const db = await connectToDatabase();
@@ -610,8 +681,10 @@ export const getTeamLeaders = async (req, res) => {
     }
 };
 
-// Helper ส่งแจ้งเตือนเมื่อโปรเจกต์มีสถานะเป็น Reviewing (ส่งให้ Team Leader และ Project Manager / Creator)
-async function notifyProjectReviewing({ db, projectId, excludeUserId = null }) {
+/**
+ * ส่งแจ้งเตือนเมื่อโปรเจกต์มีสถานะเป็น Reviewing (ส่งให้ Team Leader, Project Manager และ Creator)
+ */
+async function notifyProjectReviewing({ db, projectId, taskId = null, excludeUserId = null }) {
     try {
         if (!projectId) return;
 
@@ -620,6 +693,18 @@ async function notifyProjectReviewing({ db, projectId, excludeUserId = null }) {
         if (projRows.length === 0) return;
         const projectName = projRows[0].name;
         const creatorId = projRows[0].created_by;
+
+        // ดึงงานที่เป็น Reviewing ตัวแรกถ้าไม่มี taskId ส่งมา
+        let reviewingTaskId = taskId;
+        if (!reviewingTaskId) {
+            const [revTasks] = await db.query(
+                "SELECT id FROM tasks WHERE project_id = ? AND (status = 'Reviewing' OR status = 'Review') AND deleted_at IS NULL LIMIT 1",
+                [projectId]
+            );
+            if (revTasks.length > 0) {
+                reviewingTaskId = revTasks[0].id;
+            }
+        }
 
         const targetUserIds = new Set();
 
@@ -644,7 +729,9 @@ async function notifyProjectReviewing({ db, projectId, excludeUserId = null }) {
         const title = 'โปรเจกต์รอตรวจสอบ';
         const message = `โปรเจกต์ "${projectName}" มีสถานะเป็น Reviewing (รอตรวจสอบ)`;
         const type = 'project';
-        const link = `/Projects?projectId=${projectId}`;
+        const link = reviewingTaskId 
+            ? `/Projects?projectId=${projectId}&taskId=${reviewingTaskId}` 
+            : `/Projects?projectId=${projectId}`;
 
         for (const uid of targetUserIds) {
             // ป้องกันการยิงแจ้งเตือนซ้ำซ้อนในเวลาไล่เลี่ยกัน (ภายใน 1 นาที)
@@ -655,9 +742,9 @@ async function notifyProjectReviewing({ db, projectId, excludeUserId = null }) {
             );
             if (recentNotif.length === 0) {
                 await db.query(
-                    `INSERT INTO notifications (user_id, title, message, type, link, is_read, read_status) 
-                     VALUES (?, ?, ?, ?, ?, 0, 0)`,
-                    [uid, title, message, type, link]
+                    `INSERT INTO notifications (user_id, task_id, title, message, type, link, is_read, read_status) 
+                     VALUES (?, ?, ?, ?, ?, ?, 0, 0)`,
+                    [uid, reviewingTaskId || null, title, message, type, link]
                 );
             }
         }
@@ -666,18 +753,22 @@ async function notifyProjectReviewing({ db, projectId, excludeUserId = null }) {
     }
 }
 
-const checkAndUpdateProjectStatus = async (db, projectId, changedByUserId = null) => {
+/**
+ * คำนวณเปอร์เซ็นต์ความคืบหน้า (%) และอัปเดตสถานะของโปรเจกต์หลักอัตโนมัติตามงานย่อย
+ */
+const checkAndUpdateProjectStatus = async (db, projectId, changedByUserId = null, changedTaskId = null) => {
     if (!projectId) return;
     try {
         const [projRows] = await db.query("SELECT status FROM projects WHERE id = ? AND deleted_at IS NULL", [projectId]);
         const oldStatus = projRows[0]?.status;
 
         const [tasks] = await db.query(
-            "SELECT status FROM tasks WHERE project_id = ? AND deleted_at IS NULL",
+            "SELECT id, status FROM tasks WHERE project_id = ? AND deleted_at IS NULL",
             [projectId]
         );
         if (tasks.length > 0) {
-            const hasReviewing = tasks.some(t => t.status && (t.status.toLowerCase() === 'reviewing' || t.status.toLowerCase() === 'review'));
+            const reviewingTask = tasks.find(t => t.status && (t.status.toLowerCase() === 'reviewing' || t.status.toLowerCase() === 'review'));
+            const hasReviewing = Boolean(reviewingTask);
             const completedCount = tasks.filter(t => t.status && t.status.toLowerCase() === 'completed').length;
             const progress = Math.round((completedCount / tasks.length) * 100);
 
@@ -691,7 +782,12 @@ const checkAndUpdateProjectStatus = async (db, projectId, changedByUserId = null
             if (newStatus !== oldStatus) {
                 await db.query("UPDATE projects SET status = ? WHERE id = ?", [newStatus, projectId]);
                 if (newStatus === 'Reviewing') {
-                    await notifyProjectReviewing({ db, projectId, excludeUserId: changedByUserId });
+                    await notifyProjectReviewing({ 
+                        db, 
+                        projectId, 
+                        taskId: changedTaskId || reviewingTask?.id || null, 
+                        excludeUserId: changedByUserId 
+                    });
                 }
             }
         }
@@ -700,6 +796,9 @@ const checkAndUpdateProjectStatus = async (db, projectId, changedByUserId = null
     }
 };
 
+/**
+ * ดึงรายการโปรเจกต์ทั้งหมด พร้อมงานย่อย (Tasks), ผู้จัดการโปรเจกต์, หัวหน้าทีม และคำนวณ Progress
+ */
 export const getProjects = async (req, res) => {
     try {
         const db = await connectToDatabase();
@@ -757,6 +856,9 @@ export const getProjects = async (req, res) => {
     }
 };
 
+/**
+ * สร้างโปรเจกต์ใหม่ (บันทึกข้อมูล, มอบหมาย Team Leader, ส่ง Notification และส่ง Email)
+ */
 export const createProject = async (req, res) => {
     const { name, endDate, priority, teamLeaderId, createdBy } = req.body;
     try {
@@ -816,6 +918,9 @@ export const createProject = async (req, res) => {
     }
 };
 
+/**
+ * แก้ไขรายละเอียดโปรเจกต์ (ชื่อ, สถานะ, ความสำคัญ, วันครบกำหนด, Team Leader)
+ */
 export const updateProject = async (req, res) => {
     const { id } = req.params;
     const { name, status, priority, endDate, teamLeaderId, userId } = req.body;
@@ -897,6 +1002,9 @@ export const updateProject = async (req, res) => {
     }
 };
 
+/**
+ * ลบโปรเจกต์แบบ Soft-delete พร้อมทั้ง Soft-delete งานย่อยทั้งหมดที่สังกัดโปรเจกต์นี้
+ */
 export const deleteProject = async (req, res) => {
     const { id } = req.params;
     const { userId } = req.query;
@@ -916,6 +1024,9 @@ export const deleteProject = async (req, res) => {
     }
 };
 
+/**
+ * แปลงสตริงวันที่ให้อยู่ในรูปแบบ YYYY-MM-DD (รองรับปี พ.ศ. และรูปแบบวันที่หลากหลาย)
+ */
 const parseDueDate = (dateStr) => {
     if (!dateStr || dateStr === "-" || dateStr === "null" || dateStr === "undefined") return null;
     const str = String(dateStr).trim();
@@ -934,6 +1045,13 @@ const parseDueDate = (dateStr) => {
     return null;
 };
 
+/**
+ * สร้างงานใหม่ในโปรเจกต์ (Task)
+ * - บันทึกงานลงฐานข้อมูล
+ * - ส่ง In-App Notification ให้ผู้รับผิดชอบงาน, Team Leader, Creator
+ * - ส่ง Email แจ้งเตือนผู้รับผิดชอบ
+ * - บันทึก Task History และอัปเดตสถานะของโปรเจกต์
+ */
 export const createTask = async (req, res) => {
     const { projectId, title, description, taskType, priority, dueDate, assignedTo, createdBy } = req.body;
     if (!projectId || !title) {
@@ -1029,6 +1147,11 @@ export const createTask = async (req, res) => {
     }
 };
 
+/**
+ * อัปเดตสถานะงาน (Pending -> In Progress -> Reviewing -> Completed)
+ * - บันทึกประวัติลง task_history และ task_status_history
+ * - อัปเดตสถานะของโปรเจกต์หลัก และส่งการแจ้งเตือน
+ */
 export const updateTaskStatus = async (req, res) => {
     const { id } = req.params;
     const { status, userId } = req.body;
@@ -1070,6 +1193,9 @@ export const updateTaskStatus = async (req, res) => {
     }
 };
 
+/**
+ * แก้ไขรายละเอียดงาน (ชื่อ, รายละเอียด, ประเภทงาน, ความสำคัญ, วันกำหนดส่ง, ผู้รับผิดชอบ)
+ */
 export const updateTask = async (req, res) => {
     const { id } = req.params;
     const { title, description, taskType, priority, dueDate, assignedTo, projectId, status, userId } = req.body;
@@ -1159,6 +1285,9 @@ export const updateTask = async (req, res) => {
     }
 };
 
+/**
+ * ลบงานแบบ Soft-delete
+ */
 export const deleteTask = async (req, res) => {
     const { id } = req.params;
     const { userId } = req.query;
@@ -1180,6 +1309,9 @@ export const deleteTask = async (req, res) => {
     }
 };
 
+/**
+ * ดึงประวัติการแก้ไขงาน (Task History) เช่น การเปลี่ยนผู้รับผิดชอบ, แก้ไขรายละเอียด
+ */
 export const getTaskHistory = async (req, res) => {
     const { id } = req.params;
     try {
@@ -1227,6 +1359,9 @@ export const getTaskHistory = async (req, res) => {
     }
 };
 
+/**
+ * ดึงรายการความคิดเห็น (Comments) ทั้งหมดในงาน
+ */
 export const getTaskComments = async (req, res) => {
     const { id } = req.params;
     try {
@@ -1245,6 +1380,9 @@ export const getTaskComments = async (req, res) => {
     }
 };
 
+/**
+ * เพิ่มความคิดเห็นใหม่ลงในงาน พร้อมแจ้งเตือนสมาชิกในโปรเจกต์
+ */
 export const createTaskComment = async (req, res) => {
     const { id } = req.params;
     const { comment, userId } = req.body;
@@ -1279,6 +1417,9 @@ export const createTaskComment = async (req, res) => {
     }
 };
 
+/**
+ * ดึงรายการไฟล์แนบทั้งหมดของงาน
+ */
 export const getTaskFiles = async (req, res) => {
     const { id } = req.params;
     try {
@@ -1297,6 +1438,9 @@ export const getTaskFiles = async (req, res) => {
     }
 };
 
+/**
+ * อัปโหลดไฟล์แนบเข้าสู่งาน
+ */
 export const uploadTaskFile = async (req, res) => {
     const { id } = req.params;
     const { uploadedBy } = req.body;
@@ -1319,6 +1463,9 @@ export const uploadTaskFile = async (req, res) => {
     }
 };
 
+/**
+ * ดึง Timeline การเปลี่ยนสถานะงาน (Task Status History)
+ */
 export const getTaskStatusHistory = async (req, res) => {
     const { id } = req.params;
     try {
@@ -1337,8 +1484,13 @@ export const getTaskStatusHistory = async (req, res) => {
     }
 };
 
-// --- DASHBOARD & LOGS CONTROLLERS ---
+// ==========================================
+// 📊 DASHBOARD & LOGS CONTROLLERS (สถิติและประวัติการทำงาน)
+// ==========================================
 
+/**
+ * ดึงสถิติต่างๆ สำหรับแสดงผลหน้า Dashboard (จำนวนผู้ใช้, โปรเจกต์, งาน, งานที่เกินกำหนด)
+ */
 export const getDashboardStats = async (req, res) => {
     try {
         const db = await connectToDatabase();
@@ -1433,6 +1585,9 @@ export const getDashboardStats = async (req, res) => {
     }
 };
 
+/**
+ * ดึงประวัติกิจกรรมทั้งหมด (Activity Logs) สำหรับแสดงผลในระบบ
+ */
 export const getActivityLogs = async (req, res) => {
     try {
         const db = await connectToDatabase();
@@ -1465,8 +1620,13 @@ export const getActivityLogs = async (req, res) => {
     }
 };
 
-// --- OTP & RESET PASSWORD CONTROLLERS ---
+// ==========================================
+// 🔑 OTP & PASSWORD RESET CONTROLLERS (รีเซ็ตรหัสผ่าน)
+// ==========================================
 
+/**
+ * ส่งรหัส OTP (6 หลัก) ไปยังอีเมลของผู้ใช้เพื่อใช้รีเซ็ตรหัสผ่าน (มีอายุ 3 นาที)
+ */
 export const sendOtp = async (req, res) => {
     const { email } = req.body;
     try {
@@ -1505,6 +1665,9 @@ export const sendOtp = async (req, res) => {
     }
 };
 
+/**
+ * ตั้งรหัสผ่านใหม่โดยใช้รหัส OTP ที่ถูกต้องและยังไม่หมดอายุ
+ */
 export const resetPassword = async (req, res) => {
     const { email, password, otpCode } = req.body;
     try {
@@ -1545,6 +1708,9 @@ export const resetPassword = async (req, res) => {
     }
 };
 
+/**
+ * บังคับเปลี่ยนรหัสผ่านสำหรับการเข้าใช้งานระบบครั้งแรก (First Login)
+ */
 export const resetPasswordFirstTime = async (req, res) => {
     const { userId, password } = req.body;
     try {
@@ -1569,7 +1735,13 @@ export const resetPasswordFirstTime = async (req, res) => {
     }
 };
 
-// --- PERSONAL TASKS CONTROLLERS ---
+// ==========================================
+// 📌 PERSONAL TASKS CONTROLLERS (งานส่วนตัว / ปฏิทิน)
+// ==========================================
+
+/**
+ * ดึงรายการงานส่วนตัวทั้งหมดของผู้ใช้งาน (Personal Tasks)
+ */
 export const getPersonalTasks = async (req, res) => {
     const { userId } = req.query;
     try {
@@ -1589,6 +1761,9 @@ export const getPersonalTasks = async (req, res) => {
     }
 };
 
+/**
+ * สร้างงานส่วนตัวใหม่ (Personal Task)
+ */
 export const createPersonalTask = async (req, res) => {
     const { user_id, title, status, is_completed, task_date } = req.body;
     try {
@@ -1624,6 +1799,9 @@ export const createPersonalTask = async (req, res) => {
     }
 };
 
+/**
+ * แก้ไขงานส่วนตัว (ชื่องาน, สถานะ, กำหนดวัน, ลำดับตำแหน่ง)
+ */
 export const updatePersonalTask = async (req, res) => {
     const { id } = req.params;
     const { title, status, position, is_completed, task_date } = req.body;
@@ -1669,6 +1847,9 @@ export const updatePersonalTask = async (req, res) => {
     }
 };
 
+/**
+ * จัดเรียงลำดับงานส่วนตัวใหม่หลังการลากและวาง (Drag & Drop Reorder)
+ */
 export const reorderPersonalTasks = async (req, res) => {
     const { tasks } = req.body; // Array of { id, status, position }
     try {
@@ -1691,6 +1872,9 @@ export const reorderPersonalTasks = async (req, res) => {
     }
 };
 
+/**
+ * ลบงานส่วนตัวออกจากปฏิทินและระบบ
+ */
 export const deletePersonalTask = async (req, res) => {
     const { id } = req.params;
     try {

@@ -226,7 +226,12 @@ const ManageProjectPage = () => {
       {/* VIEW TASK DETAIL MODAL */}
       <ViewTaskModal
         showViewTaskModal={showViewTaskModal}
-        setShowViewTaskModal={setShowViewTaskModal}
+        setShowViewTaskModal={(val) => {
+          setShowViewTaskModal(val);
+          if (!val) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        }}
         selectedProject={selectedProject}
         setSelectedProject={setSelectedProject}
         selectedTask={selectedTask}

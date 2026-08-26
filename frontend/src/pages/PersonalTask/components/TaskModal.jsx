@@ -73,21 +73,23 @@ const TaskModal = ({
         `}</style>
 
         {/* Modal Header */}
-        <div 
+        <div
           className="flex items-center justify-between pb-4 mb-4"
           style={{ borderBottom: "1px solid #E2E8F0" }}
         >
           <div>
-            <h2 className="text-xl font-bold flex items-center gap-2" style={{ color: "#0F172A" }}>
-              <span>{initialData ? "✏️" : "✨"}</span>
+            <h2
+              className="text-xl font-bold flex items-center gap-2"
+              style={{ color: "#0F172A" }}
+            >
               <span>
                 {initialData
                   ? isThai
                     ? "แก้ไข Task"
                     : "Edit Task"
                   : isThai
-                  ? `เพิ่ม Task ใหม่ ${columnTitle ? `(${columnTitle})` : ""}`
-                  : `Add New Task ${columnTitle ? `(${columnTitle})` : ""}`}
+                    ? `เพิ่ม Task ใหม่ ${columnTitle ? `(${columnTitle})` : ""}`
+                    : `Add New Task ${columnTitle ? `(${columnTitle})` : ""}`}
               </span>
             </h2>
             <p className="text-xs mt-0.5" style={{ color: "#64748B" }}>
@@ -116,7 +118,10 @@ const TaskModal = ({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="space-y-4 overflow-visible">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "#334155" }}>
+            <label
+              className="block text-xs font-bold uppercase tracking-wider mb-1.5"
+              style={{ color: "#334155" }}
+            >
               {isThai ? "ชื่องาน" : "Task Title"}{" "}
               <span className="text-red-500">*</span>
             </label>
@@ -141,7 +146,10 @@ const TaskModal = ({
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "#334155" }}>
+            <label
+              className="block text-xs font-bold uppercase tracking-wider mb-1.5"
+              style={{ color: "#334155" }}
+            >
               {isThai ? "วันที่กำหนด" : "Due Date"}
             </label>
             <CustomDateInput
@@ -160,7 +168,7 @@ const TaskModal = ({
           </div>
 
           {/* Modal Actions */}
-          <div 
+          <div
             className="flex items-center justify-end gap-2.5 pt-4 mt-6"
             style={{ borderTop: "1px solid #E2E8F0" }}
           >
@@ -183,8 +191,8 @@ const TaskModal = ({
                   ? "บันทึกการแก้ไข"
                   : "Save Changes"
                 : isThai
-                ? "บันทึก"
-                : "Save"}
+                  ? "บันทึก"
+                  : "Save"}
             </button>
           </div>
         </form>

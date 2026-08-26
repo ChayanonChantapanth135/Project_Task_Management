@@ -96,12 +96,45 @@ const NotificationBell = () => {
 
       const titleAndMsg = `${item.title || ""} ${item.message || ""}`;
       const isTeamLeaderNotif = /Team Leader|หัวหน้าโปรเจกต์/i.test(titleAndMsg);
-      const isProjectNotif = item.type === "project" || isTeamLeaderNotif || /งานใหม่ในโปรเจกต์|New task in project|โปรเจกต์/i.test(titleAndMsg) || (targetLink && targetLink.startsWith("/Projects"));
-      const isTaskNotif = item.type === "task" || /New Task Assigned|งานใหม่ที่ได้รับมอบหมาย|ได้รับมอบหมายงานใหม่|Task Status Updated|อัปเดตสถานะงาน/i.test(titleAndMsg) || taskId;
+      const isProjectReviewingNotif = /Project Reviewing|โปรเจกต์รอตรวจสอบ|Reviewing|รอตรวจสอบ/i.test(titleAndMsg);
+      const isTaskStatusUpdatedNotif = /Task Status Updated|อัปเดตสถานะงาน/i.test(titleAndMsg) || (item.type === "task" && /สถานะ/i.test(titleAndMsg));
+      const isProjectNotif = item.type === "project" || isTeamLeaderNotif || isProjectReviewingNotif || /งานใหม่ในโปรเจกต์|New task in project|โปรเจกต์/i.test(titleAndMsg) || (targetLink && targetLink.startsWith("/Projects"));
+      const isTaskNotif = item.type === "task" || /New Task Assigned|งานใหม่ที่ได้รับมอบหมาย|ได้รับมอบหมายงานใหม่/i.test(titleAndMsg) || taskId;
 
       const timestamp = Date.now();
 
-      if (isTeamLeaderNotif || (isProjectNotif && !taskId)) {
+      if (isProjectReviewingNotif || isTaskStatusUpdatedNotif) {
+        // User requested: "Project Reviewing / Task Status Updated ให้ redirect ไปที่หน้าprojectแล้วเปิดproject detailแล้วเปิดtask detail"
+        let projId = item.project_id;
+        if (!projId && targetLink && targetLink.includes("projectId=")) {
+          const match = targetLink.match(/projectId=([^&]+)/);
+          if (match) projId = match[1];
+        }
+
+        let notifTaskId = taskId || item.task_id;
+        if (!notifTaskId && targetLink && targetLink.includes("taskId=")) {
+          const tMatch = targetLink.match(/taskId=([^&]+)/);
+          if (tMatch) notifTaskId = tMatch[1];
+        }
+
+        if (projId) {
+          targetLink = `/Projects?projectId=${projId}${notifTaskId ? `&taskId=${notifTaskId}` : ""}&_t=${timestamp}`;
+        } else if (targetLink && targetLink.startsWith("/Projects")) {
+          const separator = targetLink.includes("?") ? "&" : "?";
+          targetLink = `${targetLink}${separator}${notifTaskId ? `taskId=${notifTaskId}&` : ""}_t=${timestamp}`;
+        } else {
+          // Extract project and task from message
+          const matches = item.message?.match(/["“'`](.*?)["”'`]/g);
+          const taskName = matches && matches[0] ? matches[0].replace(/["“'"`]/g, "") : null;
+          const projName = matches && matches[1] ? matches[1].replace(/["“'"`]/g, "") : (matches && matches[0] ? matches[0].replace(/["“'"`]/g, "") : null);
+
+          if (projName) {
+            targetLink = `/Projects?openProjectName=${encodeURIComponent(projName.trim())}${notifTaskId ? `&taskId=${notifTaskId}` : (taskName && taskName !== projName) ? `&openTaskName=${encodeURIComponent(taskName.trim())}` : ""}&_t=${timestamp}`;
+          } else {
+            targetLink = `/Projects?${notifTaskId ? `taskId=${notifTaskId}&` : ""}_t=${timestamp}`;
+          }
+        }
+      } else if (isTeamLeaderNotif || (isProjectNotif && !taskId)) {
         if (targetLink && targetLink.startsWith("/Projects") && targetLink.includes("projectId=")) {
           const separator = targetLink.includes("?") ? "&" : "?";
           targetLink = `${targetLink}${separator}_t=${timestamp}`;

@@ -3,8 +3,11 @@ import React from "react";
 const AboutFeatures = ({ features, t }) => {
   return (
     <div className="mb-12">
-      <h2 className="text-xl md:text-2xl font-extrabold mb-6 flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
-        <span>✨</span> Core Platform Features
+      <h2
+        className="text-xl md:text-2xl font-extrabold mb-6 flex items-center gap-3"
+        style={{ color: "var(--text-primary)" }}
+      >
+        Core Platform Features
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {features.map((f, idx) => (
@@ -17,7 +20,7 @@ const AboutFeatures = ({ features, t }) => {
             }}
           >
             <div className="flex items-center justify-between mb-4">
-              <span 
+              <span
                 className="text-3xl p-3 rounded-xl group-hover:scale-110 transition-transform shadow-sm"
                 style={{
                   backgroundColor: "var(--bg-surface-hover)",
@@ -26,7 +29,7 @@ const AboutFeatures = ({ features, t }) => {
               >
                 {f.icon}
               </span>
-              <span 
+              <span
                 className="px-3 py-1 rounded-full text-[11px] font-bold shadow-sm"
                 style={{
                   backgroundColor: "var(--bg-surface-hover)",
@@ -37,10 +40,16 @@ const AboutFeatures = ({ features, t }) => {
                 {f.badge}
               </span>
             </div>
-            <h3 className="text-lg font-bold mb-2" style={{ color: "var(--text-primary)" }}>
+            <h3
+              className="text-lg font-bold mb-2"
+              style={{ color: "var(--text-primary)" }}
+            >
               {t(f.titleKey)}
             </h3>
-            <p className="text-xs md:text-sm leading-relaxed font-medium" style={{ color: "var(--text-secondary)" }}>
+            <p
+              className="text-xs md:text-sm leading-relaxed font-medium"
+              style={{ color: "var(--text-secondary)" }}
+            >
               {t(f.descKey)}
             </p>
           </div>

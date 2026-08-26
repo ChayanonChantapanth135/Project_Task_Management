@@ -423,7 +423,11 @@ export const useUserManagement = (t, language = "en") => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
-      link.setAttribute("download", `users_export_${Date.now()}.xlsx`);
+
+      // วันที่ปัจจุบันในรูปแบบ YYYY-MM-DD
+      const now = new Date();
+      const dateStr = now.toISOString().split("T")[0]; // e.g. 2026-08-25
+      link.setAttribute("download", `user_xport_${dateStr}.xlsx`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
