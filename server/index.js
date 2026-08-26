@@ -1,7 +1,9 @@
+import http from 'http'
 import express from 'express'
 import cors from 'cors'
 import authRoutes from './routes/authRoutes.js'
 import { initializeDatabase } from './lib/initDb.js'
+import { initSocket } from './lib/socket.js'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -10,6 +12,10 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const app = express()
+const server = http.createServer(app)
+
+// เริ่มต้นใช้งาน Socket.io บน HTTP Server
+initSocket(server)
 
 // เปิดใช้งาน CORS เพื่อให้แอปพลิเคชันฝั่ง Frontend สามารถยิง API ข้ามโดเมนได้
 app.use(cors())
@@ -28,9 +34,9 @@ initializeDatabase().catch(err => {
     console.error('Database initialization failed, proceeding anyway:', err.message)
 })
 
-// กำหนด Port และเริ่มต้นการทำงานของ Express Server
+// กำหนด Port และเริ่มต้นการทำงานของ Express Server พร้อม WebSockets
 const PORT = process.env.PORT || 3000
 const HOST = '0.0.0.0'
-app.listen(PORT, HOST, () => {
-    console.log(`Server is running on port ${PORT}`)
+server.listen(PORT, HOST, () => {
+    console.log(`Server is running on port ${PORT} with WebSocket support`)
 })

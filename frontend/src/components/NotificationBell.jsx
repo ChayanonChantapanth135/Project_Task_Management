@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../config";
 import { useLanguage } from "../lib/LanguageContext";
+import { getSocket } from "../lib/socket";
 
 /**
  * คอมโพเนนต์การแจ้งเตือนในระบบ (In-App Notification Bell & Panel)
@@ -17,12 +18,12 @@ const NotificationBell = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
 
-  const getAuthHeaders = () => {
+  const getAuthHeaders = useCallback(() => {
     const token = localStorage.getItem("userToken");
     return token ? { Authorization: `Bearer ${token}` } : {};
-  };
+  }, []);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     const token = localStorage.getItem("userToken");
     if (!token) return;
 
@@ -41,19 +42,48 @@ const NotificationBell = () => {
         localStorage.removeItem("userData");
         localStorage.removeItem("userTokenExpiresAt");
         window.dispatchEvent(new Event("authChanged"));
+        navigate("/login");
         return;
       }
       console.error("Failed to fetch notifications:", error);
     }
-  };
+  }, [getAuthHeaders, navigate]);
 
   useEffect(() => {
+    // โหลดแจ้งเตือนตอนเริ่มต้น
     fetchNotifications();
 
-    // Polling ทุกๆ 15 วินาที
-    const interval = setInterval(fetchNotifications, 15000);
-    return () => clearInterval(interval);
-  }, []);
+    // ฟัง Event เมื่อสถานะ Login มีการเปลี่ยนแปลง
+    const handleAuthChanged = () => {
+      fetchNotifications();
+    };
+    window.addEventListener("authChanged", handleAuthChanged);
+
+    // เชื่อมต่อ WebSockets (Socket.io) เพื่อรับแจ้งเตือนแบบ Real-time Push
+    const socket = getSocket();
+
+    const handleNewNotification = (newNotif) => {
+      if (!newNotif) return;
+      setNotifications((prev) => {
+        // ป้องกันแจ้งเตือนซ้ำ ID
+        if (newNotif.id && prev.some((n) => n.id === newNotif.id)) {
+          return prev;
+        }
+        return [newNotif, ...prev];
+      });
+      setUnreadCount((prev) => prev + 1);
+
+      // Dispatch event แจ้งเตือนคอมโพเนนต์อื่น เช่น Dashboard หรือ MyTasks
+      window.dispatchEvent(new Event("notificationReceived"));
+    };
+
+    socket.on("notification:new", handleNewNotification);
+
+    return () => {
+      window.removeEventListener("authChanged", handleAuthChanged);
+      socket.off("notification:new", handleNewNotification);
+    };
+  }, [fetchNotifications]);
 
   // ปิด Popover เมื่อคลิกภายนอก
   useEffect(() => {

@@ -24,7 +24,10 @@ const AddTaskModal = ({
       <Modal.Body className="p-4" style={{ borderRadius: "1rem" }}>
         <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
           <h5 className="fw-bold mb-0 d-flex align-items-center gap-1.5">
-            <ion-icon name="add-circle-outline" style={{ fontSize: "20px" }}></ion-icon>
+            <ion-icon
+              name="add-circle-outline"
+              style={{ fontSize: "20px" }}
+            ></ion-icon>
             <span>{t("createTaskTitle")}</span>
           </h5>
           <button
@@ -96,7 +99,8 @@ const AddTaskModal = ({
           {taskFormData.taskType === "อื่นๆ" && (
             <div className="mb-3">
               <label className="form-label small fw-bold">
-                {t("customTaskTypeLabel")} <span className="text-danger">*</span>
+                {t("customTaskTypeLabel")}{" "}
+                <span className="text-danger">*</span>
               </label>
               <input
                 type="text"
@@ -187,7 +191,14 @@ const AddTaskModal = ({
                   assignedTo: e.target.value,
                 }))
               }
-              allowedRoles={["manager", "project_manager", "storyboard", "animation", "designer", "programmer"]}
+              allowedRoles={[
+                "manager",
+                "project_manager",
+                "storyboard",
+                "animation",
+                "designer",
+                "programmer",
+              ]}
               placeholder={`-- ${t("selectAssignee")} --`}
               required
             />
@@ -196,7 +207,7 @@ const AddTaskModal = ({
           <div className="d-flex justify-content-end gap-2 pt-3 border-top mt-4">
             <button
               type="button"
-              className="btn btn-outline-danger px-4 py-2 rounded-lg"
+              className="btn btn-danger px-4 py-2 rounded-lg"
               onClick={() => setShowAddTaskModal(false)}
             >
               {t("cancelBtn")}

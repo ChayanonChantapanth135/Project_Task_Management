@@ -1,4 +1,5 @@
 import { connectToDatabase } from '../lib/db.js';
+import { emitNotificationToUser } from '../lib/socket.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
@@ -154,11 +155,21 @@ async function notifyProjectMembers({ db, projectId, taskId = null, title, messa
     }
 
     for (const targetUserId of memberIds) {
-      await db.query(
+      const [insertRes] = await db.query(
         `INSERT INTO notifications (user_id, task_id, title, message, type, link, is_read, read_status) 
          VALUES (?, ?, ?, ?, ?, ?, 0, 0)`,
         [targetUserId, taskId || null, title, message, type, link]
       );
+      emitNotificationToUser(targetUserId, {
+        id: insertRes.insertId,
+        user_id: targetUserId,
+        task_id: taskId || null,
+        project_id: projectId || null,
+        title,
+        message,
+        type,
+        link,
+      });
     }
   } catch (error) {
     console.error("Error notifying project members:", error.message);
@@ -741,11 +752,21 @@ async function notifyProjectReviewing({ db, projectId, taskId = null, excludeUse
                 [uid, title, message]
             );
             if (recentNotif.length === 0) {
-                await db.query(
+                const [insertRes] = await db.query(
                     `INSERT INTO notifications (user_id, task_id, title, message, type, link, is_read, read_status) 
                      VALUES (?, ?, ?, ?, ?, ?, 0, 0)`,
                     [uid, reviewingTaskId || null, title, message, type, link]
                 );
+                emitNotificationToUser(uid, {
+                    id: insertRes.insertId,
+                    user_id: uid,
+                    task_id: reviewingTaskId || null,
+                    project_id: projectId,
+                    title,
+                    message,
+                    type,
+                    link,
+                });
             }
         }
     } catch (err) {
@@ -874,16 +895,23 @@ export const createProject = async (req, res) => {
 
             // Create in-app notification for Team Leader
             try {
-                await db.query(
+                const title = 'คุณได้รับมอบหมายเป็น Team Leader';
+                const message = `คุณได้รับมอบหมายให้เป็นหัวหน้าโปรเจกต์ "${name}"`;
+                const link = `/Projects?projectId=${projectId}`;
+                const [insertRes] = await db.query(
                     `INSERT INTO notifications (user_id, title, message, type, link, is_read, read_status) 
                      VALUES (?, ?, ?, 'project', ?, 0, 0)`,
-                    [
-                        teamLeaderId,
-                        'คุณได้รับมอบหมายเป็น Team Leader',
-                        `คุณได้รับมอบหมายให้เป็นหัวหน้าโปรเจกต์ "${name}"`,
-                        `/Projects?projectId=${projectId}`
-                    ]
+                    [teamLeaderId, title, message, link]
                 );
+                emitNotificationToUser(teamLeaderId, {
+                    id: insertRes.insertId,
+                    user_id: teamLeaderId,
+                    project_id: projectId,
+                    title,
+                    message,
+                    type: 'project',
+                    link,
+                });
             } catch (notifErr) {
                 console.error("[Team Leader In-App Notification Error]", notifErr.message);
             }
@@ -943,16 +971,23 @@ export const updateProject = async (req, res) => {
             // If a new Team Leader is assigned (or changed)
             if (Number(teamLeaderId) !== Number(oldTeamLeaderId)) {
                 try {
-                    await db.query(
+                    const title = 'คุณได้รับมอบหมายเป็น Team Leader';
+                    const message = `คุณได้รับมอบหมายให้เป็นหัวหน้าโปรเจกต์ "${name}"`;
+                    const link = `/Projects?projectId=${id}`;
+                    const [insertRes] = await db.query(
                         `INSERT INTO notifications (user_id, title, message, type, link, is_read, read_status) 
                          VALUES (?, ?, ?, 'project', ?, 0, 0)`,
-                        [
-                            teamLeaderId,
-                            'คุณได้รับมอบหมายเป็น Team Leader',
-                            `คุณได้รับมอบหมายให้เป็นหัวหน้าโปรเจกต์ "${name}"`,
-                            `/Projects?projectId=${id}`
-                        ]
+                        [teamLeaderId, title, message, link]
                     );
+                    emitNotificationToUser(teamLeaderId, {
+                        id: insertRes.insertId,
+                        user_id: teamLeaderId,
+                        project_id: id,
+                        title,
+                        message,
+                        type: 'project',
+                        link,
+                    });
                 } catch (tlNotifErr) {
                     console.error("[Team Leader In-App Notif Error on Edit]", tlNotifErr.message);
                 }
@@ -1072,11 +1107,23 @@ export const createTask = async (req, res) => {
 
         // In-app notification specifically for the assigned user
         if (assignedTo && Number(assignedTo) !== Number(createdBy)) {
+            const assignTitle = 'ได้รับมอบหมายงานใหม่';
             const assignMsg = `คุณได้รับมอบหมายงานใหม่: "${title}" ในโปรเจกต์ "${projectName}"`;
-            await db.query(
+            const assignLink = '/MyTasks';
+            const [insertRes] = await db.query(
                 "INSERT INTO notifications (user_id, task_id, title, message, type, link, is_read, read_status) VALUES (?, ?, ?, ?, ?, ?, 0, 0)",
-                [Number(assignedTo), taskId, 'ได้รับมอบหมายงานใหม่', assignMsg, 'task', '/MyTasks']
+                [Number(assignedTo), taskId, assignTitle, assignMsg, 'task', assignLink]
             );
+            emitNotificationToUser(Number(assignedTo), {
+                id: insertRes.insertId,
+                user_id: Number(assignedTo),
+                task_id: taskId,
+                project_id: projectId,
+                title: assignTitle,
+                message: assignMsg,
+                type: 'task',
+                link: assignLink,
+            });
         }
 
         // Notify Project Creator & Team Leaders about the new task (excluding the person who created it and the assignee who got dedicated notification)
@@ -1089,10 +1136,23 @@ export const createTask = async (req, res) => {
         if (assignedTo) leadersToNotify.delete(Number(assignedTo));
 
         for (const leaderId of leadersToNotify) {
-            await db.query(
+            const leaderTitle = 'งานใหม่ในโปรเจกต์';
+            const leaderMsg = `มีงานใหม่ "${title}" ในโปรเจกต์ "${projectName}"`;
+            const leaderLink = `/Projects?projectId=${projectId}`;
+            const [insertRes] = await db.query(
                 "INSERT INTO notifications (user_id, task_id, title, message, type, link, is_read, read_status) VALUES (?, ?, ?, ?, ?, ?, 0, 0)",
-                [leaderId, taskId, 'งานใหม่ในโปรเจกต์', `มีงานใหม่ "${title}" ในโปรเจกต์ "${projectName}"`, 'project', `/Projects?projectId=${projectId}`]
+                [leaderId, taskId, leaderTitle, leaderMsg, 'project', leaderLink]
             );
+            emitNotificationToUser(leaderId, {
+                id: insertRes.insertId,
+                user_id: leaderId,
+                task_id: taskId,
+                project_id: projectId,
+                title: leaderTitle,
+                message: leaderMsg,
+                type: 'project',
+                link: leaderLink,
+            });
         }
 
         await db.query(
@@ -1269,11 +1329,23 @@ export const updateTask = async (req, res) => {
         if (assignedTo && Number(assignedTo) !== Number(oldAssignee) && Number(assignedTo) !== Number(userId)) {
             const [projRows] = await db.query('SELECT name FROM projects WHERE id = ?', [projectId || oldTask.project_id]);
             const projectName = projRows[0]?.name || `ID ${projectId || oldTask.project_id}`;
+            const notifTitle = 'ได้รับมอบหมายงานใหม่';
             const notifMessage = `คุณได้รับมอบหมายงานใหม่: "${title}" ในโปรเจกต์ "${projectName}"`;
-            await db.query(
+            const notifLink = '/MyTasks';
+            const [insertRes] = await db.query(
                 "INSERT INTO notifications (user_id, task_id, title, message, type, link, is_read, read_status) VALUES (?, ?, ?, ?, ?, ?, 0, 0)",
-                [Number(assignedTo), id, 'ได้รับมอบหมายงานใหม่', notifMessage, 'task', '/MyTasks']
+                [Number(assignedTo), id, notifTitle, notifMessage, 'task', notifLink]
             );
+            emitNotificationToUser(Number(assignedTo), {
+                id: insertRes.insertId,
+                user_id: Number(assignedTo),
+                task_id: id,
+                project_id: projectId || oldTask.project_id,
+                title: notifTitle,
+                message: notifMessage,
+                type: 'task',
+                link: notifLink,
+            });
         }
 
         await checkAndUpdateProjectStatus(db, projectId || oldTask.project_id);

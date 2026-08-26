@@ -60,10 +60,10 @@
 - **Core**: React 19, Vite, React Router DOM v7
 - **Architecture**: Custom Hooks Pattern (`useDashboard`, `usePersonalTasks`, `useMyTasks`, `useProjectManagement`, etc.)
 - **Styling & UI**: Tailwind CSS v4, Vanilla CSS (Glassmorphism & Neon Glow Tokens), GSAP (GreenSock Animation Platform), Framer Motion
-- **Libraries & Plugins**: `@fullcalendar/react`, `@hello-pangea/dnd`, `sweetalert2`, `exceljs`, `xlsx`, `axios`
+- **Libraries & Plugins**: `@fullcalendar/react`, `@hello-pangea/dnd`, `sweetalert2`, `exceljs`, `xlsx`, `axios`, `socket.io-client`
 
 ### **Backend**
-- **Runtime & Framework**: Node.js, Express.js (ES Modules)
+- **Runtime & Framework**: Node.js, Express.js (ES Modules), WebSockets (`socket.io`)
 - **Database Driver**: `mysql2/promise` (Connection Pooling พร้อม `dateStrings: true`)
 - **Security & Utilities**: `bcrypt`, `jsonwebtoken`, `nodemailer`, `multer`
 - **Database Optimization**: Auto-migration พร้อม Composite Indexing (`notifications`, `activity_logs`, `tasks`, `projects`, `personal_tasks`, `otp_requests`)

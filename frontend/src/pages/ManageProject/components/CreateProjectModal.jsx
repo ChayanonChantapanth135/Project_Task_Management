@@ -26,7 +26,10 @@ const CreateProjectModal = ({
       <Modal.Body className="p-4" style={{ borderRadius: "1rem" }}>
         <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
           <h5 className="fw-bold mb-0 d-flex align-items-center gap-1.5">
-            <ion-icon name="folder-open-outline" style={{ fontSize: "20px" }}></ion-icon>
+            <ion-icon
+              name="folder-open-outline"
+              style={{ fontSize: "20px" }}
+            ></ion-icon>
             <span>{t("createProjectTitle")}</span>
           </h5>
           <button
@@ -81,7 +84,8 @@ const CreateProjectModal = ({
           </div>
           <div className="mb-3">
             <label className="form-label small fw-bold">
-              {t("modalProjectTeamLeader")} <span className="text-danger">*</span>
+              {t("modalProjectTeamLeader")}{" "}
+              <span className="text-danger">*</span>
             </label>
             <SearchableUserSelect
               users={userList}
@@ -93,7 +97,14 @@ const CreateProjectModal = ({
                   teamLeaderId: e.target.value,
                 }))
               }
-              allowedRoles={["manager", "project_manager", "storyboard", "animation", "designer", "programmer"]}
+              allowedRoles={[
+                "manager",
+                "project_manager",
+                "storyboard",
+                "animation",
+                "designer",
+                "programmer",
+              ]}
               placeholder={`-- ${t("modalProjectTeamLeader")} --`}
               required
             />
@@ -101,7 +112,7 @@ const CreateProjectModal = ({
           <div className="d-flex justify-content-end gap-2 pt-3 border-top mt-4">
             <button
               type="button"
-              className="btn btn-outline-danger px-4 py-2 rounded-lg"
+              className="btn btn-danger px-4 py-2 rounded-lg"
               onClick={() => setShowCreateModal(false)}
             >
               {t("cancelBtn")}

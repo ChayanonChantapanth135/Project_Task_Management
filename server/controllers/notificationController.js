@@ -1,4 +1,5 @@
 import { connectToDatabase } from '../lib/db.js'
+import { emitNotificationToUser } from '../lib/socket.js'
 
 /**
  * ดึงรายการการแจ้งเตือนของผู้ใช้ที่ล็อกอินอยู่
@@ -136,9 +137,19 @@ export const markAsRead = async (req, res) => {
                   for (const uid of targetIds) {
                     const title = 'โปรเจกต์รอตรวจสอบ';
                     const message = `โปรเจกต์ "${pName}" มีสถานะเป็น Reviewing (รอตรวจสอบ)`;
+                    const link = `/Projects?projectId=${pId}`;
                     const [recent] = await connection.query("SELECT id FROM notifications WHERE user_id = ? AND title = ? AND message = ? AND created_at >= NOW() - INTERVAL 1 MINUTE", [uid, title, message]);
                     if (recent.length === 0) {
-                      await connection.query("INSERT INTO notifications (user_id, title, message, type, link, is_read, read_status) VALUES (?, ?, ?, 'project', ?, 0, 0)", [uid, title, message, `/Projects?projectId=${pId}`]);
+                      const [insertResult] = await connection.query("INSERT INTO notifications (user_id, title, message, type, link, is_read, read_status) VALUES (?, ?, ?, 'project', ?, 0, 0)", [uid, title, message, link]);
+                      emitNotificationToUser(uid, {
+                        id: insertResult.insertId,
+                        user_id: uid,
+                        title,
+                        message,
+                        type: 'project',
+                        link,
+                        project_id: pId
+                      });
                     }
                   }
                 } catch (notifErr) {
@@ -284,16 +295,29 @@ export const clearAllNotifications = async (req, res) => {
 /**
  * Helper function สำหรับสร้างการแจ้งเตือนในระบบ (สำหรับเรียกใช้ใน backend controllers)
  */
-export const createNotificationHelper = async ({ userId, title, message, type = 'system', link = null }) => {
+export const createNotificationHelper = async ({ userId, title, message, type = 'system', link = null, taskId = null, projectId = null }) => {
   try {
     if (!userId || !message) return null;
     const db = await connectToDatabase();
     const [result] = await db.query(
-      `INSERT INTO notifications (user_id, title, message, type, link, is_read, read_status) 
-       VALUES (?, ?, ?, ?, ?, 0, 0)`,
-      [userId, title || 'System Notification', message, type, link]
+      `INSERT INTO notifications (user_id, task_id, title, message, type, link, is_read, read_status) 
+       VALUES (?, ?, ?, ?, ?, ?, 0, 0)`,
+      [userId, taskId || null, title || 'System Notification', message, type, link]
     );
-    return result.insertId;
+
+    const newNotifId = result.insertId;
+    emitNotificationToUser(userId, {
+      id: newNotifId,
+      user_id: userId,
+      task_id: taskId || null,
+      project_id: projectId || null,
+      title: title || 'System Notification',
+      message,
+      type,
+      link,
+    });
+
+    return newNotifId;
   } catch (error) {
     console.error('Error in createNotificationHelper:', error);
     return null;
