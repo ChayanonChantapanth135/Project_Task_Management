@@ -1,60 +1,60 @@
-# 🚀 Enterprise Project & Task Management System (RNM AUTH)
+# Enterprise Project & Task Management System (RNM AUTH)
 
 ระบบบริหารจัดการโครงการและติดตามภารกิจในทีมแบบครบวงจร ออกแบบด้วยสถาปัตยกรรม **Modern Modular Frontend & RESTful Backend** บนธีม **Dark Luxe Glassmorphism** ที่ทันสมัย ลื่นไหล และปลอดภัย พร้อมระบบคำนวณความคืบหน้าอัตโนมัติ การจัดการสิทธิ์ผู้ใช้งานตามบทบาท (RBAC) ปฏิทินกำหนดส่งงานแบบสองทิศทาง (Bidirectional Drag & Drop) และระบบ Personal Kanban Board
 
 ---
 
-## 🌟 ฟีเจอร์หลักของระบบ (Key Features)
+## ฟีเจอร์หลักของระบบ (Key Features)
 
-### 🔐 1. ระบบยืนยันตัวตนและความปลอดภัย (Authentication & Security)
+### 1. ระบบยืนยันตัวตนและความปลอดภัย (Authentication & Security)
 - **JWT & bcrypt Authentication**: ล็อกอินปลอดภัย เข้ารหัสรหัสผ่านด้วย `bcrypt` และออก Session Token ด้วย `jsonwebtoken`
 - **OTP Email Verification & Password Reset**: ระบบกู้คืนรหัสผ่านด้วยรหัส OTP 6 หลัก ส่งผ่าน SMTP (`nodemailer`)
 - **First-Time Password Change**: บังคับให้ผู้ใช้งานเปลี่ยนรหัสผ่านทันทีเมื่อเข้าสู่ระบบครั้งแรกเพื่อความปลอดภัย
 - **User Suspension Control**: ผู้ดูแลระบบสามารถสั่งระงับ (Suspend) หรือเปิดใช้งานผู้ใช้ได้ทันที
 
-### 👥 2. การจัดการผู้ใช้และสิทธิ์การเข้าถึง (User & RBAC Management)
+### 2. การจัดการผู้ใช้และสิทธิ์การเข้าถึง (User & RBAC Management)
 - **ระบบสิทธิ์ตามบทบาทหน้าที่ (Role-Based Access Control)**:
-  1. 🔑 **Admin** (`admin`) - สิทธิ์สูงสุด จัดการผู้ใช้งาน โครงการ งานทั้งหมด และดูรายงานสถิติระดับบริหาร
-  2. 💼 **Project Manager** (`manager`) - สร้างและบริหารโครงการ มอบหมาย Team Leader และติดตามงานในความดูแล
-  3. 🎨 **Storyboard** (`storyboard`) - ผู้สร้างสตอรี่บอร์ด วางแผนภาพ และดำเนินงานที่ได้รับมอบหมาย
-  4. 🎬 **Animation** (`animation`) - แอนิเมเตอร์และโมชันดีไซเนอร์ ดำเนินงานด้านการเคลื่อนไหว
-  5. 🖌️ **Designer** (`designer`) - กราฟิกและ UI/UX ดีไซเนอร์ ออกแบบชิ้นงานตามที่ได้รับมอบหมาย
-  6. 💻 **Programmer** (`programmer`) - นักพัฒนาซอฟต์แวร์ ดำเนินงานด้านระบบและเขียนโปรแกรม
-  *(หมายเหตุ: ทุกบทบาทสามารถได้รับมอบหมายให้เป็น 👑 **Team Leader** ของแต่ละโครงการเพื่อดูแลโครงการและแจกจ่ายงานในทีมได้)*
+  1.  **Admin** (`admin`) - สิทธิ์สูงสุด จัดการผู้ใช้งาน โครงการ งานทั้งหมด และดูรายงานสถิติระดับบริหาร
+  2.  **Project Manager** (`manager`) - สร้างและบริหารโครงการ มอบหมาย Team Leader และติดตามงานในความดูแล
+  3.  **Storyboard** (`storyboard`) - ผู้สร้างสตอรี่บอร์ด วางแผนภาพ และดำเนินงานที่ได้รับมอบหมาย
+  4.  **Animation** (`animation`) - แอนิเมเตอร์และโมชันดีไซเนอร์ ดำเนินงานด้านการเคลื่อนไหว
+  5.  **Designer** (`designer`) - กราฟิกและ UI/UX ดีไซเนอร์ ออกแบบชิ้นงานตามที่ได้รับมอบหมาย
+  6.  **Programmer** (`programmer`) - นักพัฒนาซอฟต์แวร์ ดำเนินงานด้านระบบและเขียนโปรแกรม
+  *(หมายเหตุ: ทุกบทบาทสามารถได้รับมอบหมายให้เป็น  **Team Leader** ของแต่ละโครงการเพื่อดูแลโครงการและแจกจ่ายงานในทีมได้)*
 - **Excel Import / Export**: นำเข้าผู้ใช้งานด้วยไฟล์ Excel (`.xlsx`) และ Export รายชื่อพร้อมระบบค้นหาและกรองข้อมูล
 - **Profile Management**: อัปโหลดเปลี่ยนรูปโปรไฟล์ (Multer Storage) แก้ไขเบอร์โทรศัพท์ และเปลี่ยนรหัสผ่าน
 
-### 📁 3. การบริหารโครงการ (Project Management)
+###  3. การบริหารโครงการ (Project Management)
 - **Smart Progress & Status Automation**:
   - คำนวณเปอร์เซ็นต์ความคืบหน้า (Progress 0-100%) อัตโนมัติจาก Task ที่เสร็จสิ้น
   - **Auto In-Progress**: เปลี่ยนสถานะโครงการเป็น `In Progress` ทันทีที่มีการสร้างงานในโครงการ
   - **Auto Complete**: ปรับสถานะโครงการเป็น `Completed` อัตโนมัติเมื่อ Task ในโครงการเสร็จครบ 100%
 - **Team Leader Assignment**: มอบหมายหัวหน้าทีมผู้รับผิดชอบโครงการ พร้อมระบุกำหนดวันส่ง (End Date) และระดับความสำคัญ (Priority)
 
-### 📋 4. การจัดการงานในโครงการ (Project Tasks)
+###  4. การจัดการงานในโครงการ (Project Tasks)
 - **Task Assignment & Priority**: สร้างงาน มอบหมายผู้รับผิดชอบ ระบุประเภทงาน (เช่น งานแปล, งานตัดต่อ) และระดับความสำคัญ (High, Medium, Low)
 - **Flexible Localized Date Picker**: ปฏิทินและกล่องเลือกวันที่รองรับรูปแบบ วัน/เดือน/ปี (`DD/MM/YYYY`) ปลอดภัยจากปัญหา Timezone
 - **Status History Timeline**: บันทึกประวัติการเปลี่ยนสถานะงานอย่างละเอียด ย้อนดูได้ว่าใครเป็นผู้เปลี่ยนสถานะและเวลาใด
 - **Comments & File Attachments**: แสดงความคิดเห็นแบบเรียลไทม์ และอัปโหลดไฟล์แนบประกอบงาน
 
-### 📌 5. ระบบงานส่วนตัว (Personal Tasks - Kanban & Calendar)
+###  5. ระบบงานส่วนตัว (Personal Tasks - Kanban & Calendar)
 - **Kanban Board Drag & Drop**: จัดการงานส่วนตัวด้วยบอร์ดลากวางสถานะ `To Do`, `In Progress`, `Completed` พร้อมบันทึกลำดับ (Position) ลงฐานข้อมูล
 - **Interactive Calendar with Bidirectional Tray**: 
   - ลากงานจากถาดงานค้างด้านล่างขึ้นปฏิทินเพื่อกำหนดวันส่ง (`task_date`)
   - ลากงานจากปฏิทินลงถาดด้านล่างเพื่อยกเลิกวันกำหนดส่ง (Unschedule) ได้ทันที
   - ปรับแต่งการเรนเดอร์ด้วย GPU Acceleration (`will-change`) เพื่อความลื่นไหลสูงสุด
 
-### 📊 6. แดชบอร์ดและรายงานวิเคราะห์ (Dashboard & Analytics Reports)
+###  6. แดชบอร์ดและรายงานวิเคราะห์ (Dashboard & Analytics Reports)
 - **Role-Based Dynamic Dashboard**: แดชบอร์ดสรุปยอดงาน งานเกินกำหนด (Overdue) และปฏิทินภาพรวมตามบทบาทผู้ใช้
 - **Executive & Team Performance Reports**: หน้าสรุปรายงานประสิทธิภาพการส่งงาน กราฟสัดส่วนงาน และอัตราความสำเร็จ (Completion Rate)
 - **Activity Logs**: ระบบบันทึกประวัติการใช้งานทุกการเปลี่ยนแปลง (Audit Trail)
 
-### 🌐 7. ระบบหลายภาษา (Internationalization - i18n)
+###  7. ระบบหลายภาษา (Internationalization - i18n)
 - รองรับการสลับภาษาทั้ง **ภาษาไทย (TH)** และ **ภาษาอังกฤษ (EN)** ครอบคลุมทุกหน้า ทุก Modal และข้อความแจ้งเตือน โดยรวมศูนย์คำแปลไว้ที่ `LanguageContext.jsx`
 
 ---
 
-## 🛠️ เทคโนโลยีที่ใช้ (Tech Stack)
+##  เทคโนโลยีที่ใช้ (Tech Stack)
 
 ### **Frontend**
 - **Core**: React 19, Vite, React Router DOM v7
@@ -73,7 +73,7 @@
 
 ---
 
-## 📁 โครงสร้างโฟลเดอร์ของโปรเจกต์ (Project Structure)
+##  โครงสร้างโฟลเดอร์ของโปรเจกต์ (Project Structure)
 
 ```text
 RNM AUTH/
@@ -125,7 +125,7 @@ RNM AUTH/
 
 ---
 
-## ⚡ วิธีการติดตั้งและรันระบบ (Getting Started)
+##  วิธีการติดตั้งและรันระบบ (Getting Started)
 
 ### 1. ความต้องการของระบบ (Prerequisites)
 - **Node.js**: เวอร์ชัน 18.0.0 ขึ้นไป
@@ -176,7 +176,7 @@ npm run dev
 
 ---
 
-## 🔌 สรุป API Endpoints ที่สำคัญ
+##  สรุป API Endpoints ที่สำคัญ
 
 | Method | Endpoint | คำอธิบาย |
 | :--- | :--- | :--- |
