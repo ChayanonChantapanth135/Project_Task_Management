@@ -5,6 +5,7 @@ import SearchableUserSelect from "../../../components/SearchableUserSelect";
 import CustomDateInput from "../../../components/CustomDateInput";
 import { useLanguage } from "../../../lib/LanguageContext";
 import { formatDateTime, formatDate } from "../../../lib/dateUtils";
+import { getSocket } from "../../../lib/socket";
 
 const TaskDetailModal = ({
   showViewModal,
@@ -73,6 +74,66 @@ const TaskDetailModal = ({
       console.error("Error fetching status history:", err);
     }
   };
+
+  // Socket.io Real-time listener for comments, files, and status updates in this modal
+  useEffect(() => {
+    if (!showViewModal || !selectedTask) return;
+
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleNewComment = (payload) => {
+      if (Number(payload.taskId) === Number(selectedTask.id)) {
+        fetchComments();
+      }
+    };
+
+    const handleNewFile = (payload) => {
+      if (Number(payload.taskId) === Number(selectedTask.id)) {
+        fetchFiles();
+      }
+    };
+
+    const handleStatusUpdated = (payload) => {
+      if (Number(payload.taskId) === Number(selectedTask.id)) {
+        if (payload.status) {
+          setTempStatus(payload.status);
+          setFormData((prev) => ({ ...prev, status: payload.status }));
+        }
+        fetchStatusHistory();
+      }
+    };
+
+    const handleTaskUpdated = (payload) => {
+      if (Number(payload.taskId) === Number(selectedTask.id)) {
+        if (payload.status) {
+          setTempStatus(payload.status);
+          setFormData((prev) => ({
+            ...prev,
+            status: payload.status,
+            title: payload.title || prev.title,
+            description: payload.description !== undefined ? payload.description : prev.description,
+            priority: payload.priority || prev.priority,
+            dueDate: payload.dueDate || prev.dueDate,
+            assignedTo: payload.assignedTo || prev.assignedTo,
+          }));
+        }
+        fetchStatusHistory();
+      }
+    };
+
+    socket.on("task:comment:new", handleNewComment);
+    socket.on("task:file:new", handleNewFile);
+    socket.on("task:status:updated", handleStatusUpdated);
+    socket.on("task:updated", handleTaskUpdated);
+
+    return () => {
+      socket.off("task:comment:new", handleNewComment);
+      socket.off("task:file:new", handleNewFile);
+      socket.off("task:status:updated", handleStatusUpdated);
+      socket.off("task:updated", handleTaskUpdated);
+    };
+  }, [showViewModal, selectedTask]);
 
   useEffect(() => {
     if (selectedTask) {
@@ -151,6 +212,9 @@ const TaskDetailModal = ({
           "Content-Type": "multipart/form-data",
         },
       });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       fetchFiles();
     } catch (err) {
       console.error("Error uploading file:", err);

@@ -182,6 +182,7 @@ const ManageProjectPage = () => {
           }
         }}
         selectedProject={selectedProject}
+        setSelectedProject={setSelectedProject}
         setSelectedTask={setSelectedTask}
         setTempStatus={setTempStatus}
         setShowViewTaskModal={setShowViewTaskModal}

@@ -28,7 +28,7 @@ export const initSocket = (httpServer) => {
     }
 
     try {
-      const secret = process.env.JWT_SECRET || 'your-secret-key';
+      const secret = process.env.JWT_KEY || process.env.JWT_SECRET || 'your-secret-key';
       const decoded = jwt.verify(token, secret);
       socket.userId = decoded.id || decoded.userId;
       next();
@@ -50,7 +50,7 @@ export const initSocket = (httpServer) => {
     socket.on('authenticate', (token) => {
       if (!token) return;
       try {
-        const secret = process.env.JWT_SECRET || 'your-secret-key';
+        const secret = process.env.JWT_KEY || process.env.JWT_SECRET || 'your-secret-key';
         const decoded = jwt.verify(token, secret);
         const userId = decoded.id || decoded.userId;
         if (userId) {
@@ -99,3 +99,15 @@ export const emitNotificationToUser = (userId, notification) => {
     });
   });
 };
+
+/**
+ * ส่ง Event ที่เกี่ยวข้องกับ Task (เช่น สถานะเปลี่ยน, มีคอมเมนต์ใหม่, อัปโหลดไฟล์) ไปยังทุกคนแบบ Real-time
+ * @param {string} eventName - ชื่อ Event เช่น 'task:comment:new', 'task:status:updated', 'task:updated'
+ * @param {object} payload - ข้อมูลที่ต้องการส่ง
+ */
+export const emitTaskEvent = (eventName, payload) => {
+  if (!io) return;
+  io.emit(eventName, payload);
+};
+
+

@@ -167,12 +167,12 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
             {/* วันที่กำหนดพร้อมไฮไลท์เตือนตามกำหนดส่ง (ขวาล่าง) */}
             {task.task_date && (
               <div
-                className={`text-[12px] font-normal flex items-center gap-1 px-1.5 py-0.5 rounded-md ${
+                className={`text-[12px] font-medium flex items-center gap-1 px-1.5 py-0.5 rounded-md ${
                   dateStatus === "overdue"
-                    ? "bg-red-500/25 text-red-300"
+                    ? "bg-red-500/20 text-slate-900"
                     : dateStatus === "due-soon"
-                      ? "bg-amber-500/25 text-amber-300"
-                      : "text-slate-300"
+                      ? "bg-amber-500/20 text-slate-900"
+                      : "text-slate-900"
                 }`}
               >
                 <span className="text-[12px]">

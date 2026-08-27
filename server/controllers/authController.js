@@ -1,5 +1,5 @@
 import { connectToDatabase } from '../lib/db.js';
-import { emitNotificationToUser } from '../lib/socket.js';
+import { emitNotificationToUser, emitTaskEvent } from '../lib/socket.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
@@ -1246,6 +1246,14 @@ export const updateTaskStatus = async (req, res) => {
             excludeUserId: userId
         });
 
+        // Real-time broadcast task status update to all connected clients
+        emitTaskEvent('task:status:updated', {
+            taskId: Number(id),
+            projectId: project_id,
+            status,
+            updatedBy: userId,
+        });
+
         res.status(200).json({ message: 'อัปเดตสถานะสำเร็จ / Status updated successfully' });
     } catch (error) {
         console.error('Error updating task status:', error.message);
@@ -1349,6 +1357,20 @@ export const updateTask = async (req, res) => {
         }
 
         await checkAndUpdateProjectStatus(db, projectId || oldTask.project_id);
+
+        // Real-time broadcast task update to all connected clients
+        emitTaskEvent('task:updated', {
+            taskId: Number(id),
+            projectId: projectId || oldTask.project_id,
+            status,
+            title,
+            description,
+            priority,
+            dueDate: formattedDueDate,
+            assignedTo,
+            taskType,
+            updatedBy: userId,
+        });
 
         res.status(200).json({ message: 'อัปเดตข้อมูลงานสำเร็จ / Task updated successfully' });
     } catch (error) {
@@ -1463,26 +1485,52 @@ export const createTaskComment = async (req, res) => {
     }
     try {
         const db = await connectToDatabase();
-        await db.query(
+        const [insertResult] = await db.query(
             "INSERT INTO comments (task_id, user_id, comment) VALUES (?, ?, ?)",
             [id, userId, comment]
         );
 
-        const [taskRows] = await db.query('SELECT title, project_id FROM tasks WHERE id = ?', [id]);
+        // Fetch inserted comment with user details for instant live broadcast
+        const [commentRows] = await db.query(`
+            SELECT c.id, c.comment, c.created_at, u.fullname, u.avatar, u.role
+            FROM comments c
+            JOIN users u ON c.user_id = u.id
+            WHERE c.id = ?
+        `, [insertResult.insertId]);
+
+        const newCommentObj = commentRows[0] || {
+            id: insertResult.insertId,
+            comment,
+            created_at: new Date().toISOString(),
+        };
+
+        // Real-time broadcast to all clients looking at this task
+        emitTaskEvent('task:comment:new', {
+            taskId: Number(id),
+            comment: newCommentObj,
+        });
+
+        const [taskRows] = await db.query(`
+            SELECT t.title, t.project_id, p.name AS project_name 
+            FROM tasks t 
+            JOIN projects p ON t.project_id = p.id 
+            WHERE t.id = ?
+        `, [id]);
         if (taskRows.length > 0) {
-            const { title, project_id } = taskRows[0];
+            const { title, project_id, project_name } = taskRows[0];
             await notifyProjectMembers({
                 db,
                 projectId: project_id,
+                taskId: Number(id),
                 title: 'ความคิดเห็นใหม่ในงาน',
-                message: `มีความคิดเห็นใหม่ในงาน "${title}"`,
+                message: `มีความคิดเห็นใหม่ในงาน "${title}" ในโปรเจกต์ "${project_name}"`,
                 type: 'task',
-                link: '/MyTasks',
+                link: `/Projects?projectId=${project_id}`,
                 excludeUserId: userId
             });
         }
 
-        res.status(201).json({ message: 'บันทึกความคิดเห็นสำเร็จ / Comment created successfully' });
+        res.status(201).json({ message: 'บันทึกความคิดเห็นสำเร็จ / Comment created successfully', comment: newCommentObj });
     } catch (error) {
         console.error('Error creating comment:', error.message);
         res.status(500).json({ message: error.message });
@@ -1524,11 +1572,33 @@ export const uploadTaskFile = async (req, res) => {
         const filename = req.file.originalname;
         const filepath = `/uploads/${req.file.filename}`;
         
-        await db.query(
+        const [insertRes] = await db.query(
             "INSERT INTO files (task_id, filename, filepath, uploaded_by) VALUES (?, ?, ?, ?)",
             [id, filename, filepath, uploadedBy || null]
         );
-        res.status(201).json({ message: 'อัปโหลดไฟล์สำเร็จ / File uploaded successfully', filepath });
+
+        // Fetch inserted file with user details
+        const [fileRows] = await db.query(`
+            SELECT f.id, f.filename, f.filepath, f.created_at, u.fullname, u.role
+            FROM files f
+            LEFT JOIN users u ON f.uploaded_by = u.id
+            WHERE f.id = ?
+        `, [insertRes.insertId]);
+
+        const newFileObj = fileRows[0] || {
+            id: insertRes.insertId,
+            filename,
+            filepath,
+            created_at: new Date().toISOString(),
+        };
+
+        // Real-time broadcast to all clients looking at this task
+        emitTaskEvent('task:file:new', {
+            taskId: Number(id),
+            file: newFileObj,
+        });
+
+        res.status(201).json({ message: 'อัปโหลดไฟล์สำเร็จ / File uploaded successfully', filepath, file: newFileObj });
     } catch (error) {
         console.error('Error uploading task file:', error.message);
         res.status(500).json({ message: error.message });

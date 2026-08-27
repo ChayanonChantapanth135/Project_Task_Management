@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Modal } from "react-bootstrap";
 import { useLanguage } from "../../../lib/LanguageContext";
 import { formatDate } from "../../../lib/dateUtils";
+import { getSocket } from "../../../lib/socket";
 
 const ProjectDetailModal = ({
   showDetailModal,
   setShowDetailModal,
   selectedProject,
+  setSelectedProject,
   setSelectedTask,
   setTempStatus,
   setShowViewTaskModal,
@@ -16,6 +18,50 @@ const ProjectDetailModal = ({
   t,
 }) => {
   const { language } = useLanguage();
+
+  // Socket.io Real-time listener specifically for open ProjectDetailModal
+  useEffect(() => {
+    if (!showDetailModal || !selectedProject) return;
+
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleTaskStatusChange = (payload) => {
+      const { taskId, status } = payload;
+      if (!selectedProject.tasks) return;
+
+      const hasTask = selectedProject.tasks.some((tItem) => Number(tItem.id) === Number(taskId));
+      if (hasTask && setSelectedProject) {
+        setSelectedProject((prev) => {
+          if (!prev || !prev.tasks) return prev;
+          const updatedTasks = prev.tasks.map((tItem) =>
+            Number(tItem.id) === Number(taskId) ? { ...tItem, status } : tItem
+          );
+          const completedCount = updatedTasks.filter(
+            (tItem) => tItem.status && tItem.status.toLowerCase() === "completed"
+          ).length;
+          const progress =
+            updatedTasks.length > 0
+              ? Math.round((completedCount / updatedTasks.length) * 100)
+              : 0;
+
+          return {
+            ...prev,
+            tasks: updatedTasks,
+            progress,
+          };
+        });
+      }
+    };
+
+    socket.on("task:status:updated", handleTaskStatusChange);
+    socket.on("task:updated", handleTaskStatusChange);
+
+    return () => {
+      socket.off("task:status:updated", handleTaskStatusChange);
+      socket.off("task:updated", handleTaskStatusChange);
+    };
+  }, [showDetailModal, selectedProject, setSelectedProject]);
   const userRole = (currentUser?.role || "").toLowerCase().trim().replace(/\s+/g, "_");
   const isCreatorOfProject = Number(selectedProject?.created_by) === Number(currentUser?.id);
   const isTeamLeaderOfProject =

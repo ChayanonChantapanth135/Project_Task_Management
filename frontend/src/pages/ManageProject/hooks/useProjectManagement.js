@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
 import { getCurrentUser } from "../../../lib/auth";
 import { safeDateString } from "../../../lib/dateUtils";
+import { getSocket } from "../../../lib/socket";
 
 export const useProjectManagement = (t) => {
   const location = useLocation();
@@ -82,9 +83,9 @@ export const useProjectManagement = (t) => {
   // Keep selectedProject in sync with updated projects list
   useEffect(() => {
     if (selectedProject && projects.length > 0) {
-      const updatedProj = projects.find((p) => p.id === selectedProject.id);
+      const updatedProj = projects.find((p) => Number(p.id) === Number(selectedProject.id));
       if (updatedProj) {
-        setSelectedProject(updatedProj);
+        setSelectedProject({ ...updatedProj });
       }
     }
   }, [projects]);
@@ -135,10 +136,33 @@ export const useProjectManagement = (t) => {
     fetchProjects();
     fetchTeamLeaders();
     fetchUsers();
+
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleRealtimeUpdate = () => {
+      fetchProjects();
+    };
+
+    socket.on("task:status:updated", handleRealtimeUpdate);
+    socket.on("task:updated", handleRealtimeUpdate);
+
+    return () => {
+      socket.off("task:status:updated", handleRealtimeUpdate);
+      socket.off("task:updated", handleRealtimeUpdate);
+    };
   }, []);
 
-  // Auto-open Project Detail and Task Detail modal if projectId / taskId / openTaskName are in URL params
+  // Track previous location.search to reset the one-time flag whenever a new notification is clicked
+  const prevSearchRef = useRef(location.search);
+  const hasHandledUrlParams = useRef(false);
+
   useEffect(() => {
+    if (location.search && location.search !== prevSearchRef.current) {
+      hasHandledUrlParams.current = false;
+      prevSearchRef.current = location.search;
+    }
+
     const checkAndOpenProject = async () => {
       const params = new URLSearchParams(location.search);
       const targetProjectId = params.get("projectId") || params.get("openProject");
@@ -146,66 +170,77 @@ export const useProjectManagement = (t) => {
       const targetTaskId = params.get("taskId") || params.get("openTask");
       const targetTaskName = params.get("openTaskName");
 
-      if (targetProjectId || targetProjectName || targetTaskId) {
-        let matchedProject = null;
+      if (!targetProjectId && !targetProjectName && !targetTaskId && !targetTaskName) {
+        return;
+      }
 
-        if (projects.length > 0) {
-          matchedProject = projects.find((p) => {
-            if (targetProjectId && Number(p.id) === Number(targetProjectId)) return true;
-            if (targetProjectName && (p.name || "").trim().toLowerCase() === targetProjectName.trim().toLowerCase()) return true;
-            if (targetTaskId && p.tasks && p.tasks.some(t => Number(t.id) === Number(targetTaskId))) return true;
+      if (hasHandledUrlParams.current) {
+        return;
+      }
+
+      let matchedProject = null;
+
+      if (projects.length > 0) {
+        matchedProject = projects.find((p) => {
+          if (targetProjectId && String(p.id).trim() === String(targetProjectId).trim()) return true;
+          if (targetTaskId && p.tasks && p.tasks.some(t => String(t.id).trim() === String(targetTaskId).trim())) return true;
+          if (targetTaskName && p.tasks && p.tasks.some(t => (t.title || "").trim().toLowerCase() === targetTaskName.trim().toLowerCase())) return true;
+          if (targetProjectName && (p.name || "").trim().toLowerCase() === targetProjectName.trim().toLowerCase()) return true;
+          return false;
+        });
+      }
+
+      // Fallback: If not found in current state or projects still loading, fetch directly
+      if (!matchedProject) {
+        try {
+          const res = await axios.get("/auth/projects");
+          matchedProject = res.data.find((p) => {
+            if (targetProjectId && String(p.id).trim() === String(targetProjectId).trim()) return true;
+            if (targetTaskId && p.tasks && p.tasks.some(t => String(t.id).trim() === String(targetTaskId).trim())) return true;
             if (targetTaskName && p.tasks && p.tasks.some(t => (t.title || "").trim().toLowerCase() === targetTaskName.trim().toLowerCase())) return true;
+            if (targetProjectName && (p.name || "").trim().toLowerCase() === targetProjectName.trim().toLowerCase()) return true;
             return false;
           });
-        }
-
-        // Fallback: If not found in current state or projects still loading, fetch directly
-        if (!matchedProject) {
-          try {
-            const res = await axios.get("/auth/projects");
-            matchedProject = res.data.find((p) => {
-              if (targetProjectId && Number(p.id) === Number(targetProjectId)) return true;
-              if (targetProjectName && (p.name || "").trim().toLowerCase() === targetProjectName.trim().toLowerCase()) return true;
-              if (targetTaskId && p.tasks && p.tasks.some(t => Number(t.id) === Number(targetTaskId))) return true;
-              if (targetTaskName && p.tasks && p.tasks.some(t => (t.title || "").trim().toLowerCase() === targetTaskName.trim().toLowerCase())) return true;
-              return false;
-            });
-            if (matchedProject) {
-              if (matchedProject.end_date) matchedProject.endDate = safeDateString(matchedProject.end_date);
-              if (matchedProject.tasks) {
-                matchedProject.tasks = matchedProject.tasks.map((t) => {
-                  if (t.due_date) t.dueDate = safeDateString(t.due_date);
-                  return t;
-                });
-              }
-            }
-          } catch (err) {
-            console.error("Error auto-opening project:", err);
-          }
-        }
-
-        if (matchedProject) {
-          setSelectedProject(matchedProject);
-          setShowDetailModal(true);
-
-          // If a task is also targeted, open the task detail modal as well
-          if (targetTaskId || targetTaskName) {
-            const matchedTask = matchedProject.tasks?.find((t) => {
-              if (targetTaskId && Number(t.id) === Number(targetTaskId)) return true;
-              if (targetTaskName && (t.title || "").trim().toLowerCase() === targetTaskName.trim().toLowerCase()) return true;
-              return false;
-            });
-            if (matchedTask) {
-              setSelectedTask(matchedTask);
-              setTempStatus(matchedTask.status || "Pending");
-              setShowViewTaskModal(true);
+          if (matchedProject) {
+            if (matchedProject.end_date) matchedProject.endDate = safeDateString(matchedProject.end_date);
+            if (matchedProject.tasks) {
+              matchedProject.tasks = matchedProject.tasks.map((t) => {
+                if (t.due_date) t.dueDate = safeDateString(t.due_date);
+                return t;
+              });
             }
           }
+        } catch (err) {
+          console.error("Error auto-opening project:", err);
         }
       }
+
+      if (matchedProject) {
+        hasHandledUrlParams.current = true;
+        setSelectedProject(matchedProject);
+        setShowDetailModal(true);
+
+        // If a task is also targeted, open the task detail modal as well
+        if (targetTaskId || targetTaskName) {
+          const matchedTask = matchedProject.tasks?.find((t) => {
+            if (targetTaskId && String(t.id).trim() === String(targetTaskId).trim()) return true;
+            if (targetTaskName && (t.title || "").trim().toLowerCase() === targetTaskName.trim().toLowerCase()) return true;
+            return false;
+          });
+          if (matchedTask) {
+            setSelectedTask(matchedTask);
+            setTempStatus(matchedTask.status || "Pending");
+            setShowViewTaskModal(true);
+          }
+        }
+
+        // Clean up URL search params
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
     };
+
     checkAndOpenProject();
-  }, [projects, location.search]);
+  }, [location.search, projects]);
 
   const filteredProjects = projects.filter((p) => {
     const role = (currentUser?.role || roleSimulation || "").toLowerCase().trim().replace(/\s+/g, "_");

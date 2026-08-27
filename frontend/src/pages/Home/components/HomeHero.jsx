@@ -14,13 +14,20 @@ const HomeHero = ({ t, isLoggedIn }) => {
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2, duration: 0.5 }}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-950/60 text-indigo-300 text-xs font-semibold mb-8 backdrop-blur-md shadow-lg shadow-indigo-500/10"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold mb-8 backdrop-blur-md shadow-lg shadow-indigo-500/10"
+        style={{
+          backgroundColor: "rgba(30, 27, 75, 0.85)",
+          color: "#ffffff",
+        }}
       >
         <span className="flex h-2 w-2 relative">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-300 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-300 shadow-[0_0_8px_rgba(252,211,77,0.8)]"></span>
         </span>
-        {t("landingBadge") || "🚀 แพลตฟอร์มจัดการโปรเจกต์และงานสำหรับทีมยุคใหม่"}
+        <span style={{ color: "#ffffff" }}>
+          {t("landingBadge") ||
+            "🚀 แพลตฟอร์มจัดการโปรเจกต์และงานสำหรับทีมยุคใหม่"}
+        </span>
       </motion.div>
 
       <h1 className="text-4xl md:text-7xl font-extrabold tracking-tight text-white leading-tight max-w-5xl mx-auto">

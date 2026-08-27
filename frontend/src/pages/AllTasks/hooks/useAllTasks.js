@@ -1,11 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import axios from "axios";
 import { useLanguage } from "../../../lib/LanguageContext";
 import { getCurrentUser } from "../../../lib/auth";
 import { safeDateString } from "../../../lib/dateUtils";
+import { getSocket } from "../../../lib/socket";
 
 export const useAllTasks = () => {
   const { language } = useLanguage();
+  const location = useLocation();
 
   // All state hooks grouped together at the top of custom hook
   const [tasks, setTasks] = useState([]);
@@ -29,6 +32,8 @@ export const useAllTasks = () => {
     assigneeChangesCount: 0,
     historyLogs: [],
   });
+
+  const hasHandledUrlParams = useRef(false);
 
   // Fetch current logged-in user
   useEffect(() => {
@@ -113,31 +118,110 @@ export const useAllTasks = () => {
   useEffect(() => {
     fetchTasks();
     fetchUsers();
+
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleTaskChange = () => {
+      fetchTasks();
+    };
+
+    socket.on("task:status:updated", handleTaskChange);
+    socket.on("task:updated", handleTaskChange);
+
+    return () => {
+      socket.off("task:status:updated", handleTaskChange);
+      socket.off("task:updated", handleTaskChange);
+    };
   }, []);
 
   // Auto-open modal if taskId, openTask, or openTaskName is present in URL search params
   useEffect(() => {
-    const checkAndOpenTask = () => {
-      const params = new URLSearchParams(window.location.search);
+    if (location.search && location.search !== prevSearchRef.current) {
+      hasHandledUrlParams.current = false;
+      prevSearchRef.current = location.search;
+    }
+
+    const checkAndOpenTask = async () => {
+      const params = new URLSearchParams(location.search);
       const targetTaskId = params.get("taskId") || params.get("openTask");
       const targetTaskName = params.get("openTaskName");
 
-      if ((targetTaskId || targetTaskName) && tasks.length > 0) {
-        const found = tasks.find((t) => {
-          if (targetTaskId && Number(t.id) === Number(targetTaskId)) return true;
-          if (targetTaskName && (t.title || "").trim().toLowerCase() === targetTaskName.trim().toLowerCase()) return true;
-          return false;
-        });
+      if (!targetTaskId && !targetTaskName) return;
+      if (hasHandledUrlParams.current) return;
+        let found = null;
+        if (tasks.length > 0) {
+          found = tasks.find((t) => {
+            if (targetTaskId && Number(t.id) === Number(targetTaskId)) return true;
+            if (targetTaskName && (t.title || "").trim().toLowerCase() === targetTaskName.trim().toLowerCase()) return true;
+            return false;
+          });
+        }
+
+        // Fallback: If tasks array is empty or not yet loaded, fetch projects to find task
+        if (!found) {
+          try {
+            const res = await axios.get("/auth/projects");
+            for (const proj of res.data) {
+              if (proj.tasks && Array.isArray(proj.tasks)) {
+                const matched = proj.tasks.find((t) => {
+                  if (targetTaskId && Number(t.id) === Number(targetTaskId)) return true;
+                  if (targetTaskName && (t.title || "").trim().toLowerCase() === targetTaskName.trim().toLowerCase()) return true;
+                  return false;
+                });
+                if (matched) {
+                  let formattedDueDate = "-";
+                  if (matched.due_date) formattedDueDate = safeDateString(matched.due_date);
+                  let normalizedPriority = "Medium";
+                  if (matched.priority) {
+                    const p = matched.priority.toLowerCase();
+                    if (p === "high") normalizedPriority = "High";
+                    else if (p === "medium") normalizedPriority = "Medium";
+                    else if (p === "low") normalizedPriority = "Low";
+                  }
+                  let normalizedStatus = "Pending";
+                  if (matched.status) {
+                    const s = matched.status.toLowerCase();
+                    if (s === "pending") normalizedStatus = "Pending";
+                    else if (s === "in progress" || s === "in_progress") normalizedStatus = "In Progress";
+                    else if (s === "reviewing" || s === "review") normalizedStatus = "Reviewing";
+                    else if (s === "completed") normalizedStatus = "Completed";
+                  }
+                  found = {
+                    id: matched.id,
+                    title: matched.title,
+                    project: proj.name,
+                    projectId: proj.id,
+                    assignee: matched.assigned_to_name || "Unassigned",
+                    assignedTo: matched.assigned_to || "",
+                    status: normalizedStatus,
+                    priority: normalizedPriority,
+                    dueDate: formattedDueDate,
+                    description: matched.description || "",
+                    taskType: matched.task_type || "",
+                  };
+                  break;
+                }
+              }
+            }
+          } catch (err) {
+            console.error("Error auto-opening task from fallback:", err);
+          }
+        }
+
         if (found) {
+          hasHandledUrlParams.current = true;
           setSelectedTask(found);
           setTempStatus(found.status);
           fetchTaskHistory(found.id);
           setShowViewModal(true);
+
+          // Clear query params from URL so subsequent background updates/re-renders don't re-trigger this auto-open
+          window.history.replaceState({}, document.title, window.location.pathname);
         }
-      }
     };
     checkAndOpenTask();
-  }, [tasks, window.location.search]);
+  }, [tasks, location.search]);
 
   // Status order priority: Pending -> In Progress -> Reviewing -> Completed (last)
   const STATUS_SORT_ORDER = {

@@ -1,11 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import axios from "axios";
 import { getCurrentUser } from "../../../lib/auth";
 import { useLanguage } from "../../../lib/LanguageContext";
 import { safeDateString } from "../../../lib/dateUtils";
+import { getSocket } from "../../../lib/socket";
 
 export const useMyTasks = () => {
   const { language } = useLanguage();
+  const location = useLocation();
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [myTasks, setMyTasks] = useState([]);
@@ -21,6 +24,9 @@ export const useMyTasks = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
+  const prevSearchRef = useRef(location.search);
+  const hasHandledUrlParams = useRef(false);
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -28,35 +34,29 @@ export const useMyTasks = () => {
       if (!user) return;
       setCurrentUser(user);
 
-      const projectRes = await axios.get("/auth/projects");
-      const userRes = await axios.get("/auth/users");
-      
-      setAllProjects(projectRes.data.map(p => ({ id: p.id, name: p.name })));
-      setAllUsers(userRes.data);
+      // Fetch projects and tasks
+      const [projectsRes, usersRes] = await Promise.all([
+        axios.get("/auth/projects"),
+        axios.get("/auth/users"),
+      ]);
 
-      const userId = Number(user.id);
-      const userFullname = (user.fullname || user.name || "").trim().toLowerCase();
-      const userName = (user.name || "").trim().toLowerCase();
+      const projectsData = projectsRes.data;
+      const usersData = usersRes.data;
+
+      setAllProjects(projectsData);
+      setAllUsers(usersData);
+
+      // Filter tasks assigned to current user
       const allUserTasks = [];
-      projectRes.data.forEach((project) => {
+      projectsData.forEach((project) => {
         if (project.tasks && Array.isArray(project.tasks)) {
           project.tasks.forEach((task) => {
-            const taskAssigneeId = task.assigned_to ? Number(task.assigned_to) : null;
-            const taskAssigneeName = (task.assigned_to_name || "").trim().toLowerCase();
-
-            const isAssigned =
-              (taskAssigneeId !== null && taskAssigneeId === userId) ||
-              (userFullname && taskAssigneeName === userFullname) ||
-              (userName && taskAssigneeName === userName);
-
-            if (isAssigned) {
-              let normalizedStatus = "Pending";
-              if (task.status) {
-                const s = task.status.toLowerCase();
-                if (s === "pending") normalizedStatus = "Pending";
-                else if (s === "in progress" || s === "in_progress") normalizedStatus = "In Progress";
-                else if (s === "reviewing" || s === "review") normalizedStatus = "Reviewing";
-                else if (s === "completed") normalizedStatus = "Completed";
+            if (task.assigned_to === user.id) {
+              let formattedDueDate = "-";
+              let rawDueDate = "-";
+              if (task.due_date) {
+                formattedDueDate = safeDateString(task.due_date);
+                rawDueDate = task.due_date;
               }
 
               let normalizedPriority = "Medium";
@@ -67,24 +67,13 @@ export const useMyTasks = () => {
                 else if (p === "low") normalizedPriority = "Low";
               }
 
-              let formattedDueDate = "-";
-              let rawDueDate = task.due_date;
-              if (task.due_date) {
-                try {
-                  const parts = String(task.due_date).split("T")[0].split("-");
-                  if (parts.length === 3) {
-                    const [year, month, day] = parts;
-                    formattedDueDate = `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
-                  } else {
-                    const d = new Date(task.due_date);
-                    const day = String(d.getDate()).padStart(2, "0");
-                    const month = String(d.getMonth() + 1).padStart(2, "0");
-                    const year = d.getFullYear();
-                    formattedDueDate = `${day}/${month}/${year}`;
-                  }
-                } catch (e) {
-                  formattedDueDate = task.due_date;
-                }
+              let normalizedStatus = "Pending";
+              if (task.status) {
+                const s = task.status.toLowerCase();
+                if (s === "pending") normalizedStatus = "Pending";
+                else if (s === "in progress" || s === "in_progress") normalizedStatus = "In Progress";
+                else if (s === "reviewing" || s === "review") normalizedStatus = "Reviewing";
+                else if (s === "completed") normalizedStatus = "Completed";
               }
 
               allUserTasks.push({
@@ -92,8 +81,8 @@ export const useMyTasks = () => {
                 title: task.title,
                 project: project.name,
                 projectId: project.id,
-                assignee: task.assigned_to_name || "Unassigned",
-                assignedTo: task.assigned_to || "",
+                assignee: user.name,
+                assignedTo: user.id,
                 status: normalizedStatus,
                 priority: normalizedPriority,
                 dueDate: task.due_date ? safeDateString(task.due_date) : "",
@@ -123,31 +112,111 @@ export const useMyTasks = () => {
     };
 
     window.addEventListener("taskStatusUpdated", handleStatusUpdate);
-    return () => window.removeEventListener("taskStatusUpdated", handleStatusUpdate);
+
+    const socket = getSocket();
+    if (socket) {
+      socket.on("task:status:updated", handleStatusUpdate);
+      socket.on("task:updated", handleStatusUpdate);
+    }
+
+    return () => {
+      window.removeEventListener("taskStatusUpdated", handleStatusUpdate);
+      if (socket) {
+        socket.off("task:status:updated", handleStatusUpdate);
+        socket.off("task:updated", handleStatusUpdate);
+      }
+    };
   }, []);
 
   // Auto-open modal if taskId, openTask, or openTaskName is present in URL search params
   useEffect(() => {
-    const checkAndOpenTask = () => {
-      const params = new URLSearchParams(window.location.search);
+    if (location.search && location.search !== prevSearchRef.current) {
+      hasHandledUrlParams.current = false;
+      prevSearchRef.current = location.search;
+    }
+
+    const checkAndOpenTask = async () => {
+      const params = new URLSearchParams(location.search);
       const targetTaskId = params.get("taskId") || params.get("openTask");
       const targetTaskName = params.get("openTaskName");
 
-      if ((targetTaskId || targetTaskName) && myTasks.length > 0) {
-        const found = myTasks.find((t) => {
+      if (!targetTaskId && !targetTaskName) return;
+      if (hasHandledUrlParams.current) return;
+
+      let found = null;
+      if (myTasks.length > 0) {
+        found = myTasks.find((t) => {
           if (targetTaskId && Number(t.id) === Number(targetTaskId)) return true;
           if (targetTaskName && (t.title || "").trim().toLowerCase() === targetTaskName.trim().toLowerCase()) return true;
           return false;
         });
-        if (found) {
-          setSelectedTask(found);
-          setTempStatus(found.status);
-          setShowViewModal(true);
+      }
+
+      // Fallback: If not in myTasks (e.g. user is PM/Team Leader or viewing another task in project), find in allProjects
+      if (!found) {
+        try {
+          const res = await axios.get("/auth/projects");
+          for (const proj of res.data) {
+            if (proj.tasks && Array.isArray(proj.tasks)) {
+              const matched = proj.tasks.find((t) => {
+                if (targetTaskId && Number(t.id) === Number(targetTaskId)) return true;
+                if (targetTaskName && (t.title || "").trim().toLowerCase() === targetTaskName.trim().toLowerCase()) return true;
+                return false;
+              });
+              if (matched) {
+                let formattedDueDate = "-";
+                if (matched.due_date) formattedDueDate = safeDateString(matched.due_date);
+                let normalizedPriority = "Medium";
+                if (matched.priority) {
+                  const p = matched.priority.toLowerCase();
+                  if (p === "high") normalizedPriority = "High";
+                  else if (p === "medium") normalizedPriority = "Medium";
+                  else if (p === "low") normalizedPriority = "Low";
+                }
+                let normalizedStatus = "Pending";
+                if (matched.status) {
+                  const s = matched.status.toLowerCase();
+                  if (s === "pending") normalizedStatus = "Pending";
+                  else if (s === "in progress" || s === "in_progress") normalizedStatus = "In Progress";
+                  else if (s === "reviewing" || s === "review") normalizedStatus = "Reviewing";
+                  else if (s === "completed") normalizedStatus = "Completed";
+                }
+                found = {
+                  id: matched.id,
+                  title: matched.title,
+                  project: proj.name,
+                  projectId: proj.id,
+                  assignee: matched.assigned_to_name || "Unassigned",
+                  assignedTo: matched.assigned_to || "",
+                  status: normalizedStatus,
+                  priority: normalizedPriority,
+                  dueDate: matched.due_date ? safeDateString(matched.due_date) : "",
+                  rawDueDate: matched.due_date || "-",
+                  displayDueDate: formattedDueDate,
+                  description: matched.description || "",
+                  taskType: matched.task_type || "",
+                };
+                break;
+              }
+            }
+          }
+        } catch (err) {
+          console.error("Error finding task fallback in useMyTasks:", err);
         }
+      }
+
+      if (found) {
+        hasHandledUrlParams.current = true;
+        setSelectedTask(found);
+        setTempStatus(found.status);
+        setShowViewModal(true);
+
+        // Clear query params from URL so subsequent background updates/re-renders don't re-trigger this auto-open
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
     };
     checkAndOpenTask();
-  }, [myTasks, window.location.search]);
+  }, [myTasks, location.search]);
 
   const handleUpdateTask = async (updatedDetails) => {
     if (!selectedTask) return;
