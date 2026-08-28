@@ -169,11 +169,16 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
               <div
                 className={`text-[12px] font-medium flex items-center gap-1 px-1.5 py-0.5 rounded-md ${
                   dateStatus === "overdue"
-                    ? "bg-red-500/20 text-slate-900"
+                    ? "bg-red-500/20 text-red-600 dark:text-red-400"
                     : dateStatus === "due-soon"
-                      ? "bg-amber-500/20 text-slate-900"
-                      : "text-slate-900"
+                      ? "bg-amber-500/20 text-amber-600 dark:text-amber-400"
+                      : "opacity-80"
                 }`}
+                style={
+                  dateStatus !== "overdue" && dateStatus !== "due-soon"
+                    ? { color: "var(--text-secondary)" }
+                    : {}
+                }
               >
                 <span className="text-[12px]">
                   {dateStatus === "overdue"
