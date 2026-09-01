@@ -109,6 +109,11 @@ export const useProjectManagement = (t) => {
         return p;
       });
       setProjects(formatted);
+      setSelectedProject((prev) => {
+        if (!prev) return null;
+        const updatedSelected = formatted.find((p) => Number(p.id) === Number(prev.id));
+        return updatedSelected || prev;
+      });
     } catch (err) {
       console.error("Failed to fetch projects from DB", err);
     }
@@ -144,12 +149,16 @@ export const useProjectManagement = (t) => {
       fetchProjects();
     };
 
+    socket.on("task:created", handleRealtimeUpdate);
     socket.on("task:status:updated", handleRealtimeUpdate);
     socket.on("task:updated", handleRealtimeUpdate);
+    socket.on("task:deleted", handleRealtimeUpdate);
 
     return () => {
+      socket.off("task:created", handleRealtimeUpdate);
       socket.off("task:status:updated", handleRealtimeUpdate);
       socket.off("task:updated", handleRealtimeUpdate);
+      socket.off("task:deleted", handleRealtimeUpdate);
     };
   }, []);
 

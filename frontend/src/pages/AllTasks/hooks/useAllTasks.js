@@ -126,12 +126,16 @@ export const useAllTasks = () => {
       fetchTasks();
     };
 
+    socket.on("task:created", handleTaskChange);
     socket.on("task:status:updated", handleTaskChange);
     socket.on("task:updated", handleTaskChange);
+    socket.on("task:deleted", handleTaskChange);
 
     return () => {
+      socket.off("task:created", handleTaskChange);
       socket.off("task:status:updated", handleTaskChange);
       socket.off("task:updated", handleTaskChange);
+      socket.off("task:deleted", handleTaskChange);
     };
   }, []);
 

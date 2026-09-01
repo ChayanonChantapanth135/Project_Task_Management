@@ -61,6 +61,8 @@ export const renewToken = async () => {
     }
 };
 
+let isLoggingOut = false;
+
 /**
  * ออกจากระบบ (Sign Out)
  * - ส่งคำขอแจ้งฝั่งเซิร์ฟเวอร์เพื่อเก็บประวัติกิจกรรมการ Logout
@@ -68,8 +70,15 @@ export const renewToken = async () => {
  * - แจ้งเตือนแอปพลิเคชันให้ทำการเปลี่ยนเส้นทางหรือเปลี่ยนหน้าการแสดงผล
  */
 export const signOut = async () => {
+    if (isLoggingOut) return;
+    isLoggingOut = true;
+
     try {
         const userData = localStorage.getItem('userData');
+        localStorage.removeItem('userToken');
+        localStorage.removeItem('userData');
+        localStorage.removeItem('userTokenExpiresAt');
+
         if (userData) {
             const user = JSON.parse(userData);
             const axios = (await import('axios')).default;
@@ -77,9 +86,8 @@ export const signOut = async () => {
         }
     } catch (e) {
         console.error("Logout log failed:", e);
+    } finally {
+        isLoggingOut = false;
+        window.dispatchEvent(new Event('authChanged'));
     }
-    localStorage.removeItem('userToken');
-    localStorage.removeItem('userData');
-    localStorage.removeItem('userTokenExpiresAt');
-    window.dispatchEvent(new Event('authChanged'));
 };

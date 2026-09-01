@@ -140,11 +140,11 @@ async function notifyProjectMembers({ db, projectId, taskId = null, title, messa
     // รวบรวม ID ผู้เกี่ยวข้องทั้งหมดโดยไม่ซ้ำกัน
     const memberIds = new Set();
     if (creatorId) memberIds.add(Number(creatorId));
-    teamLeaderIds.forEach(id => memberIds.add(Number(id)));
-    assigneeIds.forEach(id => memberIds.add(Number(id)));
+    teamLeaderIds.forEach(id => { if (id) memberIds.add(Number(id)); });
+    assigneeIds.forEach(id => { if (id) memberIds.add(Number(id)); });
 
-    // ยกเว้นผู้ที่ระบุไว้ (เช่น คนสร้าง หรือคนที่ได้รับการแจ้งเตือนเฉพาะไปแล้ว)
-    if (excludeUserId) {
+    // ยกเว้นผู้ที่ระบุไว้ (เช่น คนที่กดเปลี่ยนสถานะหรือส่งคอมเมนต์เอง)
+    if (excludeUserId !== null && excludeUserId !== undefined) {
       if (Array.isArray(excludeUserId)) {
         excludeUserId.forEach(id => {
           if (id) memberIds.delete(Number(id));
@@ -155,6 +155,16 @@ async function notifyProjectMembers({ db, projectId, taskId = null, title, messa
     }
 
     for (const targetUserId of memberIds) {
+      if (!targetUserId) continue;
+
+      // ป้องกันการแจ้งเตือนเรื่องเดิมซ้ำให้ผู้ใช้คนเดิมภายใน 30 วินาที
+      const [recentNotif] = await db.query(
+        `SELECT id FROM notifications 
+         WHERE user_id = ? AND (task_id = ? OR (task_id IS NULL AND ? IS NULL)) AND title = ? AND message = ? AND created_at >= NOW() - INTERVAL 30 SECOND LIMIT 1`,
+        [targetUserId, taskId || null, taskId || null, title, message]
+      );
+      if (recentNotif.length > 0) continue;
+
       const [insertRes] = await db.query(
         `INSERT INTO notifications (user_id, task_id, title, message, type, link, is_read, read_status) 
          VALUES (?, ?, ?, ?, ?, ?, 0, 0)`,
@@ -719,16 +729,7 @@ async function notifyProjectReviewing({ db, projectId, taskId = null, excludeUse
 
         const targetUserIds = new Set();
 
-        // 2. ผู้สร้างโปรเจกต์ (Project Creator / Manager)
-        if (creatorId) {
-            targetUserIds.add(Number(creatorId));
-        }
-
-        // 3. ผู้ใช้ทั้งหมดที่มี Role เป็น 'manager'
-        const [managerRows] = await db.query("SELECT id FROM users WHERE role = 'manager' AND deleted_at IS NULL");
-        managerRows.forEach(m => targetUserIds.add(Number(m.id)));
-
-        // 4. Team Leaders ของโปรเจกต์นี้
+        // ส่งเฉพาะ Team Leaders ของโปรเจกต์นี้เท่านั้น
         const [tlRows] = await db.query('SELECT user_id FROM project_team_leaders WHERE project_id = ?', [projectId]);
         tlRows.forEach(tl => targetUserIds.add(Number(tl.user_id)));
 
@@ -852,7 +853,6 @@ export const getProjects = async (req, res) => {
                     if (p.status !== 'Reviewing') {
                         p.status = 'Reviewing';
                         await db.query("UPDATE projects SET status = 'Reviewing' WHERE id = ?", [p.id]);
-                        await notifyProjectReviewing({ db, projectId: p.id });
                     }
                 } else if (p.progress === 100) {
                     if (p.status !== 'Completed') {
@@ -1199,6 +1199,15 @@ export const createTask = async (req, res) => {
             }
         })();
 
+        // Real-time broadcast task creation to all connected clients
+        emitTaskEvent('task:created', {
+            taskId: Number(taskId),
+            projectId: Number(projectId),
+            title,
+            assignedTo: assignedTo ? Number(assignedTo) : null,
+            createdBy: createdBy ? Number(createdBy) : null,
+        });
+
         await logActivity(db, createdBy || null, 'Create Task Success', `Created task: ${title} under project ID: ${projectId}`);
         res.status(201).json({ message: 'Create Success', taskId });
     } catch (error) {
@@ -1224,7 +1233,7 @@ export const updateTaskStatus = async (req, res) => {
         const { title, project_id, project_name } = taskRows[0];
 
         await db.query('UPDATE tasks SET status = ? WHERE id = ?', [status, id]);
-        await checkAndUpdateProjectStatus(db, project_id);
+        await checkAndUpdateProjectStatus(db, project_id, userId, id);
         await db.query(
             "INSERT INTO task_history (task_id, action, details, changed_by) VALUES (?, 'status_change', ?, ?)",
             [id, `เปลี่ยนสถานะเป็น "${status}"`, userId || null]
@@ -1396,6 +1405,14 @@ export const deleteTask = async (req, res) => {
         await db.query('UPDATE tasks SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?', [id]);
         await checkAndUpdateProjectStatus(db, project_id);
         await logActivity(db, userId || null, 'Delete Task', `Soft deleted task "${title}" (ID: ${id})`);
+
+        // Real-time broadcast task deletion to all connected clients
+        emitTaskEvent('task:deleted', {
+            taskId: Number(id),
+            projectId: Number(project_id),
+            deletedBy: userId ? Number(userId) : null,
+        });
+
         res.status(200).json({ message: 'ลบงานสำเร็จ / Task deleted successfully' });
     } catch (error) {
         console.error('Error deleting task:', error.message);
@@ -1465,7 +1482,7 @@ export const getTaskComments = async (req, res) => {
             FROM comments c
             JOIN users u ON c.user_id = u.id
             WHERE c.task_id = ?
-            ORDER BY c.created_at ASC
+            ORDER BY c.created_at DESC
         `, [id]);
         res.status(200).json(rows);
     } catch (error) {

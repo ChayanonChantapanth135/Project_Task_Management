@@ -115,15 +115,19 @@ export const useMyTasks = () => {
 
     const socket = getSocket();
     if (socket) {
+      socket.on("task:created", handleStatusUpdate);
       socket.on("task:status:updated", handleStatusUpdate);
       socket.on("task:updated", handleStatusUpdate);
+      socket.on("task:deleted", handleStatusUpdate);
     }
 
     return () => {
       window.removeEventListener("taskStatusUpdated", handleStatusUpdate);
       if (socket) {
+        socket.off("task:created", handleStatusUpdate);
         socket.off("task:status:updated", handleStatusUpdate);
         socket.off("task:updated", handleStatusUpdate);
+        socket.off("task:deleted", handleStatusUpdate);
       }
     };
   }, []);

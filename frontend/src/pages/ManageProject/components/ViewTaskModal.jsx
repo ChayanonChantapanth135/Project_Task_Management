@@ -182,10 +182,14 @@ const ViewTaskModal = ({
     }
   }, [showViewTaskModal, selectedTask]);
 
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [submittingTask, setSubmittingTask] = useState(false);
+
   const handleAddComment = async (e) => {
     e.preventDefault();
-    if (!newComment.trim() || !selectedTask) return;
+    if (!newComment.trim() || !selectedTask || submittingComment) return;
     try {
+      setSubmittingComment(true);
       await axios.post(`/auth/tasks/${selectedTask.id}/comments`, {
         comment: newComment,
         userId: currentUser?.id,
@@ -194,6 +198,8 @@ const ViewTaskModal = ({
       fetchComments();
     } catch (err) {
       console.error("Error adding comment:", err);
+    } finally {
+      setSubmittingComment(false);
     }
   };
 
@@ -224,8 +230,9 @@ const ViewTaskModal = ({
   };
 
   const handleSaveTaskDetails = async () => {
-    if (!selectedTask) return;
+    if (!selectedTask || submittingTask) return;
     try {
+      setSubmittingTask(true);
       if (isEditing) {
         const typeValue =
           formData.taskType === "อื่นๆ"
@@ -328,6 +335,8 @@ const ViewTaskModal = ({
         language === "th" ? "ไม่สามารถอัปเดตข้อมูลงานได้" : "Failed to update task"
       );
       setTimeout(() => setErrorMessage(""), 5000);
+    } finally {
+      setSubmittingTask(false);
     }
   };
 
@@ -653,7 +662,7 @@ const ViewTaskModal = ({
           </div>
 
           {/* Right Column: Files, Comments, History */}
-          <div className="col-lg-6 ps-lg-4 d-flex flex-column gap-4">
+          <div className="col-lg-6 ps-lg-4 d-flex flex-column gap-3 justify-content-between">
             {/* ไฟล์แนบ */}
             <div>
               <div className="d-flex justify-content-between align-items-center mb-2">
@@ -678,7 +687,7 @@ const ViewTaskModal = ({
                 </button>
               </div>
               
-              <div className="border rounded-xl p-2.5 bg-slate-50 max-h-[120px] overflow-y-auto">
+              <div className="border rounded-xl p-2.5 bg-slate-50 max-h-[110px] overflow-y-auto">
                 {files.length > 0 ? (
                   <div className="d-flex flex-column gap-2">
                     {files.map((file) => (
@@ -715,7 +724,7 @@ const ViewTaskModal = ({
                 {language === "th" ? "ความคิดเห็น" : "Comments"} ({comments.length})
               </span>
               
-              <form onSubmit={handleAddComment} className="mb-3">
+              <form onSubmit={handleAddComment} className="mb-2">
                 <textarea
                   className="form-control text-sm rounded-lg mb-2"
                   rows="2"
@@ -727,26 +736,27 @@ const ViewTaskModal = ({
                 <button
                   type="submit"
                   className="btn btn-sm btn-primary px-3 text-xs text-white"
+                  disabled={submittingComment}
                 >
                   🚀 {language === "th" ? "ส่งความคิดเห็น" : "Send Comment"}
                 </button>
               </form>
 
-              <div className="border rounded-xl p-2.5 bg-slate-50 max-h-[150px] overflow-y-auto d-flex flex-column gap-2.5">
+              <div className="border rounded-xl p-3 bg-slate-50 max-h-[165px] overflow-y-auto d-flex flex-column gap-2.5 shadow-inner">
                 {comments.length > 0 ? (
                   comments.map((c) => (
-                    <div key={c.id} className="text-xs pb-2 border-bottom last:border-0 last:pb-0">
+                    <div key={c.id} className="text-xs pb-2.5 border-bottom last:border-0 last:pb-0">
                       <div className="d-flex justify-content-between align-items-center mb-1">
                         <span className="fw-bold text-dark">{c.fullname || c.username} ({c.role})</span>
                         <span className="text-muted" style={{ fontSize: "10px" }}>
                           {formatDateTime(c.created_at, language)}
                         </span>
                       </div>
-                      <p className="mb-0 text-secondary">{c.comment}</p>
+                      <p className="mb-0 text-secondary" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{c.comment}</p>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center text-muted text-xs py-4">
+                  <div className="text-center text-muted text-xs py-6">
                     {language === "th" ? "ยังไม่มีความคิดเห็น" : "No comments yet"}
                   </div>
                 )}
@@ -754,13 +764,13 @@ const ViewTaskModal = ({
             </div>
 
             {/* ประวัติการเปลี่ยนสถานะ */}
-            <div>
+            <div className="d-flex flex-column flex-grow-1">
               <span className="fw-bold text-slate-800 text-sm mb-2 d-flex align-items-center gap-1.5">
                 <ion-icon name="time-outline" style={{ fontSize: "18px" }}></ion-icon>
                 <span>{language === "th" ? "ประวัติการเปลี่ยนสถานะ" : "Status History"}</span>
               </span>
               
-              <div className="border rounded-xl p-3 bg-slate-50 max-h-[160px] overflow-y-auto">
+              <div className="border rounded-xl p-3 bg-slate-50 flex-grow-1 min-h-[180px] max-h-[220px] overflow-y-auto">
                 {statusHistory.length > 0 ? (
                   <div className="position-relative ps-3 border-start">
                     {statusHistory.map((h, index) => {
@@ -788,7 +798,7 @@ const ViewTaskModal = ({
                                 <span className={`badge px-2 py-0.5 rounded ${getStatusBadgeClass(prevStatus)}`}>
                                   {translateStatus(prevStatus)}
                                 </span>{" "}
-                                {language === "th" ? "เป็น" : "to"}{" "}
+                                <span className="text-muted">{language === "th" ? "เป็น" : "to"}</span>{" "}
                               </>
                             ) : (
                               language === "th" ? " เป็น " : " to "

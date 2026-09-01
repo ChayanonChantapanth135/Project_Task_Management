@@ -49,44 +49,63 @@ const MyActivityTable = ({
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="border-b border-white/5 text-xs uppercase tracking-wider text-slate-400 font-bold">
+              <tr 
+                className="border-b text-xs uppercase tracking-wider font-bold"
+                style={{ 
+                  borderColor: "var(--border-surface)", 
+                  color: "var(--text-secondary)" 
+                }}
+              >
                 <th className="py-4 px-4 text-left">{t("colAction") || "Action"}</th>
                 <th className="py-4 px-4 text-left">{t("colDetails") || "Details"}</th>
                 <th className="py-4 px-4 text-center">{t("colTime") || "Time"}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5 text-sm text-slate-200">
+            <tbody 
+              className="divide-y text-sm"
+              style={{ borderColor: "var(--border-surface)" }}
+            >
               {currentEntries.length > 0 ? (
                 currentEntries.map((log, index) => {
                   const act = log.action.toLowerCase();
-                  let badgeClass = "bg-slate-800 text-slate-300";
-                  if (act.includes("create"))
-                    badgeClass = "bg-emerald-500/20 text-emerald-300";
-                  else if (act.includes("edit") || act.includes("update"))
-                    badgeClass = "bg-amber-500/20 text-amber-300";
-                  else if (act.includes("delete"))
-                    badgeClass = "bg-rose-500/20 text-rose-300";
-                  else if (act.includes("login"))
-                    badgeClass = "bg-indigo-500/20 text-indigo-300";
-                  else if (act.includes("logout"))
-                    badgeClass = "bg-slate-700 text-slate-300";
+                  let badgeStyle = { backgroundColor: "rgba(100, 116, 139, 0.15)", color: "var(--text-secondary)" };
+
+                  if (act.includes("create")) {
+                    badgeStyle = { backgroundColor: "rgba(16, 185, 129, 0.15)", color: "#10b981" };
+                  } else if (act.includes("edit") || act.includes("update") || act.includes("reset")) {
+                    badgeStyle = { backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#f59e0b" };
+                  } else if (act.includes("delete") || act.includes("suspend")) {
+                    badgeStyle = { backgroundColor: "rgba(239, 68, 68, 0.15)", color: "#ef4444" };
+                  } else if (act.includes("login")) {
+                    badgeStyle = { backgroundColor: "rgba(99, 102, 241, 0.15)", color: "#6366f1" };
+                  } else if (act.includes("logout")) {
+                    badgeStyle = { backgroundColor: "rgba(100, 116, 139, 0.2)", color: "#94a3b8" };
+                  }
 
                   return (
                     <tr
                       key={index}
-                      className="hover:bg-white/5 transition-colors"
+                      className="transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+                      style={{ borderBottom: "1px solid var(--border-surface)" }}
                     >
                       <td className="py-4 px-4 text-left">
                         <span
-                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap inline-block ${badgeClass}`}
+                          className="px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap inline-block"
+                          style={badgeStyle}
                         >
                           {t(log.action) || log.action}
                         </span>
                       </td>
-                      <td className="py-4 px-4 text-white font-medium text-xs text-left">
+                      <td 
+                        className="py-4 px-4 font-medium text-xs text-left"
+                        style={{ color: "var(--text-primary)" }}
+                      >
                         {log.details}
                       </td>
-                      <td className="py-4 px-4 text-center text-slate-400 text-xs">
+                      <td 
+                        className="py-4 px-4 text-center text-xs"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
                         {formatDateTime(log.created_at, language)}
                       </td>
                     </tr>
