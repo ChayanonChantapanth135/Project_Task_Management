@@ -49,7 +49,12 @@
 - **Executive & Team Performance Reports**: หน้าสรุปรายงานประสิทธิภาพการส่งงาน กราฟสัดส่วนงาน และอัตราความสำเร็จ (Completion Rate)
 - **Activity Logs**: ระบบบันทึกประวัติการใช้งานทุกการเปลี่ยนแปลง (Audit Trail)
 
-###  7. ระบบหลายภาษา (Internationalization - i18n)
+###  7. ระบบแจ้งเตือนแบบเรียลไทม์ (Real-Time Notification System)
+- **Socket.io Real-time Push**: รับการแจ้งเตือนทันทีที่มีการมอบหมายงานใหม่, การอัปเดตสถานะงาน, หรือการคอมเมนต์
+- **Interactive Notification Bell**: เมนูดรอปดาวน์แจ้งเตือนพร้อม Badge นับจำนวนที่ยังไม่ได้อ่าน
+- **Notification Actions**: รองรับการคลิกดูรายละเอียด, ทำเครื่องหมายว่าอ่านแล้ว (Mark as read / Mark all as read) และล้างการแจ้งเตือน (Clear all)
+
+###  8. ระบบหลายภาษา (Internationalization - i18n)
 - รองรับการสลับภาษาทั้ง **ภาษาไทย (TH)** และ **ภาษาอังกฤษ (EN)** ครอบคลุมทุกหน้า ทุก Modal และข้อความแจ้งเตือน โดยรวมศูนย์คำแปลไว้ที่ `LanguageContext.jsx`
 
 ---
@@ -58,12 +63,12 @@
 
 ### **Frontend**
 - **Core**: React 19, Vite, React Router DOM v7
-- **Architecture**: Custom Hooks Pattern (`useDashboard`, `usePersonalTasks`, `useMyTasks`, `useProjectManagement`, etc.)
+- **Architecture**: Custom Hooks Pattern (`useDashboard`, `usePersonalTasks`, `useMyTasks`, `useProjectManagement`, `useNotifications`, etc.)
 - **Styling & UI**: Tailwind CSS v4, Vanilla CSS (Glassmorphism & Neon Glow Tokens), GSAP (GreenSock Animation Platform), Framer Motion
 - **Libraries & Plugins**: `@fullcalendar/react`, `@hello-pangea/dnd`, `sweetalert2`, `exceljs`, `xlsx`, `axios`, `socket.io-client`
 
 ### **Backend**
-- **Runtime & Framework**: Node.js, Express.js (ES Modules), WebSockets (`socket.io`)
+- **Runtime & Framework**: Node.js (v20+), Express.js (ES Modules), WebSockets (`socket.io`)
 - **Database Driver**: `mysql2/promise` (Connection Pooling พร้อม `dateStrings: true`)
 - **Security & Utilities**: `bcrypt`, `jsonwebtoken`, `nodemailer`, `multer`
 - **Database Optimization**: Auto-migration พร้อม Composite Indexing (`notifications`, `activity_logs`, `tasks`, `projects`, `personal_tasks`, `otp_requests`)
@@ -81,8 +86,8 @@ RNM AUTH/
 │   ├── public/                 # รูปภาพและเทมเพลตไฟล์ Excel
 │   ├── src/
 │   │   ├── assets/             # รูปภาพ ไอคอน โลโก้
-│   │   ├── components/         # คอมโพเนนต์ส่วนกลาง (Header, Footer, LanguageSwitcher)
-│   │   ├── lib/                # Context & Utilities (LanguageContext, auth, dateUtils)
+│   │   ├── components/         # คอมโพเนนต์ส่วนกลาง (Header, Footer, LanguageSwitcher, NotificationBell)
+│   │   ├── lib/                # Context & Utilities (LanguageContext, SocketContext, auth, dateUtils)
 │   │   ├── pages/              # แยกโฟลเดอร์แต่ละหน้าตาม Clean Architecture
 │   │   │   ├── About/          # หน้าเกี่ยวกับเรา (Features, Tech Stack)
 │   │   │   ├── Activity/       # หน้าบันทึกประวัติกิจกรรมทั้งหมดในระบบ
@@ -106,9 +111,12 @@ RNM AUTH/
 │   ├── vite.config.js
 │   └── package.json
 │
+├── mysql-init/                 # สคริปต์ Database Schema / Init Database
+│
 ├── server/                     # ส่วนให้บริการ API (Node.js + Express Server)
 │   ├── controllers/
-│   │   └── authController.js   # Logic หลัก: จัดการสิทธิ์ โครงการ งาน และฐานข้อมูล
+│   │   ├── authController.js   # Logic หลัก: จัดการสิทธิ์ โครงการ งาน และฐานข้อมูล
+│   │   └── notificationController.js # Logic การจัดการระบบแจ้งเตือน
 │   ├── lib/
 │   │   ├── db.js               # เชื่อมต่อ MySQL Connection Pool
 │   │   └── initDb.js           # สร้างตารางและ Performance Indexes อัตโนมัติ
@@ -117,7 +125,7 @@ RNM AUTH/
 │   ├── routes/
 │   │   └── authRoutes.js       # กำหนด API Endpoints ทั้งหมด
 │   ├── uploads/                # เก็บรูปโปรไฟล์และไฟล์แนบ
-│   ├── index.js                # Entry Point เริ่มต้นการทำงานของเซิร์ฟเวอร์
+│   ├── index.js                # Entry Point เริ่มต้นการทำงานของเซิร์ฟเวอร์ & Socket.io
 │   └── package.json
 │
 └── README.md
@@ -128,7 +136,7 @@ RNM AUTH/
 ##  วิธีการติดตั้งและรันระบบ (Getting Started)
 
 ### 1. ความต้องการของระบบ (Prerequisites)
-- **Node.js**: เวอร์ชัน 18.0.0 ขึ้นไป
+- **Node.js**: เวอร์ชัน 18.0.0 ขึ้นไป (แนะนำ Node.js v20+ สำหรับ `--env-file`)
 - **MySQL / XAMPP**: ติดตั้งและเปิดใช้งาน MySQL และ Apache
 
 ### 2. การตั้งค่าฐานข้อมูล (Database Setup)
@@ -192,9 +200,16 @@ npm run dev
 | `PUT` | `/auth/projects/:id` | อัปเดตข้อมูลโครงการ |
 | `POST` | `/auth/tasks` | สร้างงานใหม่ภายใต้โครงการ |
 | `PUT` | `/auth/tasks/:id/status` | เปลี่ยนสถานะงาน (Sync กับสถานะโครงการ) |
+| `GET` | `/auth/tasks/:id/comments` | ดึงรายการความคิดเห็นในงาน |
+| `POST` | `/auth/tasks/:id/comments` | เพิ่มความคิดเห็นใหม่ในงาน |
+| `POST` | `/auth/tasks/:id/files` | อัปโหลดไฟล์แนบประกอบงาน |
 | `GET` | `/auth/personal-tasks` | ดึงรายการงานส่วนตัวของผู้ใช้ |
 | `POST` | `/auth/personal-tasks` | สร้างงานส่วนตัวใหม่ |
 | `PUT` | `/auth/personal-tasks/reorder` | อัปเดตลำดับและการย้ายสถานะบน Kanban Board |
+| `GET` | `/auth/notifications` | ดึงรายการแจ้งเตือนของผู้ใช้ (Auth required) |
+| `PUT` | `/auth/notifications/read-all` | ทำเครื่องหมายว่าอ่านแจ้งเตือนแล้วทั้งหมด |
+| `PUT` | `/auth/notifications/:id/read` | ทำเครื่องหมายว่าอ่านแจ้งเตือนตาม ID |
+| `DELETE` | `/auth/notifications/clear-all` | ลบประวัติการแจ้งเตือนทั้งหมดของผู้ใช้ |
 | `GET` | `/auth/dashboard-stats` | ดึงข้อมูลสถิติภาพรวมสำหรับ Dashboard |
 | `GET` | `/auth/activity-logs` | ดึงประวัติกิจกรรมของระบบ |
 
