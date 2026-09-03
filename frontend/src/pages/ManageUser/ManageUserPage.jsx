@@ -251,6 +251,12 @@ const ManageUserPage = () => {
         showAddModal={userHook.showAddModal}
         setShowAddModal={userHook.setShowAddModal}
         isEditMode={userHook.isEditMode}
+        isSelf={
+          userHook.currentUser &&
+          userHook.selectedUserId &&
+          (Number(userHook.currentUser.id) === Number(userHook.selectedUserId) ||
+            userHook.currentUser.email?.toLowerCase() === userHook.formData.email?.toLowerCase())
+        }
         formData={userHook.formData}
         handleInputChange={userHook.handleInputChange}
         handleAvatarChange={userHook.handleAvatarChange}

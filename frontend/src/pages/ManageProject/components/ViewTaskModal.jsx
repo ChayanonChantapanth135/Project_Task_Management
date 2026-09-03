@@ -24,13 +24,14 @@ const ViewTaskModal = ({
 }) => {
   const { language } = useLanguage();
   const userRole = (currentUser?.role || "").toLowerCase().trim().replace(/\s+/g, "_");
+  const isCreatorOfProject = Number(selectedProject?.created_by) === Number(currentUser?.id);
   const isTeamLeaderOfProject =
     Number(selectedProject?.teamLeaderId) === Number(currentUser?.id) ||
     Number(selectedProject?.team_leader_id) === Number(currentUser?.id);
+  const isManagerRole = userRole === "admin" || userRole === "manager" || userRole === "project_manager";
   const canManage =
     userRole === "admin" ||
-    userRole === "manager" ||
-    userRole === "project_manager" ||
+    (isManagerRole && isCreatorOfProject) ||
     isTeamLeaderOfProject;
 
   const [comments, setComments] = useState([]);
@@ -773,10 +774,11 @@ const ViewTaskModal = ({
               <div className="border rounded-xl p-3 bg-slate-50 flex-grow-1 min-h-[180px] max-h-[220px] overflow-y-auto">
                 {statusHistory.length > 0 ? (
                   <div className="position-relative ps-3 border-start">
-                    {statusHistory.map((h, index) => {
-                      const prevStatus = index > 0 ? statusHistory[index - 1].status : null;
+                    {[...statusHistory].reverse().map((h, revIndex) => {
+                      const origIndex = statusHistory.length - 1 - revIndex;
+                      const prevStatus = origIndex > 0 ? statusHistory[origIndex - 1].status : null;
                       return (
-                        <div key={index} className="mb-3 position-relative text-xs">
+                        <div key={h.id || revIndex} className="mb-3 position-relative text-xs">
                           {/* Dot on the timeline */}
                           <div
                             className="position-absolute rounded-circle"

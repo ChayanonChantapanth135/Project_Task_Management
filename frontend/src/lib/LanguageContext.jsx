@@ -199,6 +199,9 @@ const translations = {
     modalCreateBtn: "✓ Create User",
     uploadPhotoBtn: "Upload Photo",
     modalStatusLabel: "Status",
+    statusActive: "Active",
+    statusSuspended: "Suspended",
+    cannotChangeSelfStatus: "Cannot change your own status",
     youBadge: "You",
 
     // ManageUsers messages
@@ -497,7 +500,8 @@ const translations = {
     noManagedProjectsText: "No managed projects found",
     // Personal Tasks Page & Components
     personalTaskPageTitle: "Personal Tasks",
-    personalTaskPageDesc: "Manage your personal tasks with Kanban board & Drag-and-Drop Calendar",
+    personalTaskPageDesc:
+      "Manage your personal tasks with Kanban board & Drag-and-Drop Calendar",
     kanbanViewBtn: "Kanban",
     calendarViewBtn: "Calendar",
     addNewPersonalTaskBtn: "+ Add New Task",
@@ -512,9 +516,11 @@ const translations = {
     taskDeletedSuccess: "Task deleted successfully",
     taskUpdatedSuccess: "Task updated successfully",
     taskCreatedSuccess: "New task created successfully",
-    noUnscheduledTasks: "No unscheduled tasks (Drag any task from the calendar down here to remove its due date)",
+    noUnscheduledTasks:
+      "No unscheduled tasks (Drag any task from the calendar down here to remove its due date)",
     unscheduledTasksTrayTitle: "Tasks Without Due Date",
-    unscheduledTasksTrayDesc: "Drag up to schedule, or drag down here to unschedule",
+    unscheduledTasksTrayDesc:
+      "Drag up to schedule, or drag down here to unschedule",
     dragBadge: "Drag",
     editTaskTooltip: "Edit task",
     deleteTaskTooltip: "Delete task",
@@ -544,7 +550,8 @@ const translations = {
     allFilterOption: "All",
     totalTasksLabel: "Total Tasks",
     noTasksFoundForUser: "No Tasks Found",
-    noTasksFoundDesc: "You do not have any tasks assigned in this status or search filter",
+    noTasksFoundDesc:
+      "You do not have any tasks assigned in this status or search filter",
     noTasksInCategory: "No tasks found in this category",
     noProjectsInCategory: "No projects found in this category",
     activeCategoryLabel: "Active",
@@ -621,6 +628,7 @@ const translations = {
     newTaskAssigned: "งานใหม่ที่ได้รับมอบหมาย",
     projectStatusUpdated: "อัปเดตสถานะโปรเจกต์",
     systemNotification: "แจ้งเตือนจากระบบ",
+
     notifAssignedTeamLeader: "คุณได้รับมอบหมายเป็น Team Leader",
     notifAssignedTeamLeaderMsg:
       'คุณได้รับมอบหมายให้เป็นหัวหน้าโปรเจกต์ "{project}"',
@@ -758,6 +766,9 @@ const translations = {
     modalCreateBtn: "✓ สร้างผู้ใช้",
     uploadPhotoBtn: "อัปเดตภาพ",
     modalStatusLabel: "สถานะ",
+    statusActive: "ใช้งาน",
+    statusSuspended: "ระงับการใช้งาน",
+    cannotChangeSelfStatus: "ไม่สามารถเปลี่ยนสถานะของตนเองได้",
     youBadge: "คุณ",
 
     // ManageUsers messages
@@ -1055,7 +1066,8 @@ const translations = {
     noManagedProjectsText: "ไม่มีโครงการภายใต้การดูแลในขณะนี้",
     // Personal Tasks Page & Components
     personalTaskPageTitle: "งานส่วนตัวของฉัน",
-    personalTaskPageDesc: "จัดการรายการงานส่วนตัวของคุณด้วยระบบ Kanban บอร์ด และปฏิทิน Drag & Drop",
+    personalTaskPageDesc:
+      "จัดการรายการงานส่วนตัวของคุณด้วยระบบ Kanban บอร์ด และปฏิทิน Drag & Drop",
     kanbanViewBtn: "บอร์ด",
     calendarViewBtn: "ปฏิทิน",
     addNewPersonalTaskBtn: "+ เพิ่ม Task ใหม่",
@@ -1070,9 +1082,11 @@ const translations = {
     taskDeletedSuccess: "ลบงานสำเร็จ",
     taskUpdatedSuccess: "อัปเดตข้อมูลงานสำเร็จ",
     taskCreatedSuccess: "สร้างงานใหม่สำเร็จ",
-    noUnscheduledTasks: "ไม่มีงานค้าง (คุณสามารถลากงานจากบนปฏิทินลงมาวางที่นี่เพื่อยกเลิกกำหนดส่งได้)",
+    noUnscheduledTasks:
+      "ไม่มีงานค้าง (คุณสามารถลากงานจากบนปฏิทินลงมาวางที่นี่เพื่อยกเลิกกำหนดส่งได้)",
     unscheduledTasksTrayTitle: "งานที่ยังไม่ได้กำหนดส่ง",
-    unscheduledTasksTrayDesc: "ลากงานขึ้นปฏิทินเพื่อใส่วันที่ หรือลากงานจากปฏิทินลงมาที่นี่เพื่อยกเลิกกำหนดส่ง",
+    unscheduledTasksTrayDesc:
+      "ลากงานขึ้นปฏิทินเพื่อใส่วันที่ หรือลากงานจากปฏิทินลงมาที่นี่เพื่อยกเลิกกำหนดส่ง",
     dragBadge: "ลากวาง",
     editTaskTooltip: "แก้ไขงานนี้",
     deleteTaskTooltip: "ลบงานนี้",

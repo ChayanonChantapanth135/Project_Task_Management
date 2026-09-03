@@ -5,6 +5,7 @@ const UserModal = ({
   showAddModal,
   setShowAddModal,
   isEditMode,
+  isSelf,
   formData,
   handleInputChange,
   handleAvatarChange,
@@ -240,33 +241,61 @@ const UserModal = ({
                   className="form-label mb-2 d-block"
                   style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-secondary)" }}
                 >
-                  {t("modalStatusLabel") || "สถานะการใช้งาน"}
+                  {t("modalStatusLabel") || "สถานะ"}
                 </label>
-                <div className="form-check form-switch d-flex align-items-center gap-3">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    id="isActiveCheck"
-                    name="isActive"
-                    checked={formData.isActive}
-                    onChange={handleInputChange}
-                    style={{
-                      width: "2.8rem",
-                      height: "1.4rem",
-                      cursor: "pointer",
+                <div
+                  className={`d-flex align-items-center gap-3 ${isSelf ? "opacity-50" : ""}`}
+                  title={isSelf ? (t("cannotChangeSelfStatus") || "ไม่สามารถเปลี่ยนสถานะของตนเองได้") : ""}
+                >
+                  <div
+                    onClick={() => {
+                      if (isSelf) return;
+                      handleInputChange({ target: { name: "isActive", type: "checkbox", checked: !formData.isActive } });
                     }}
-                  />
-                  <label
-                    className="form-check-label fw-bold cursor-pointer"
-                    htmlFor="isActiveCheck"
+                    style={{
+                      width: "52px",
+                      height: "28px",
+                      backgroundColor: formData.isActive ? "#10b981" : "#cbd5e1",
+                      borderRadius: "9999px",
+                      padding: "3px",
+                      cursor: isSelf ? "not-allowed" : "pointer",
+                      transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                      display: "flex",
+                      alignItems: "center",
+                      boxShadow: "inset 0 1px 2px rgba(0,0,0,0.1)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "22px",
+                        height: "22px",
+                        backgroundColor: "#ffffff",
+                        borderRadius: "50%",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                        transform: formData.isActive ? "translateX(24px)" : "translateX(0px)",
+                        transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                      }}
+                    />
+                  </div>
+                  <span
+                    onClick={() => {
+                      if (isSelf) return;
+                      handleInputChange({ target: { name: "isActive", type: "checkbox", checked: !formData.isActive } });
+                    }}
+                    className={`fw-bold select-none ${isSelf ? "cursor-not-allowed" : "cursor-pointer"}`}
                     style={{
                       fontSize: "0.9rem",
                       color: formData.isActive ? "#10b981" : "#ef4444",
                     }}
                   >
-                    {formData.isActive ? (t("statusActive") || "Active") : (t("statusSuspended") || "Suspended")}
-                  </label>
+                    {formData.isActive ? (t("statusActive") || "ใช้งาน") : (t("statusSuspended") || "ระงับการใช้งาน")}
+                  </span>
                 </div>
+                {isSelf && (
+                  <small className="text-muted mt-1 d-block" style={{ fontSize: "0.75rem" }}>
+                    * {t("cannotChangeSelfStatus") || "ไม่สามารถเปลี่ยนสถานะของตนเองได้"}
+                  </small>
+                )}
               </div>
             </div>
           </div>
