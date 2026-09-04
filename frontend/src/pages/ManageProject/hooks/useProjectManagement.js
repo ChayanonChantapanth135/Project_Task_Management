@@ -153,12 +153,28 @@ export const useProjectManagement = (t) => {
     socket.on("task:status:updated", handleRealtimeUpdate);
     socket.on("task:updated", handleRealtimeUpdate);
     socket.on("task:deleted", handleRealtimeUpdate);
+    socket.on("project:created", handleRealtimeUpdate);
+    socket.on("project:updated", handleRealtimeUpdate);
+    socket.on("project:deleted", (payload) => {
+      fetchProjects();
+      setSelectedProject((prev) => {
+        if (prev && Number(prev.id) === Number(payload.projectId || payload.id)) {
+          setShowDetailModal(false);
+          setShowViewTaskModal(false);
+          return null;
+        }
+        return prev;
+      });
+    });
 
     return () => {
       socket.off("task:created", handleRealtimeUpdate);
       socket.off("task:status:updated", handleRealtimeUpdate);
       socket.off("task:updated", handleRealtimeUpdate);
       socket.off("task:deleted", handleRealtimeUpdate);
+      socket.off("project:created", handleRealtimeUpdate);
+      socket.off("project:updated", handleRealtimeUpdate);
+      socket.off("project:deleted");
     };
   }, []);
 
@@ -390,6 +406,28 @@ export const useProjectManagement = (t) => {
         endDate: editFormData.endDate,
         teamLeaderId: Number(editFormData.teamLeaderId),
         userId: currentUser?.id || 1,
+      });
+
+      const assignedLeader = users.find(
+        (u) => Number(u.id) === Number(editFormData.teamLeaderId)
+      ) || teamLeaders.find(
+        (u) => Number(u.id) === Number(editFormData.teamLeaderId)
+      );
+      const leaderName = assignedLeader ? (assignedLeader.fullname || assignedLeader.username) : "-";
+
+      setSelectedProject((prev) => {
+        if (!prev || Number(prev.id) !== Number(editFormData.id)) return prev;
+        return {
+          ...prev,
+          name: editFormData.name,
+          status: editFormData.status,
+          priority: editFormData.priority,
+          endDate: editFormData.endDate,
+          end_date: editFormData.endDate,
+          teamLeaderId: Number(editFormData.teamLeaderId),
+          teamLeaderName: leaderName,
+          team_leader_name: leaderName,
+        };
       });
 
       setShowEditModal(false);

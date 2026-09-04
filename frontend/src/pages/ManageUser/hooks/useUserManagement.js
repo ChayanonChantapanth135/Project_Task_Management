@@ -5,6 +5,7 @@ import ExcelJS from "exceljs";
 // นำเข้า API_URL สำหรับใช้ต่อคำนำหน้าของรูปภาพโปรไฟล์ (Avatar) แบบไดนามิก
 import { API_URL } from "../../../config";
 import { formatDate } from "../../../lib/dateUtils";
+import { getSocket } from "../../../lib/socket";
 
 export const useUserManagement = (t, language = "en") => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -96,6 +97,57 @@ export const useUserManagement = (t, language = "en") => {
 
   useEffect(() => {
     fetchUsers();
+
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleRealtimeUsers = (payload) => {
+      fetchUsers();
+
+      // If the modal for this user is currently open in edit mode, sync form in real-time!
+      if (payload && payload.userId) {
+        setSelectedUserId((currentId) => {
+          if (currentId && Number(currentId) === Number(payload.userId)) {
+            const nameParts = (payload.fullname || "").split(" ");
+            const firstName = nameParts[0] || "";
+            const lastName = nameParts.slice(1).join(" ") || "";
+
+            let dbRole = (payload.role || "storyboard").toLowerCase();
+            if (dbRole === "admin") dbRole = "admin";
+            else if (dbRole === "manager" || dbRole === "project manager" || dbRole === "project_manager") dbRole = "manager";
+            else if (dbRole === "storyboard") dbRole = "storyboard";
+            else if (dbRole === "animation") dbRole = "animation";
+            else if (dbRole === "designer") dbRole = "designer";
+            else if (dbRole === "programmer") dbRole = "programmer";
+
+            setFormData((prev) => ({
+              ...prev,
+              email: payload.email !== undefined ? payload.email : prev.email,
+              firstName: firstName || prev.firstName,
+              lastName: lastName !== undefined ? lastName : prev.lastName,
+              phone: payload.phone !== undefined && payload.phone !== "-" ? payload.phone : prev.phone,
+              role: dbRole || prev.role,
+              isActive: payload.status !== undefined ? payload.status === "active" : prev.isActive,
+            }));
+
+            if (payload.avatar) {
+              setAvatarPreview(payload.avatar.startsWith("http") ? payload.avatar : `${API_URL}${payload.avatar}`);
+            }
+          }
+          return currentId;
+        });
+      }
+    };
+
+    socket.on("user:created", handleRealtimeUsers);
+    socket.on("user:updated", handleRealtimeUsers);
+    socket.on("user:deleted", handleRealtimeUsers);
+
+    return () => {
+      socket.off("user:created", handleRealtimeUsers);
+      socket.off("user:updated", handleRealtimeUsers);
+      socket.off("user:deleted", handleRealtimeUsers);
+    };
   }, []);
 
   // Reset page to 1 when filters or search change
@@ -200,10 +252,10 @@ export const useUserManagement = (t, language = "en") => {
         });
         setModalSuccess(t("userCreatedSuccess") || "สร้างบัญชีผู้ใช้ใหม่เรียบร้อยแล้ว!");
       }
+      fetchUsers();
       setTimeout(() => {
         setShowAddModal(false);
-        fetchUsers();
-      }, 1500);
+      }, 500);
     } catch (err) {
       setModalError(err.response?.data?.message || (isEditMode ? t("userUpdateFailed") : t("userAddFailed")));
     }

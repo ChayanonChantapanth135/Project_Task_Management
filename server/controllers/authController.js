@@ -404,6 +404,18 @@ export const createUser = async (req, res) => {
         const { creatorId } = req.body;
         await logActivity(db, creatorId ? Number(creatorId) : null, 'Create User', `Created user: ${fullname} (${email})`);
 
+        // Broadcast real-time user created event
+        emitTaskEvent('user:created', {
+            userId: result.insertId,
+            id: result.insertId,
+            fullname,
+            email,
+            phone: formattedPhone,
+            role: sqlRole,
+            status: sqlStatus,
+            avatar: avatarUrl,
+        });
+
         res.status(201).json({ message: 'User created successfully', id: result.insertId });
     } catch (error) {
         console.error('Error creating user:', error.message);
@@ -489,6 +501,21 @@ export const updateUser = async (req, res) => {
         } else {
             await logActivity(db, creatorId ? Number(creatorId) : null, 'Edit User', `Edited user ID: ${id} (${fullname})`);
         }
+
+        // Broadcast real-time user updated event
+        let updatedAvatar = req.file ? `/uploads/${req.file.filename}` : undefined;
+        emitTaskEvent('user:updated', {
+            userId: Number(id),
+            id: Number(id),
+            fullname,
+            email,
+            phone: formattedPhone,
+            role: sqlRole,
+            status: targetStatus,
+            avatar: updatedAvatar,
+            updatedBy: creatorId,
+        });
+
         res.status(200).json({ message: 'User updated successfully' });
     } catch (error) {
         console.error('Error updating user:', error.message);
@@ -511,6 +538,14 @@ export const softDeleteUser = async (req, res) => {
         const { fullname, email } = userRows[0];
         await db.query('UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?', [id]);
         await logActivity(db, creatorId ? Number(creatorId) : null, 'Soft Delete User', `Soft deleted user: ${fullname} (${email})`);
+
+        // Broadcast real-time user deleted event
+        emitTaskEvent('user:deleted', {
+            userId: Number(id),
+            id: Number(id),
+            deletedBy: creatorId,
+        });
+
         res.status(200).json({ message: 'User soft-deleted successfully' });
     } catch (error) {
         console.error('Error soft deleting user:', error.message);
@@ -533,6 +568,15 @@ export const restoreUser = async (req, res) => {
         const { fullname, email } = userRows[0];
         await db.query('UPDATE users SET deleted_at = NULL WHERE id = ?', [id]);
         await logActivity(db, creatorId ? Number(creatorId) : null, 'Restore User', `Restored user: ${fullname} (${email})`);
+
+        // Broadcast real-time user created/restored event
+        emitTaskEvent('user:created', {
+            userId: Number(id),
+            id: Number(id),
+            fullname,
+            email,
+        });
+
         res.status(200).json({ message: 'User restored successfully' });
     } catch (error) {
         console.error('Error restoring user:', error.message);
@@ -558,6 +602,14 @@ export const permanentDeleteUser = async (req, res) => {
         }
         await db.query('DELETE FROM users WHERE id = ?', [id]);
         await logActivity(db, creatorId ? Number(creatorId) : null, 'Permanent Delete User', `Permanently deleted user: ${fullname} (${email})`);
+
+        // Broadcast real-time user deleted event
+        emitTaskEvent('user:deleted', {
+            userId: Number(id),
+            id: Number(id),
+            deletedBy: creatorId,
+        });
+
         res.status(200).json({ message: 'User permanently deleted successfully' });
     } catch (error) {
         console.error('Error permanently deleting user:', error.message);
@@ -939,6 +991,19 @@ export const createProject = async (req, res) => {
         }
 
         await logActivity(db, createdBy, 'Create New Project', `Created project: ${name}`);
+
+        // Broadcast real-time project created event to all clients
+        emitTaskEvent('project:created', {
+            projectId,
+            id: projectId,
+            name,
+            status: 'Pending',
+            priority,
+            endDate,
+            teamLeaderId: teamLeaderId ? Number(teamLeaderId) : null,
+            createdBy,
+        });
+
         res.status(201).json({ message: 'Project created successfully', projectId });
     } catch (error) {
         console.error('Error creating project:', error.message);
@@ -1029,7 +1094,24 @@ export const updateProject = async (req, res) => {
             });
         }
 
+        const [tlUserRows] = teamLeaderId ? await db.query("SELECT fullname FROM users WHERE id = ?", [teamLeaderId]) : [[]];
+        const teamLeaderName = tlUserRows[0]?.fullname || null;
+
         await logActivity(db, userId, 'Edit Project', `Edited project ID: ${id}`);
+
+        // Broadcast real-time project updated event to all clients
+        emitTaskEvent('project:updated', {
+            projectId: Number(id),
+            id: Number(id),
+            name,
+            status,
+            priority,
+            endDate,
+            teamLeaderId: teamLeaderId ? Number(teamLeaderId) : null,
+            teamLeaderName,
+            updatedBy: userId,
+        });
+
         res.status(200).json({ message: 'Project updated successfully' });
     } catch (error) {
         console.error('Error updating project:', error.message);
@@ -1048,10 +1130,15 @@ export const deleteProject = async (req, res) => {
         const [projRows] = await db.query('SELECT name FROM projects WHERE id = ? AND deleted_at IS NULL', [id]);
         const projName = projRows[0]?.name || id;
 
-        await db.query("UPDATE projects SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?", [id]);
-        await db.query("UPDATE tasks SET deleted_at = CURRENT_TIMESTAMP WHERE project_id = ?", [id]);
-
         await logActivity(db, userId, 'Delete Project', `Soft deleted project: ${projName}`);
+
+        // Broadcast real-time project deleted event to all clients
+        emitTaskEvent('project:deleted', {
+            projectId: Number(id),
+            id: Number(id),
+            deletedBy: userId,
+        });
+
         res.status(200).json({ message: 'Project deleted successfully' });
     } catch (error) {
         console.error('Error deleting project:', error.message);

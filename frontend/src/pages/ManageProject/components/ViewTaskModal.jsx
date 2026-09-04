@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Modal } from "react-bootstrap";
 import axios from "axios";
+import Swal from "sweetalert2";
 import { useLanguage } from "../../../lib/LanguageContext";
 import { formatDateTime, formatDate } from "../../../lib/dateUtils";
 import SearchableUserSelect from "../../../components/SearchableUserSelect";
@@ -116,16 +117,38 @@ const ViewTaskModal = ({
       if (Number(payload.taskId) === Number(selectedTask.id)) {
         if (payload.status) {
           setTempStatus(payload.status);
-          setFormData((prev) => ({
-            ...prev,
-            status: payload.status,
-            title: payload.title || prev.title,
-            description: payload.description !== undefined ? payload.description : prev.description,
-            priority: payload.priority || prev.priority,
-            dueDate: payload.dueDate || prev.dueDate,
-            assignedTo: payload.assignedTo || prev.assignedTo,
-          }));
+          selectedTask.status = payload.status;
         }
+        if (payload.title !== undefined) selectedTask.title = payload.title;
+        if (payload.description !== undefined) selectedTask.description = payload.description;
+        if (payload.priority !== undefined) selectedTask.priority = payload.priority;
+        if (payload.dueDate !== undefined) {
+          selectedTask.dueDate = payload.dueDate;
+          selectedTask.due_date = payload.dueDate;
+        }
+        if (payload.assignedTo !== undefined) {
+          selectedTask.assignedTo = payload.assignedTo;
+          selectedTask.assigned_to = payload.assignedTo;
+          const assignedUser = users.find((u) => Number(u.id) === Number(payload.assignedTo));
+          const assignedName = assignedUser ? (assignedUser.fullname || assignedUser.username) : "Unassigned";
+          selectedTask.assigned_to_name = assignedName;
+        }
+        if (payload.taskType !== undefined) {
+          selectedTask.taskType = payload.taskType;
+          selectedTask.task_type = payload.taskType;
+        }
+
+        setFormData((prev) => ({
+          ...prev,
+          status: payload.status !== undefined ? payload.status : prev.status,
+          title: payload.title !== undefined ? payload.title : prev.title,
+          description: payload.description !== undefined ? payload.description : prev.description,
+          priority: payload.priority !== undefined ? payload.priority : prev.priority,
+          dueDate: payload.dueDate !== undefined ? payload.dueDate : prev.dueDate,
+          assignedTo: payload.assignedTo !== undefined ? payload.assignedTo : prev.assignedTo,
+          taskType: payload.taskType !== undefined ? payload.taskType : prev.taskType,
+        }));
+
         fetchStatusHistory();
       }
     };
@@ -293,12 +316,38 @@ const ViewTaskModal = ({
           }));
         }
 
-        setSuccessMessage(
-          language === "th" ? "อัปเดตข้อมูลงานสำเร็จ" : "Task updated successfully"
-        );
-        setTimeout(() => setSuccessMessage(""), 5000);
-        setShowViewTaskModal(false);
+        if (selectedTask) {
+          selectedTask.title = formData.title;
+          selectedTask.description = formData.description;
+          selectedTask.task_type = typeValue;
+          selectedTask.taskType = typeValue;
+          selectedTask.priority = formData.priority;
+          selectedTask.due_date = formData.dueDate;
+          selectedTask.dueDate = formData.dueDate;
+          selectedTask.assigned_to = formData.assignedTo;
+          selectedTask.assigned_to_name = assignedName;
+          selectedTask.status = tempStatus;
+        }
+
+        setIsEditing(false);
+        fetchStatusHistory();
         if (fetchProjects) fetchProjects();
+
+        // Show Toast Popup at bottom-right without closing modal
+        Swal.fire({
+          toast: true,
+          position: "bottom-end",
+          icon: "success",
+          title: language === "th" ? "บันทึกการแก้ไขสำเร็จ" : "Changes saved successfully",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          background: "#1e293b",
+          color: "#ffffff",
+          customClass: {
+            popup: "rounded-2xl shadow-2xl border border-slate-700",
+          },
+        });
       } else {
         await axios.put(`/auth/tasks/${selectedTask.id}/status`, {
           status: tempStatus,
@@ -323,12 +372,25 @@ const ViewTaskModal = ({
           }));
         }
 
-        setSuccessMessage(
-          language === "th" ? "อัปเดตสถานะงานสำเร็จ" : "Status updated successfully"
-        );
-        setTimeout(() => setSuccessMessage(""), 5000);
-        setShowViewTaskModal(false);
+        // Refresh task status history in the modal
+        fetchStatusHistory();
         if (fetchProjects) fetchProjects();
+
+        // Show Toast Popup at bottom-right without closing modal
+        Swal.fire({
+          toast: true,
+          position: "bottom-end",
+          icon: "success",
+          title: language === "th" ? "อัปเดตสถานะงานสำเร็จ" : "Status updated successfully",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          background: "#1e293b",
+          color: "#ffffff",
+          customClass: {
+            popup: "rounded-2xl shadow-2xl border border-slate-700",
+          },
+        });
       }
     } catch (err) {
       console.error("Failed to update task:", err);

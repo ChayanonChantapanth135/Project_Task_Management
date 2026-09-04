@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Modal } from "react-bootstrap";
 import axios from "axios";
+import Swal from "sweetalert2";
 import SearchableUserSelect from "../../../components/SearchableUserSelect";
 import CustomDateInput from "../../../components/CustomDateInput";
 import { useLanguage } from "../../../lib/LanguageContext";
@@ -108,16 +109,40 @@ const TaskDetailModal = ({
       if (Number(payload.taskId) === Number(selectedTask.id)) {
         if (payload.status) {
           setTempStatus(payload.status);
-          setFormData((prev) => ({
-            ...prev,
-            status: payload.status,
-            title: payload.title || prev.title,
-            description: payload.description !== undefined ? payload.description : prev.description,
-            priority: payload.priority || prev.priority,
-            dueDate: payload.dueDate || prev.dueDate,
-            assignedTo: payload.assignedTo || prev.assignedTo,
-          }));
+          selectedTask.status = payload.status;
         }
+        if (payload.title !== undefined) selectedTask.title = payload.title;
+        if (payload.description !== undefined) selectedTask.description = payload.description;
+        if (payload.priority !== undefined) selectedTask.priority = payload.priority;
+        if (payload.dueDate !== undefined) {
+          selectedTask.dueDate = payload.dueDate;
+          selectedTask.due_date = payload.dueDate;
+          selectedTask.displayDueDate = formatDate(payload.dueDate, language);
+        }
+        if (payload.assignedTo !== undefined) {
+          selectedTask.assignedTo = payload.assignedTo;
+          selectedTask.assigned_to = payload.assignedTo;
+          const assignedUser = users.find((u) => Number(u.id) === Number(payload.assignedTo));
+          const assignedName = assignedUser ? (assignedUser.fullname || assignedUser.username) : "Unassigned";
+          selectedTask.assignee = assignedName;
+          selectedTask.assigned_to_name = assignedName;
+        }
+        if (payload.taskType !== undefined) {
+          selectedTask.taskType = payload.taskType;
+          selectedTask.task_type = payload.taskType;
+        }
+
+        setFormData((prev) => ({
+          ...prev,
+          status: payload.status !== undefined ? payload.status : prev.status,
+          title: payload.title !== undefined ? payload.title : prev.title,
+          description: payload.description !== undefined ? payload.description : prev.description,
+          priority: payload.priority !== undefined ? payload.priority : prev.priority,
+          dueDate: payload.dueDate !== undefined ? payload.dueDate : prev.dueDate,
+          assignedTo: payload.assignedTo !== undefined ? payload.assignedTo : prev.assignedTo,
+          taskType: payload.taskType !== undefined ? payload.taskType : prev.taskType,
+        }));
+
         fetchStatusHistory();
       }
     };
@@ -223,11 +248,127 @@ const TaskDetailModal = ({
     }
   };
 
-  const onSave = () => {
-    handleUpdateTask({
-      ...formData,
-      status: tempStatus, // Include status change
-    });
+  const handleUpdateStatusOnly = async () => {
+    if (!selectedTask) return;
+    try {
+      await axios.put(`/auth/tasks/${selectedTask.id}/status`, {
+        status: tempStatus,
+        userId: currentUser?.id,
+      });
+
+      // Refresh history in current modal
+      fetchStatusHistory();
+
+      // Refresh parent page list
+      if (typeof handleUpdateTask === "function") {
+        // If handleUpdateTask can be called or parent reloads, we call it if needed, or if loadData
+      }
+
+      // Show Toast Popup at bottom-right without closing modal
+      Swal.fire({
+        toast: true,
+        position: "bottom-end",
+        icon: "success",
+        title: language === "th" ? "อัปเดตสถานะงานสำเร็จ" : "Status updated successfully",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        background: "#1e293b",
+        color: "#ffffff",
+        customClass: {
+          popup: "rounded-2xl shadow-2xl border border-slate-700",
+        },
+      });
+    } catch (err) {
+      console.error("Failed to update status:", err);
+      Swal.fire({
+        toast: true,
+        position: "bottom-end",
+        icon: "error",
+        title: language === "th" ? "ไม่สามารถอัปเดตสถานะได้" : "Failed to update status",
+        showConfirmButton: false,
+        timer: 3000,
+        background: "#1e293b",
+        color: "#ffffff",
+      });
+    }
+  };
+
+  const onSave = async () => {
+    if (!selectedTask) return;
+    try {
+      const typeValue =
+        formData.taskType === "อื่นๆ"
+          ? formData.customTaskType
+          : formData.taskType;
+
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        taskType: typeValue,
+        priority: formData.priority,
+        dueDate: formData.dueDate,
+        assignedTo: formData.assignedTo ? Number(formData.assignedTo) : null,
+        projectId: formData.projectId || selectedTask.projectId,
+        status: tempStatus,
+        userId: currentUser?.id,
+      };
+
+      await axios.put(`/auth/tasks/${selectedTask.id}`, payload);
+
+      const assignedUser = users.find(
+        (u) => Number(u.id) === Number(formData.assignedTo)
+      );
+      const assignedName = assignedUser
+        ? assignedUser.fullname || assignedUser.username
+        : "Unassigned";
+
+      // Directly update selectedTask object in real-time for immediate UI update in modal
+      selectedTask.title = formData.title;
+      selectedTask.description = formData.description;
+      selectedTask.taskType = typeValue;
+      selectedTask.task_type = typeValue;
+      selectedTask.priority = formData.priority;
+      selectedTask.dueDate = formData.dueDate;
+      selectedTask.due_date = formData.dueDate;
+      selectedTask.displayDueDate = formatDate(formData.dueDate, language);
+      selectedTask.assignedTo = formData.assignedTo;
+      selectedTask.assigned_to = formData.assignedTo;
+      selectedTask.assignee = assignedName;
+      selectedTask.assigned_to_name = assignedName;
+      selectedTask.status = tempStatus;
+
+      setIsEditing(false);
+      fetchStatusHistory();
+
+      // Show Toast Popup at bottom-right without closing modal
+      Swal.fire({
+        toast: true,
+        position: "bottom-end",
+        icon: "success",
+        title: language === "th" ? "บันทึกการแก้ไขสำเร็จ" : "Changes saved successfully",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        background: "#1e293b",
+        color: "#ffffff",
+        customClass: {
+          popup: "rounded-2xl shadow-2xl border border-slate-700",
+        },
+      });
+    } catch (err) {
+      console.error("Failed to update task details:", err);
+      Swal.fire({
+        toast: true,
+        position: "bottom-end",
+        icon: "error",
+        title: language === "th" ? "ไม่สามารถบันทึกข้อมูลงานได้" : "Failed to save changes",
+        showConfirmButton: false,
+        timer: 3000,
+        background: "#1e293b",
+        color: "#ffffff",
+      });
+    }
   };
 
   const formatTaskType = (type) => {
@@ -667,12 +808,12 @@ const TaskDetailModal = ({
               <div className="border rounded-xl p-3 bg-slate-50 flex-grow-1 min-h-[180px] max-h-[220px] overflow-y-auto">
                 {statusHistory.length > 0 ? (
                   <div className="position-relative ps-3 border-start">
-                    {statusHistory.map((h, index) => {
-                      const prevStatus =
-                        index > 0 ? statusHistory[index - 1].status : null;
+                    {[...statusHistory].reverse().map((h, revIndex) => {
+                      const origIndex = statusHistory.length - 1 - revIndex;
+                      const prevStatus = origIndex > 0 ? statusHistory[origIndex - 1].status : null;
                       return (
                         <div
-                          key={index}
+                          key={h.id || revIndex}
                           className="mb-3 position-relative text-xs"
                         >
                           {/* Dot on the timeline */}
@@ -701,7 +842,7 @@ const TaskDetailModal = ({
                                 >
                                   {translateStatus(prevStatus)}
                                 </span>{" "}
-                                {language === "th" ? "เป็น" : "to"}{" "}
+                                <span className="text-muted">{language === "th" ? "เป็น" : "to"}</span>{" "}
                               </>
                             ) : (
                               language === "th" ? " เป็น " : " to "
@@ -787,18 +928,7 @@ const TaskDetailModal = ({
                 <button
                   type="button"
                   className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-lg"
-                  onClick={() => {
-                    handleUpdateTask({
-                      title: formData.title,
-                      description: formData.description,
-                      taskType: formData.taskType,
-                      priority: formData.priority,
-                      dueDate: formData.dueDate,
-                      assignedTo: formData.assignedTo,
-                      projectId: formData.projectId,
-                      status: tempStatus, // Just save status change
-                    });
-                  }}
+                  onClick={handleUpdateStatusOnly}
                 >
                   {t("updateStatusBtn") || "Update Status"}
                 </button>

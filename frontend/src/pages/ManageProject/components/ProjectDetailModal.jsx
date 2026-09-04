@@ -54,12 +54,33 @@ const ProjectDetailModal = ({
       }
     };
 
+    const handleProjectUpdated = (payload) => {
+      if (Number(payload.projectId || payload.id) === Number(selectedProject.id) && setSelectedProject) {
+        setSelectedProject((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            name: payload.name !== undefined ? payload.name : prev.name,
+            status: payload.status !== undefined ? payload.status : prev.status,
+            priority: payload.priority !== undefined ? payload.priority : prev.priority,
+            endDate: payload.endDate !== undefined ? payload.endDate : prev.endDate,
+            end_date: payload.endDate !== undefined ? payload.endDate : prev.end_date,
+            teamLeaderId: payload.teamLeaderId !== undefined ? payload.teamLeaderId : prev.teamLeaderId,
+            teamLeaderName: payload.teamLeaderName !== undefined ? payload.teamLeaderName : prev.teamLeaderName,
+            team_leader_name: payload.teamLeaderName !== undefined ? payload.teamLeaderName : prev.team_leader_name,
+          };
+        });
+      }
+    };
+
     socket.on("task:status:updated", handleTaskStatusChange);
     socket.on("task:updated", handleTaskStatusChange);
+    socket.on("project:updated", handleProjectUpdated);
 
     return () => {
       socket.off("task:status:updated", handleTaskStatusChange);
       socket.off("task:updated", handleTaskStatusChange);
+      socket.off("project:updated", handleProjectUpdated);
     };
   }, [showDetailModal, selectedProject, setSelectedProject]);
   const userRole = (currentUser?.role || "").toLowerCase().trim().replace(/\s+/g, "_");
