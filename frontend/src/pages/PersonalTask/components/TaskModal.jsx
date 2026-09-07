@@ -125,13 +125,16 @@ const TaskModal = ({
               {isThai ? "ชื่องาน" : "Task Title"}{" "}
               <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              className="w-full px-3.5 py-2.5 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+            <textarea
+              rows="3"
+              maxLength={200}
+              className="w-full px-3.5 py-2.5 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
               style={{
                 backgroundColor: "#F8FAFC",
                 color: "#0F172A",
                 border: "1.5px solid #94A3B8",
+                wordBreak: "break-word",
+                lineHeight: "1.5",
               }}
               placeholder={
                 isThai ? "กรอกชื่องานของคุณ..." : "Enter task title..."
@@ -143,6 +146,9 @@ const TaskModal = ({
               }}
               autoFocus
             />
+            <div className="flex justify-end text-[11px] text-slate-400 mt-1">
+              <span>{title.length}/200</span>
+            </div>
           </div>
 
           <div>

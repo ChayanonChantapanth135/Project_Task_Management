@@ -8,17 +8,33 @@ const TaskPagination = ({ currentPage, setCurrentPage, totalPages, language }) =
       <button
         onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
         disabled={currentPage === 1}
-        className="px-4 py-2 rounded-2xl bg-white/5 border-0 text-slate-400 hover:bg-white/10 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
+        className="px-4 py-2 rounded-xl text-xs font-semibold disabled:opacity-40 transition-all cursor-pointer shadow-sm hover:shadow-md"
+        style={{
+          background: "var(--bg-surface-hover)",
+          color: "var(--text-primary)",
+          border: "1px solid var(--border-surface)",
+        }}
       >
         {language === "th" ? "ก่อนหน้า" : "Previous"}
       </button>
-      <span className="text-slate-400 text-sm px-4">
+      <span
+        className="px-4 py-2 font-bold rounded-xl text-xs pagination-badge shadow-md"
+        style={{
+          background: "var(--brand-color)",
+          color: "#FFFFFF",
+        }}
+      >
         {language === "th" ? "หน้า" : "Page"} {currentPage} / {totalPages}
       </span>
       <button
         onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
         disabled={currentPage === totalPages}
-        className="px-4 py-2 rounded-2xl bg-white/5 border-0 text-slate-400 hover:bg-white/10 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
+        className="px-4 py-2 rounded-xl text-xs font-semibold disabled:opacity-40 transition-all cursor-pointer shadow-sm hover:shadow-md"
+        style={{
+          background: "var(--bg-surface-hover)",
+          color: "var(--text-primary)",
+          border: "1px solid var(--border-surface)",
+        }}
       >
         {language === "th" ? "ถัดไป" : "Next"}
       </button>

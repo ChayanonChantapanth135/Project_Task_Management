@@ -130,21 +130,37 @@ const MyActivityTable = ({
                 {filteredLogs.length} {t("entriesText") || "entries"}
               </span>
 
-              <div className="flex gap-1.5 items-center">
+              <div className="flex gap-2 items-center">
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-300 disabled:opacity-30 disabled:hover:bg-slate-900/80 disabled:hover:text-slate-300 text-xs font-bold transition-all"
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-semibold disabled:opacity-40 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                  style={{
+                    background: "var(--bg-surface-hover)",
+                    color: "var(--text-primary)",
+                    border: "1px solid var(--border-surface)",
+                  }}
                 >
                   {t("prevText") || "Previous"}
                 </button>
-                <div className="px-5 py-2 rounded-full bg-indigo-600 text-white text-xs font-bold shadow-md shadow-indigo-500/25 min-w-[70px] text-center">
+                <div
+                  className="px-3.5 py-1.5 font-bold rounded-xl text-xs pagination-badge shadow-md min-w-[60px] text-center"
+                  style={{
+                    background: "var(--brand-color)",
+                    color: "#FFFFFF",
+                  }}
+                >
                   {currentPage} / {totalPages}
                 </div>
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-300 disabled:opacity-30 disabled:hover:bg-slate-900/80 disabled:hover:text-slate-300 text-xs font-bold transition-all"
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-semibold disabled:opacity-40 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                  style={{
+                    background: "var(--bg-surface-hover)",
+                    color: "var(--text-primary)",
+                    border: "1px solid var(--border-surface)",
+                  }}
                 >
                   {t("nextText") || "Next"}
                 </button>

@@ -104,7 +104,7 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           onClick={() => onEdit(task)}
-          className={`px-4 py-3 mb-3 rounded-2xl select-none group transition-colors cursor-pointer ${
+          className={`px-3 py-2.5 mb-2 rounded-xl select-none group transition-colors cursor-pointer ${
             snapshot.isDragging
               ? "ring-2 ring-blue-400 shadow-2xl scale-102"
               : dateStatus === "overdue"
@@ -130,9 +130,10 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
             ...provided.draggableProps.style,
           }}
         >
-          <div className="flex items-start justify-between gap-1.5 mb-1">
+          <div className="flex items-start justify-between gap-1.5 mb-1 min-w-0">
             <h6
-              className={`text-sm font-semibold leading-snug flex-1 ${
+              title={task.title}
+              className={`text-xs font-semibold leading-snug flex-1 truncate min-w-0 ${
                 task.is_completed ? "line-through opacity-60" : ""
               }`}
               style={{ color: "var(--text-primary)" }}
