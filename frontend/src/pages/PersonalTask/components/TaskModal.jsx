@@ -128,7 +128,7 @@ const TaskModal = ({
             <textarea
               rows="3"
               maxLength={200}
-              className="w-full px-3.5 py-2.5 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+              className="w-full px-3.5 py-2.5 rounded-xl text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
               style={{
                 backgroundColor: "#F8FAFC",
                 color: "#0F172A",
