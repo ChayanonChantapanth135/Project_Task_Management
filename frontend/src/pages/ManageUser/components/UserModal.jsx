@@ -1,11 +1,14 @@
 import React from "react";
 import { Modal } from "react-bootstrap";
+import SearchableUserSelect from "../../../components/SearchableUserSelect";
 
 const UserModal = ({
   showAddModal,
   setShowAddModal,
   isEditMode,
   isSelf,
+  selectedUserId,
+  users = [],
   formData,
   handleInputChange,
   handleAvatarChange,
@@ -29,8 +32,7 @@ const UserModal = ({
             className="modal-title d-flex align-items-center gap-2"
             style={{ fontWeight: "700" }}
           >
-            <span></span>{" "}
-            {isEditMode ? t("editUserTitle") : t("addUserTitle")}
+            <span></span> {isEditMode ? t("editUserTitle") : t("addUserTitle")}
           </h5>
           <button
             className="btn btn-sm btn-outline-secondary px-3 py-1.5 rounded-lg"
@@ -65,10 +67,13 @@ const UserModal = ({
               <div>
                 <label
                   className="form-label mb-1"
-                  style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-secondary)" }}
+                  style={{
+                    fontSize: "0.85rem",
+                    fontWeight: "700",
+                    color: "var(--text-secondary)",
+                  }}
                 >
-                  {t("modalEmailLabel")}{" "}
-                  <span className="text-danger">*</span>
+                  {t("modalEmailLabel")} <span className="text-danger">*</span>
                 </label>
                 <input
                   type="email"
@@ -84,7 +89,11 @@ const UserModal = ({
               <div>
                 <label
                   className="form-label mb-1"
-                  style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-secondary)" }}
+                  style={{
+                    fontSize: "0.85rem",
+                    fontWeight: "700",
+                    color: "var(--text-secondary)",
+                  }}
                 >
                   {t("modalPasswordLabel")}{" "}
                   {!isEditMode && <span className="text-danger">*</span>}
@@ -105,7 +114,11 @@ const UserModal = ({
                 <div className="col">
                   <label
                     className="form-label mb-1"
-                    style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-secondary)" }}
+                    style={{
+                      fontSize: "0.85rem",
+                      fontWeight: "700",
+                      color: "var(--text-secondary)",
+                    }}
                   >
                     {t("modalFirstNameLabel")}{" "}
                     <span className="text-danger">*</span>
@@ -122,7 +135,11 @@ const UserModal = ({
                 <div className="col">
                   <label
                     className="form-label mb-1"
-                    style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-secondary)" }}
+                    style={{
+                      fontSize: "0.85rem",
+                      fontWeight: "700",
+                      color: "var(--text-secondary)",
+                    }}
                   >
                     {t("modalLastNameLabel")}{" "}
                     <span className="text-danger">*</span>
@@ -142,7 +159,11 @@ const UserModal = ({
               <div>
                 <label
                   className="form-label mb-1"
-                  style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-secondary)" }}
+                  style={{
+                    fontSize: "0.85rem",
+                    fontWeight: "700",
+                    color: "var(--text-secondary)",
+                  }}
                 >
                   {t("modalPhoneLabel")}
                 </label>
@@ -152,6 +173,43 @@ const UserModal = ({
                   className="form-control rounded-xl py-2.5 px-3 text-sm focus:outline-none transition-all shadow-sm"
                   value={formData.phone}
                   onChange={handleInputChange}
+                />
+              </div>
+
+              {/* Leader Selection */}
+              <div>
+                <label
+                  className="form-label mb-1"
+                  style={{
+                    fontSize: "0.85rem",
+                    fontWeight: "700",
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  {t("modalLeaderLabel") || "หัวหน้า"}
+                </label>
+                <SearchableUserSelect
+                  users={users.filter(
+                    (u) =>
+                      !selectedUserId ||
+                      Number(u.id) !== Number(selectedUserId),
+                  )}
+                  value={formData.leaderId || ""}
+                  name="leaderId"
+                  onChange={handleInputChange}
+                  placeholder={t("modalLeaderPlaceholder") || "-- Clear --"}
+                  allowedRoles={[
+                    "admin",
+                    "manager",
+                    "project_manager",
+                    "storyboard",
+                    "animation",
+                    "designer",
+                    "programmer",
+                  ]}
+                  placement="auto"
+                  className="w-100"
+                  triggerClassName="rounded-xl"
                 />
               </div>
             </div>
@@ -187,10 +245,10 @@ const UserModal = ({
                         objectFit: "cover",
                       }}
                     />
+                  ) : formData.firstName ? (
+                    formData.firstName[0]?.toUpperCase()
                   ) : (
-                    formData.firstName
-                      ? formData.firstName[0]?.toUpperCase()
-                      : "U"
+                    "U"
                   )}
                 </div>
                 <input
@@ -215,7 +273,11 @@ const UserModal = ({
               <div>
                 <label
                   className="form-label mb-1"
-                  style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-secondary)" }}
+                  style={{
+                    fontSize: "0.85rem",
+                    fontWeight: "700",
+                    color: "var(--text-secondary)",
+                  }}
                 >
                   {t("modalRoleLabel")} <span className="text-danger">*</span>
                 </label>
@@ -239,23 +301,40 @@ const UserModal = ({
               <div>
                 <label
                   className="form-label mb-2 d-block"
-                  style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-secondary)" }}
+                  style={{
+                    fontSize: "0.85rem",
+                    fontWeight: "700",
+                    color: "var(--text-secondary)",
+                  }}
                 >
                   {t("modalStatusLabel") || "สถานะ"}
                 </label>
                 <div
                   className={`d-flex align-items-center gap-3 ${isSelf ? "opacity-50" : ""}`}
-                  title={isSelf ? (t("cannotChangeSelfStatus") || "ไม่สามารถเปลี่ยนสถานะของตนเองได้") : ""}
+                  title={
+                    isSelf
+                      ? t("cannotChangeSelfStatus") ||
+                        "ไม่สามารถเปลี่ยนสถานะของตนเองได้"
+                      : ""
+                  }
                 >
                   <div
                     onClick={() => {
                       if (isSelf) return;
-                      handleInputChange({ target: { name: "isActive", type: "checkbox", checked: !formData.isActive } });
+                      handleInputChange({
+                        target: {
+                          name: "isActive",
+                          type: "checkbox",
+                          checked: !formData.isActive,
+                        },
+                      });
                     }}
                     style={{
                       width: "52px",
                       height: "28px",
-                      backgroundColor: formData.isActive ? "#10b981" : "#cbd5e1",
+                      backgroundColor: formData.isActive
+                        ? "#10b981"
+                        : "#cbd5e1",
                       borderRadius: "9999px",
                       padding: "3px",
                       cursor: isSelf ? "not-allowed" : "pointer",
@@ -272,15 +351,24 @@ const UserModal = ({
                         backgroundColor: "#ffffff",
                         borderRadius: "50%",
                         boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                        transform: formData.isActive ? "translateX(24px)" : "translateX(0px)",
-                        transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                        transform: formData.isActive
+                          ? "translateX(24px)"
+                          : "translateX(0px)",
+                        transition:
+                          "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
                       }}
                     />
                   </div>
                   <span
                     onClick={() => {
                       if (isSelf) return;
-                      handleInputChange({ target: { name: "isActive", type: "checkbox", checked: !formData.isActive } });
+                      handleInputChange({
+                        target: {
+                          name: "isActive",
+                          type: "checkbox",
+                          checked: !formData.isActive,
+                        },
+                      });
                     }}
                     className={`fw-bold select-none ${isSelf ? "cursor-not-allowed" : "cursor-pointer"}`}
                     style={{
@@ -288,12 +376,19 @@ const UserModal = ({
                       color: formData.isActive ? "#10b981" : "#ef4444",
                     }}
                   >
-                    {formData.isActive ? (t("statusActive") || "ใช้งาน") : (t("statusSuspended") || "ระงับการใช้งาน")}
+                    {formData.isActive
+                      ? t("statusActive") || "ใช้งาน"
+                      : t("statusSuspended") || "ระงับการใช้งาน"}
                   </span>
                 </div>
                 {isSelf && (
-                  <small className="text-muted mt-1 d-block" style={{ fontSize: "0.75rem" }}>
-                    * {t("cannotChangeSelfStatus") || "ไม่สามารถเปลี่ยนสถานะของตนเองได้"}
+                  <small
+                    className="text-muted mt-1 d-block"
+                    style={{ fontSize: "0.75rem" }}
+                  >
+                    *{" "}
+                    {t("cannotChangeSelfStatus") ||
+                      "ไม่สามารถเปลี่ยนสถานะของตนเองได้"}
                   </small>
                 )}
               </div>

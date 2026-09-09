@@ -14,6 +14,8 @@ export const useProfile = () => {
   const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [leaderId, setLeaderId] = useState("");
+  const [usersList, setUsersList] = useState([]);
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState("");
 
@@ -36,14 +38,19 @@ export const useProfile = () => {
           return;
         }
 
-        // Fetch fresh details from DB
-        const res = await axios.get(`/auth/users/${currentUser.id}`);
+        // Fetch fresh details from DB and all users list
+        const [res, usersRes] = await Promise.all([
+          axios.get(`/auth/users/${currentUser.id}`),
+          axios.get("/auth/users").catch(() => ({ data: [] })),
+        ]);
         const fullUser = res.data;
 
         setUser(fullUser);
         setFullname(fullUser.fullname || "");
         setEmail(fullUser.email || "");
         setPhone(fullUser.phone || "");
+        setLeaderId(fullUser.leader_id ? String(fullUser.leader_id) : "");
+        setUsersList(Array.isArray(usersRes.data) ? usersRes.data : []);
 
         if (fullUser.avatar) {
           const baseUrl = axios.defaults.baseURL || "http://127.0.0.1:3000";
@@ -126,6 +133,10 @@ export const useProfile = () => {
         formData.append("avatar", avatarFile);
       }
 
+      if (leaderId) {
+        formData.append("leader_id", leaderId);
+      }
+
       const response = await axios.put(`/auth/users/${user.id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -143,6 +154,7 @@ export const useProfile = () => {
         const updatedUser = res.data;
 
         setUser(updatedUser);
+        setLeaderId(updatedUser.leader_id ? String(updatedUser.leader_id) : "");
 
         // Update local session
         const currentToken = localStorage.getItem("userToken");
@@ -182,6 +194,9 @@ export const useProfile = () => {
     setPhone,
     email,
     setEmail,
+    leaderId,
+    setLeaderId,
+    usersList,
     avatarFile,
     avatarPreview,
     currentPassword,

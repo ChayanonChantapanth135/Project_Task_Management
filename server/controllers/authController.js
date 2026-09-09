@@ -327,9 +327,22 @@ export const getUsers = async (req, res) => {
     const { includeDeleted } = req.query;
     try {
         const db = await connectToDatabase();
-        let query = 'SELECT id, fullname, email, phone, role, avatar, status, created_at, deleted_at FROM users WHERE deleted_at IS NULL';
+        let query = `
+            SELECT u.id, u.fullname, u.email, u.phone, u.role, u.avatar, u.status, u.leader_id, u.created_at, u.deleted_at,
+                   l.fullname AS leader_name,
+                   (SELECT COUNT(*) FROM users sub WHERE sub.leader_id = u.id AND sub.deleted_at IS NULL) AS leader_count
+            FROM users u
+            LEFT JOIN users l ON u.leader_id = l.id
+            WHERE u.deleted_at IS NULL
+        `;
         if (includeDeleted === 'true') {
-            query = 'SELECT id, fullname, email, phone, role, avatar, status, created_at, deleted_at FROM users';
+            query = `
+                SELECT u.id, u.fullname, u.email, u.phone, u.role, u.avatar, u.status, u.leader_id, u.created_at, u.deleted_at,
+                       l.fullname AS leader_name,
+                       (SELECT COUNT(*) FROM users sub WHERE sub.leader_id = u.id AND sub.deleted_at IS NULL) AS leader_count
+                FROM users u
+                LEFT JOIN users l ON u.leader_id = l.id
+            `;
         }
         const [rows] = await db.query(query);
         res.status(200).json(rows);
@@ -346,7 +359,14 @@ export const getUserById = async (req, res) => {
     const { id } = req.params;
     try {
         const db = await connectToDatabase();
-        const [rows] = await db.query('SELECT id, fullname, email, phone, role, avatar, status, created_at, deleted_at FROM users WHERE id = ? AND deleted_at IS NULL', [id]);
+        const [rows] = await db.query(`
+            SELECT u.id, u.fullname, u.email, u.phone, u.role, u.avatar, u.status, u.leader_id, u.created_at, u.deleted_at,
+                   l.fullname AS leader_name,
+                   (SELECT COUNT(*) FROM users sub WHERE sub.leader_id = u.id AND sub.deleted_at IS NULL) AS leader_count
+            FROM users u
+            LEFT JOIN users l ON u.leader_id = l.id
+            WHERE u.id = ? AND u.deleted_at IS NULL
+        `, [id]);
         if (rows.length === 0) return res.status(404).json({ message: 'User not found' });
         res.status(200).json(rows[0]);
     } catch (error) {
@@ -362,7 +382,7 @@ export const getUserById = async (req, res) => {
  * - บันทึกประวัติ Activity Log
  */
 export const createUser = async (req, res) => {
-    const { fullname, email, password, phone, role, status } = req.body;
+    const { fullname, email, password, phone, role, status, leader_id } = req.body;
     try {
         const db = await connectToDatabase();
         const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
@@ -383,6 +403,7 @@ export const createUser = async (req, res) => {
         else if (normRole === 'programmer') sqlRole = 'programmer';
 
         const sqlStatus = status === 'suspended' ? 'suspended' : 'active';
+        const parsedLeaderId = leader_id && !isNaN(leader_id) ? Number(leader_id) : null;
 
         let avatarUrl = null;
         if (req.file) {
@@ -390,8 +411,8 @@ export const createUser = async (req, res) => {
         }
 
         const [result] = await db.query(
-            'INSERT INTO users (fullname, email, password, phone, role, status, avatar) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [fullname, email, hashPassword, formattedPhone, sqlRole, sqlStatus, avatarUrl]
+            'INSERT INTO users (fullname, email, password, phone, role, status, avatar, leader_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [fullname, email, hashPassword, formattedPhone, sqlRole, sqlStatus, avatarUrl, parsedLeaderId]
         );
 
         // Send welcome email to new user via emailService
@@ -414,6 +435,7 @@ export const createUser = async (req, res) => {
             role: sqlRole,
             status: sqlStatus,
             avatar: avatarUrl,
+            leader_id: parsedLeaderId,
         });
 
         res.status(201).json({ message: 'User created successfully', id: result.insertId });
@@ -424,17 +446,18 @@ export const createUser = async (req, res) => {
 };
 
 /**
- * แก้ไขข้อมูลผู้ใช้งาน (ชื่อ, อีเมล, สิทธิ์/Role, สถานะ, รหัสผ่าน, รูปโปรไฟล์)
+ * แก้ไขข้อมูลผู้ใช้งาน (ชื่อ, อีเมล, สิทธิ์/Role, สถานะ, รหัสผ่าน, รูปโปรไฟล์, หัวหน้า)
  */
 export const updateUser = async (req, res) => {
     const { id } = req.params;
-    const { fullname, email, password, phone, role, status, creatorId, currentPassword } = req.body;
+    const { fullname, email, password, phone, role, status, creatorId, currentPassword, leader_id } = req.body;
     try {
         const db = await connectToDatabase();
         
-        const [oldUserRows] = await db.query('SELECT password, status FROM users WHERE id = ?', [id]);
+        const [oldUserRows] = await db.query('SELECT password, status, role, leader_id FROM users WHERE id = ?', [id]);
         const oldPasswordHash = oldUserRows[0]?.password;
         const oldStatus = oldUserRows[0]?.status;
+        const existingLeaderId = oldUserRows[0]?.leader_id;
 
         if (password && String(id) === String(creatorId)) {
             if (!currentPassword) {
@@ -454,9 +477,19 @@ export const updateUser = async (req, res) => {
         }
 
         const formattedPhone = formatPhoneNumber(phone);
+        
+        // If user is editing their own profile and leader_id is already set, lock it to the existing leader_id
+        let parsedLeaderId;
+        if (existingLeaderId && String(id) === String(creatorId)) {
+            parsedLeaderId = existingLeaderId;
+        } else {
+            parsedLeaderId = leader_id !== undefined && leader_id !== "" && leader_id !== null && !isNaN(leader_id) && Number(leader_id) !== Number(id)
+                ? Number(leader_id) 
+                : null;
+        }
 
-        let query = 'UPDATE users SET fullname = ?, email = ?, phone = ?, role = ?, status = ?';
-        let params = [fullname, email, formattedPhone, role, status || 'active'];
+        let query = 'UPDATE users SET fullname = ?, email = ?, phone = ?, role = ?, status = ?, leader_id = ?';
+        let params = [fullname, email, formattedPhone, role, status || 'active', parsedLeaderId];
         
         let sqlRole = 'storyboard';
         const normRole = (role || '').trim().toLowerCase();
@@ -513,6 +546,7 @@ export const updateUser = async (req, res) => {
             role: sqlRole,
             status: targetStatus,
             avatar: updatedAvatar,
+            leader_id: parsedLeaderId,
             updatedBy: creatorId,
         });
 

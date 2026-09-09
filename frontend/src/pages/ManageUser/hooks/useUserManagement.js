@@ -31,6 +31,7 @@ export const useUserManagement = (t, language = "en") => {
     lastName: "",
     phone: "",
     role: "",
+    leaderId: "",
     isActive: true,
   });
   const [avatarFile, setAvatarFile] = useState(null);
@@ -73,14 +74,21 @@ export const useUserManagement = (t, language = "en") => {
         else if (u.role === "designer") displayRole = "Designer";
         else if (u.role === "programmer") displayRole = "Programmer";
 
+        const isLeader = Boolean(Number(u.leader_count) > 0);
+
         return {
           id: u.id,
           name: name,
+          fullname: name,
           email: u.email,
           phone: u.phone || "-",
           role: displayRole,
+          rawRole: u.role,
           status: u.status || "active",
           avatar: u.avatar || null,
+          leaderId: u.leader_id || null,
+          leaderName: u.leader_name || null,
+          isLeader: isLeader,
           lastLogin: u.created_at
             ? formatDate(u.created_at, language)
             : "-",
@@ -127,6 +135,7 @@ export const useUserManagement = (t, language = "en") => {
               lastName: lastName !== undefined ? lastName : prev.lastName,
               phone: payload.phone !== undefined && payload.phone !== "-" ? payload.phone : prev.phone,
               role: dbRole || prev.role,
+              leaderId: payload.leader_id !== undefined ? (payload.leader_id ? String(payload.leader_id) : "") : prev.leaderId,
               isActive: payload.status !== undefined ? payload.status === "active" : prev.isActive,
             }));
 
@@ -181,6 +190,7 @@ export const useUserManagement = (t, language = "en") => {
       lastName: "",
       phone: "",
       role: "storyboard",
+      leaderId: "",
       isActive: true,
     });
     setAvatarFile(null);
@@ -212,6 +222,7 @@ export const useUserManagement = (t, language = "en") => {
       lastName: lastName,
       phone: user.phone && user.phone !== "-" ? user.phone : "",
       role: dbRole,
+      leaderId: user.leaderId ? String(user.leaderId) : "",
       isActive: user.status === "active",
     });
     setAvatarFile(null);
@@ -234,6 +245,7 @@ export const useUserManagement = (t, language = "en") => {
     }
     data.append("phone", formData.phone || "");
     data.append("role", formData.role);
+    data.append("leader_id", formData.leaderId || "");
     data.append("status", formData.isActive ? "active" : "suspended");
     if (avatarFile) {
       data.append("avatar", avatarFile);

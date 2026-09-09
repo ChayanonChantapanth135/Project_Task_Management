@@ -257,6 +257,8 @@ const ManageUserPage = () => {
           (Number(userHook.currentUser.id) === Number(userHook.selectedUserId) ||
             userHook.currentUser.email?.toLowerCase() === userHook.formData.email?.toLowerCase())
         }
+        selectedUserId={userHook.selectedUserId}
+        users={userHook.users}
         formData={userHook.formData}
         handleInputChange={userHook.handleInputChange}
         handleAvatarChange={userHook.handleAvatarChange}

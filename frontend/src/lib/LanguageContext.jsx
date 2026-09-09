@@ -31,6 +31,10 @@ const translations = {
     profileUsernameEmpty: "Full name cannot be empty",
     currentPasswordRequired: "Please enter your current password",
     profileUpdateFailed: "Failed to update profile. Please try again.",
+    profileLeaderLabel: "Leader",
+    profileLeaderPlaceholder: "-- Select Leader --",
+    profileLeaderLockedNotice: "You have already set your leader and cannot change it.",
+    profileLeaderNotice: "You can select your leader only once. Once saved, it cannot be changed.",
     myTask: "My Task",
     personalTask: "Personal Tasks",
     themes: "Themes",
@@ -193,6 +197,8 @@ const translations = {
     modalChoosePhoto: "📷 Choose Photo",
     modalRemovePhoto: "Remove Photo",
     modalRoleLabel: "Role",
+    modalLeaderLabel: "Leader",
+    modalLeaderPlaceholder: "-- Clear --",
     modalActiveLabel: "Active",
     modalCancelBtn: "Cancel",
     modalSaveBtn: "✓ Save Changes",
@@ -203,6 +209,7 @@ const translations = {
     statusSuspended: "Suspended",
     cannotChangeSelfStatus: "Cannot change your own status",
     youBadge: "You",
+    leaderBadge: "Leader",
 
     // ManageUsers messages
     fillRequiredFields: "Please Fill In All Required (*) Fields",
@@ -591,6 +598,10 @@ const translations = {
     currentPasswordRequired: "กรุณากรอกรหัสผ่านปัจจุบัน",
     profileUpdateFailed:
       "เกิดข้อผิดพลาดในการอัปเดตข้อมูลโปรไฟล์ กรุณาลองใหม่อีกครั้ง",
+    profileLeaderLabel: "หัวหน้า",
+    profileLeaderPlaceholder: "-- เลือกหัวหน้า --",
+    profileLeaderLockedNotice: "คุณได้เลือกหัวหน้าไปแล้วและไม่สามารถเปลี่ยนแปลงได้",
+    profileLeaderNotice: "สามารถเลือกหัวหน้าได้เพียงครั้งเดียว เมื่อบันทึกแล้วจะไม่สามารถแก้ไขได้",
     myTask: "งานของฉัน",
     personalTask: "งานส่วนตัว",
     themes: "ธีมและหน้าตา",
@@ -760,6 +771,8 @@ const translations = {
     modalChoosePhoto: "📷 เลือกรูป",
     modalRemovePhoto: "ลบรูป",
     modalRoleLabel: "บทบาท",
+    modalLeaderLabel: "หัวหน้า",
+    modalLeaderPlaceholder: "-- Clear --",
     modalActiveLabel: "ใช้งานอยู่",
     modalCancelBtn: "ยกเลิก",
     modalSaveBtn: "✓ บันทึกการแก้ไข",
@@ -770,6 +783,7 @@ const translations = {
     statusSuspended: "ระงับการใช้งาน",
     cannotChangeSelfStatus: "ไม่สามารถเปลี่ยนสถานะของตนเองได้",
     youBadge: "คุณ",
+    leaderBadge: "หัวหน้า",
 
     // ManageUsers messages
     fillRequiredFields: "กรุณากรอกข้อมูลดาว (*) ให้ครบถ้วน",

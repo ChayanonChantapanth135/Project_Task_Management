@@ -5,7 +5,8 @@ const formatRole = (role) => {
   if (!role) return "-";
   const r = String(role).toLowerCase().trim();
   if (r === "admin") return "Admin";
-  if (r === "manager" || r === "project_manager" || r === "project manager") return "Project Manager";
+  if (r === "manager" || r === "project_manager" || r === "project manager")
+    return "Project Manager";
   if (r === "storyboard") return "Storyboard";
   if (r === "animation") return "Animation";
   if (r === "designer") return "Designer";
@@ -82,7 +83,11 @@ const UserTable = ({
           </thead>
           <tbody className="divide-y divide-white/5 text-sm text-slate-200">
             {currentEntries.map((user) => {
-              const isSelf = currentUser && (Number(currentUser.id) === Number(user.id) || currentUser.email?.toLowerCase() === user.email?.toLowerCase());
+              const isSelf =
+                currentUser &&
+                (Number(currentUser.id) === Number(user.id) ||
+                  currentUser.email?.toLowerCase() ===
+                    user.email?.toLowerCase());
               return (
                 <tr
                   key={user.id}
@@ -105,10 +110,15 @@ const UserTable = ({
                           {user.initials}
                         </div>
                       )}
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-bold text-white">
                           {user.name}
                         </span>
+                        {user.isLeader && (
+                          <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold tracking-wide shadow-sm flex items-center gap-1">
+                            {t("leaderBadge") || "Leader"}
+                          </span>
+                        )}
                         {isSelf && (
                           <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-semibold">
                             {t("youBadge")}
@@ -151,9 +161,14 @@ const UserTable = ({
                       </button>
                       <button
                         disabled={isSelf}
-                        className={`p-2 rounded-xl transition-colors ${isSelf ? "opacity-30 cursor-not-allowed" : (user.status === "suspended" ? "bg-emerald-500/20 text-emerald-300 hover:scale-110" : "bg-amber-500/20 text-amber-300 hover:scale-110")}`}
+                        className={`p-2 rounded-xl transition-colors ${isSelf ? "opacity-30 cursor-not-allowed" : user.status === "suspended" ? "bg-emerald-500/20 text-emerald-300 hover:scale-110" : "bg-amber-500/20 text-amber-300 hover:scale-110"}`}
                         onClick={() => !isSelf && handleToggleStatus(user)}
-                        title={isSelf ? (t("cannotSuspendSelf") || "ไม่สามารถระงับสิทธิ์ตัวเองได้") : ""}
+                        title={
+                          isSelf
+                            ? t("cannotSuspendSelf") ||
+                              "ไม่สามารถระงับสิทธิ์ตัวเองได้"
+                            : ""
+                        }
                       >
                         {user.status === "suspended" ? "🔓" : "⏸️"}
                       </button>
@@ -161,7 +176,11 @@ const UserTable = ({
                         disabled={isSelf}
                         className={`p-2 rounded-xl bg-rose-500/20 text-rose-300 transition-colors ${isSelf ? "opacity-30 cursor-not-allowed" : "hover:scale-110"}`}
                         onClick={() => !isSelf && handleDeleteUser(user)}
-                        title={isSelf ? (t("cannotDeleteSelf") || "ไม่สามารถลบตัวเองได้") : ""}
+                        title={
+                          isSelf
+                            ? t("cannotDeleteSelf") || "ไม่สามารถลบตัวเองได้"
+                            : ""
+                        }
                       >
                         🗑️
                       </button>
@@ -185,7 +204,7 @@ const UserTable = ({
       </div>
 
       {/* Pagination footer */}
-      <div 
+      <div
         className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 text-xs"
         style={{
           borderTop: "1px solid var(--border-surface)",
@@ -212,7 +231,7 @@ const UserTable = ({
             >
               {t("prevText") || "Previous"}
             </button>
-            <span 
+            <span
               className="px-3.5 py-1.5 font-bold rounded-xl text-xs pagination-badge shadow-md"
               style={{
                 background: "var(--brand-color)",

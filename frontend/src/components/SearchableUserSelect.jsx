@@ -18,6 +18,8 @@ export default function SearchableUserSelect({
   allowedRoles = null,
   required = false,
   className = "",
+  triggerClassName = "",
+  triggerStyle = {},
   placement = "auto", // "auto" | "top" | "bottom"
   name = "assignedTo",
 }) {
@@ -79,12 +81,14 @@ export default function SearchableUserSelect({
 
   // Filter and group users
   const filteredUsers = users.filter((u) => {
+    const rawRole = (u.rawRole || u.role || "user").toLowerCase().replace(/ /g, "_");
     // Check role filter
     if (allowedRoles) {
-      if (!allowedRoles.includes(u.role)) return false;
+      const normalizedAllowed = allowedRoles.map((r) => r.toLowerCase().replace(/ /g, "_"));
+      if (!normalizedAllowed.includes(rawRole)) return false;
     } else {
       // Default: exclude standard 'user' role
-      if (u.role === "user") return false;
+      if (rawRole === "user") return false;
     }
 
     // Check search query
@@ -92,11 +96,10 @@ export default function SearchableUserSelect({
       const query = searchQuery.toLowerCase();
       const usernameMatch =
         (u.fullname || u.username) && (u.fullname || u.username).toLowerCase().includes(query);
-      const roleMatch = u.role && u.role.toLowerCase().includes(query);
+      const roleMatch = (u.role || "").toLowerCase().includes(query) || rawRole.includes(query);
       const roleLabelMatch =
-        u.role &&
-        roleLabels[u.role] &&
-        roleLabels[u.role].toLowerCase().includes(query);
+        (roleLabels[rawRole] && roleLabels[rawRole].toLowerCase().includes(query)) ||
+        (roleLabels[u.role] && roleLabels[u.role].toLowerCase().includes(query));
       return usernameMatch || roleMatch || roleLabelMatch;
     }
 
@@ -105,7 +108,7 @@ export default function SearchableUserSelect({
 
   // Group by role
   const grouped = filteredUsers.reduce((acc, u) => {
-    const role = u.role || "user";
+    const role = (u.rawRole || u.role || "user").toLowerCase().replace(/ /g, "_");
     if (!acc[role]) acc[role] = [];
     acc[role].push(u);
     return acc;
@@ -126,7 +129,11 @@ export default function SearchableUserSelect({
   };
 
   return (
-    <div className={`position-relative ${className}`} ref={containerRef}>
+    <div
+      className={`position-relative ${className}`}
+      ref={containerRef}
+      style={{ zIndex: isOpen ? 100 : 1 }}
+    >
       {/* Hidden input to satisfy HTML5 validation if required */}
       {required && (
         <input
@@ -149,33 +156,50 @@ export default function SearchableUserSelect({
 
       {/* Dropdown Button */}
       <div
-        className="form-select rounded-lg text-sm py-2 d-flex align-items-center justify-content-between"
-        style={{ cursor: "pointer", minHeight: "38px" }}
+        className={`form-control w-full text-sm py-2.5 px-3 d-flex align-items-center justify-content-between transition-all shadow-sm ${triggerClassName}`}
+        style={{
+          cursor: "pointer",
+          color: selectedUser ? "var(--text-primary, #0f172a)" : "var(--text-secondary, #64748b)",
+          borderColor: isOpen ? "var(--brand-color, #3b82f6)" : undefined,
+          boxShadow: isOpen ? "0 0 0 3px rgba(59, 130, 246, 0.15)" : undefined,
+          ...triggerStyle,
+        }}
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className={selectedUser ? "text-dark" : "text-muted"}>
-          {selectedUser ? (selectedUser.fullname || selectedUser.username) : placeholder}
+        <span
+          style={{
+            color: selectedUser ? "#0f172a" : "#64748b",
+            fontWeight: selectedUser ? "600" : "400",
+            fontSize: "0.875rem",
+          }}
+        >
+          {selectedUser ? (selectedUser.fullname || selectedUser.name || selectedUser.username) : placeholder}
+        </span>
+        <span style={{ fontSize: "0.75rem", color: "#94a3b8", marginLeft: "8px" }}>
+          {isOpen ? "▲" : "▼"}
         </span>
       </div>
 
       {/* Dropdown Menu */}
       {isOpen && (
         <div
-          className="position-absolute w-100 bg-white border rounded shadow-lg"
+          className="position-absolute w-100 bg-white border rounded-xl shadow-2xl"
           style={{
             ...(openDirection === "up"
               ? { bottom: "calc(100% + 4px)", marginBottom: 0 }
               : { top: "calc(100% + 4px)", marginTop: 0 }),
             left: 0,
-            zIndex: 1055,
+            zIndex: 1060,
             maxHeight: "280px",
             overflowY: "auto",
             borderRadius: "0.75rem",
-            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+            backgroundColor: "#ffffff",
+            borderColor: "#e2e8f0",
+            boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
           }}
         >
           {/* Search Box */}
-          <div className="p-2 border-bottom sticky-top bg-white">
+          <div className="p-2 border-bottom sticky-top" style={{ backgroundColor: "#ffffff" }}>
             <input
               type="text"
               className="form-control form-control-sm"
@@ -184,50 +208,91 @@ export default function SearchableUserSelect({
               onChange={(e) => setSearchQuery(e.target.value)}
               autoFocus
               onClick={(e) => e.stopPropagation()}
+              style={{
+                backgroundColor: "#f8fafc",
+                color: "#0f172a",
+                borderColor: "#cbd5e1",
+                fontSize: "0.85rem",
+              }}
             />
           </div>
 
           {/* Options */}
-          <div className="py-1">
+          <div className="py-1" style={{ backgroundColor: "#ffffff" }}>
             {/* Unassigned / Clear option */}
             <div
-              className={`py-2 px-3 text-sm text-danger cursor-pointer hover:bg-slate-100 ${
-                !value ? "bg-slate-50 fw-bold" : ""
+              className={`py-2 px-3 text-sm cursor-pointer ${
+                !value ? "fw-bold" : ""
               }`}
-              style={{ cursor: "pointer" }}
+              style={{
+                cursor: "pointer",
+                color: "#dc2626",
+                backgroundColor: !value ? "#fef2f2" : "transparent",
+                fontWeight: !value ? "700" : "500",
+                fontSize: "0.85rem",
+                transition: "background-color 0.15s ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#fee2e2")}
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor = !value ? "#fef2f2" : "transparent")
+              }
               onClick={() => handleSelect("")}
             >
               -- Clear / Unassigned --
             </div>
 
             {sortedGroupEntries.length === 0 ? (
-              <div className="text-muted text-center py-3 text-sm">
+              <div
+                className="text-center py-3 text-sm"
+                style={{ color: "#64748b", fontSize: "0.85rem" }}
+              >
                 No users found
               </div>
             ) : (
               sortedGroupEntries.map(([role, list]) => (
                 <div key={role}>
                   <div
-                    className="bg-light px-3 py-1 text-xs fw-bold text-secondary text-uppercase border-top border-bottom"
-                    style={{ fontSize: "0.75rem", color: "#6c757d" }}
+                    className="px-3 py-1.5 text-xs fw-bold text-uppercase border-top border-bottom"
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "#475569",
+                      backgroundColor: "#f1f5f9",
+                      letterSpacing: "0.05em",
+                    }}
                   >
                     {roleLabels[role] || role}
                   </div>
                   {list.map((u) => {
                     const isSelected = String(u.id) === String(value);
+                    const userName = u.fullname || u.name || u.username;
                     return (
                       <div
                         key={u.id}
-                        className={`py-2 px-3 text-sm cursor-pointer hover:bg-slate-100 ${
-                          isSelected ? "bg-primary text-white hover:bg-primary-dark" : "text-slate-800"
-                        }`}
+                        className="py-2 px-3 text-sm cursor-pointer d-flex align-items-center justify-content-between"
                         style={{
                           cursor: "pointer",
-                          color: isSelected ? "#ffffff" : "#212529",
+                          color: isSelected ? "#ffffff" : "#0f172a",
+                          backgroundColor: isSelected ? "#2563eb" : "transparent",
+                          fontWeight: isSelected ? "600" : "400",
+                          fontSize: "0.875rem",
+                          transition: "background-color 0.15s ease, color 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.backgroundColor = "#f8fafc";
+                            e.currentTarget.style.color = "#0284c7";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.backgroundColor = "transparent";
+                            e.currentTarget.style.color = "#0f172a";
+                          }
                         }}
                         onClick={() => handleSelect(u.id)}
                       >
-                        {u.fullname || u.username}
+                        <span>{userName}</span>
+                        {isSelected && <span style={{ fontSize: "0.8rem" }}>✓</span>}
                       </div>
                     );
                   })}

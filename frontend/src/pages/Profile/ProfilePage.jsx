@@ -21,6 +21,9 @@ const ProfilePage = () => {
     setPhone,
     email,
     setEmail,
+    leaderId,
+    setLeaderId,
+    usersList,
     avatarPreview,
     currentPassword,
     setCurrentPassword,
@@ -115,6 +118,10 @@ const ProfilePage = () => {
                 setPhone={setPhone}
                 email={email}
                 setEmail={setEmail}
+                leaderId={leaderId}
+                setLeaderId={setLeaderId}
+                usersList={usersList}
+                user={user}
                 t={t}
               />
 

@@ -10,7 +10,7 @@ const PasswordForm = ({
   t,
 }) => {
   return (
-    <div className="glass-panel rounded-3xl p-6 shadow-xl space-y-4">
+    <div className="glass-panel rounded-3xl p-6 shadow-xl space-y-4 relative z-10">
       <h5 className="text-base font-bold flex items-center gap-2 mb-2" style={{ color: "var(--brand-color)" }}>
         <ion-icon name="lock-closed-outline" style={{ fontSize: "20px" }}></ion-icon>
         <span>{t("profileChangePassword")}</span>

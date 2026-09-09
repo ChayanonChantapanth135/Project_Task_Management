@@ -61,9 +61,11 @@ export const initializeDatabase = async () => {
         avatar VARCHAR(512) DEFAULT NULL,
         status ENUM('active','suspended') DEFAULT 'active',
         is_force_reset TINYINT(1) DEFAULT 1,
+        leader_id INT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         deleted_at TIMESTAMP NULL DEFAULT NULL,
-        FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE SET NULL
+        FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE SET NULL,
+        FOREIGN KEY (leader_id) REFERENCES users(id) ON DELETE SET NULL
       )
     `)
 
@@ -251,6 +253,7 @@ export const initializeDatabase = async () => {
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR(512) DEFAULT NULL",
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS status ENUM('active','suspended') DEFAULT 'active'",
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_force_reset TINYINT(1) DEFAULT 1",
+      "ALTER TABLE users ADD COLUMN IF NOT EXISTS leader_id INT NULL",
       "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS task_type VARCHAR(50) DEFAULT NULL",
       "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS priority ENUM('Low', 'Medium', 'High') DEFAULT 'Medium'",
       "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS due_date DATE DEFAULT NULL",
