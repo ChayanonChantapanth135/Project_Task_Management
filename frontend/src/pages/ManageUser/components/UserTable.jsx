@@ -73,12 +73,12 @@ const UserTable = ({
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-white/5 text-xs uppercase tracking-wider text-slate-400 font-bold">
-              <th className="py-4 px-4 text-left">{t("colUser")}</th>
-              <th className="py-4 px-4 text-left">{t("colEmail")}</th>
-              <th className="py-4 px-4 text-center">{t("colRole")}</th>
-              <th className="py-4 px-4 text-center">{t("colStatus")}</th>
-              <th className="py-4 px-4 text-center">{t("colLastLogin")}</th>
-              <th className="py-4 px-4 text-center w-36">{t("colManage")}</th>
+              <th className="py-4 px-4 text-left whitespace-nowrap">{t("colUser")}</th>
+              <th className="py-4 px-4 text-left whitespace-nowrap">{t("colEmail")}</th>
+              <th className="py-4 px-4 text-center whitespace-nowrap">{t("colRole")}</th>
+              <th className="py-4 px-4 text-center whitespace-nowrap">{t("colStatus")}</th>
+              <th className="py-4 px-4 text-center whitespace-nowrap">{t("colLastLogin")}</th>
+              <th className="py-4 px-4 text-center w-36 whitespace-nowrap">{t("colManage")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5 text-sm text-slate-200">
@@ -88,12 +88,13 @@ const UserTable = ({
                 (Number(currentUser.id) === Number(user.id) ||
                   currentUser.email?.toLowerCase() ===
                     user.email?.toLowerCase());
+
               return (
                 <tr
                   key={user.id}
                   className="hover:bg-white/5 transition-colors"
                 >
-                  <td className="py-4 px-4 text-left">
+                  <td className="py-4 px-4 text-left whitespace-nowrap">
                     <div className="flex items-center gap-3">
                       {user.avatar ? (
                         <img
@@ -103,24 +104,24 @@ const UserTable = ({
                               : `${API_URL}${user.avatar}`
                           }
                           alt={user.name}
-                          className="w-9 h-9 rounded-full object-cover"
+                          className="w-9 h-9 rounded-full object-cover shrink-0"
                         />
                       ) : (
-                        <div className="w-9 h-9 rounded-full bg-indigo-600/30 flex items-center justify-center font-bold text-xs text-indigo-300">
+                        <div className="w-9 h-9 rounded-full bg-indigo-600/30 flex items-center justify-center font-bold text-xs text-indigo-300 shrink-0">
                           {user.initials}
                         </div>
                       )}
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-white">
+                      <div className="flex items-center gap-2 flex-nowrap whitespace-nowrap">
+                        <span className="font-bold text-white whitespace-nowrap">
                           {user.name}
                         </span>
                         {user.isLeader && (
-                          <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold tracking-wide shadow-sm flex items-center gap-1">
+                          <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold tracking-wide shadow-sm flex items-center gap-1 shrink-0 whitespace-nowrap">
                             {t("leaderBadge") || "Leader"}
                           </span>
                         )}
                         {isSelf && (
-                          <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-semibold">
+                          <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-semibold shrink-0 whitespace-nowrap">
                             {t("youBadge")}
                           </span>
                         )}
@@ -130,25 +131,25 @@ const UserTable = ({
                   <td className="py-4 px-4 text-slate-400 text-xs text-left">
                     <div>{user.email}</div>
                   </td>
-                  <td className="py-4 px-4 text-center">
+                  <td className="py-4 px-4 text-center whitespace-nowrap">
                     <span
-                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${getRoleBadgeStyle(user.role)}`}
+                      className={`inline-block px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap ${getRoleBadgeStyle(user.role)}`}
                     >
                       {formatRole(user.role)}
                     </span>
                   </td>
-                  <td className="py-4 px-4 text-center">
+                  <td className="py-4 px-4 text-center whitespace-nowrap">
                     {user.status === "active" ? (
-                      <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 text-xs font-semibold">
+                      <span className="inline-block px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 text-xs font-semibold whitespace-nowrap">
                         {t("activeLabel")}
                       </span>
                     ) : (
-                      <span className="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 text-xs font-semibold">
+                      <span className="inline-block px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 text-xs font-semibold whitespace-nowrap">
                         {t("suspendedLabel")}
                       </span>
                     )}
                   </td>
-                  <td className="py-4 px-4 text-slate-400 text-xs text-center">
+                  <td className="py-4 px-4 text-slate-400 text-xs text-center whitespace-nowrap">
                     {user.lastLogin}
                   </td>
                   <td className="py-4 px-4 text-center w-36">

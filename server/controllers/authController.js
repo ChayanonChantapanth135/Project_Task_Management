@@ -213,7 +213,21 @@ export const login = async (req, res) => {
         }
 
         if (rows[0].status === 'suspended') {
-            return res.status(403).json({ message: 'บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ' });
+            return res.status(403).json({ code: 'ACCOUNT_SUSPENDED', message: 'บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ' });
+        }
+
+        const today = new Date().toISOString().split('T')[0];
+        if (rows[0].start_date) {
+            const startDateStr = new Date(rows[0].start_date).toISOString().split('T')[0];
+            if (startDateStr > today) {
+                return res.status(403).json({ code: 'ACCOUNT_NOT_STARTED', startDate: startDateStr, message: `บัญชีนี้จะเริ่มใช้งานได้ตั้งแต่วันที่ ${startDateStr}` });
+            }
+        }
+        if (rows[0].expire_date) {
+            const expireDateStr = new Date(rows[0].expire_date).toISOString().split('T')[0];
+            if (expireDateStr < today) {
+                return res.status(403).json({ code: 'ACCOUNT_EXPIRED', message: 'บัญชีของคุณหมดอายุการใช้งานแล้ว กรุณาติดต่อผู้ดูแลระบบ' });
+            }
         }
         const tokenExpiresIn = '40m';
         const tokenExpiresInSeconds = 40 * 60;
@@ -276,6 +290,19 @@ export const refresh = async (req, res) => {
         if (rows[0].status === 'suspended') {
             return res.status(403).json({ message: 'บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ' });
         }
+        const today = new Date().toISOString().split('T')[0];
+        if (rows[0].start_date) {
+            const startDateStr = new Date(rows[0].start_date).toISOString().split('T')[0];
+            if (startDateStr > today) {
+                return res.status(403).json({ message: `บัญชีนี้จะเริ่มใช้งานได้ตั้งแต่วันที่ ${startDateStr}` });
+            }
+        }
+        if (rows[0].expire_date) {
+            const expireDateStr = new Date(rows[0].expire_date).toISOString().split('T')[0];
+            if (expireDateStr < today) {
+                return res.status(403).json({ message: 'บัญชีของคุณหมดอายุการใช้งานแล้ว กรุณาติดต่อผู้ดูแลระบบ' });
+            }
+        }
         const tokenExpiresIn = '40m';
         const tokenExpiresInSeconds = 40 * 60;
         const newToken = jwt.sign({ id: decoded.id }, process.env.JWT_KEY, { expiresIn: tokenExpiresIn });
@@ -328,7 +355,7 @@ export const getUsers = async (req, res) => {
     try {
         const db = await connectToDatabase();
         let query = `
-            SELECT u.id, u.fullname, u.email, u.phone, u.role, u.avatar, u.status, u.leader_id, u.created_at, u.deleted_at,
+            SELECT u.id, u.fullname, u.email, u.phone, u.role, u.avatar, u.status, u.start_date, u.expire_date, u.leader_id, u.created_at, u.deleted_at,
                    l.fullname AS leader_name,
                    (SELECT COUNT(*) FROM users sub WHERE sub.leader_id = u.id AND sub.deleted_at IS NULL) AS leader_count
             FROM users u
@@ -337,7 +364,7 @@ export const getUsers = async (req, res) => {
         `;
         if (includeDeleted === 'true') {
             query = `
-                SELECT u.id, u.fullname, u.email, u.phone, u.role, u.avatar, u.status, u.leader_id, u.created_at, u.deleted_at,
+                SELECT u.id, u.fullname, u.email, u.phone, u.role, u.avatar, u.status, u.start_date, u.expire_date, u.leader_id, u.created_at, u.deleted_at,
                        l.fullname AS leader_name,
                        (SELECT COUNT(*) FROM users sub WHERE sub.leader_id = u.id AND sub.deleted_at IS NULL) AS leader_count
                 FROM users u
@@ -360,7 +387,7 @@ export const getUserById = async (req, res) => {
     try {
         const db = await connectToDatabase();
         const [rows] = await db.query(`
-            SELECT u.id, u.fullname, u.email, u.phone, u.role, u.avatar, u.status, u.leader_id, u.created_at, u.deleted_at,
+            SELECT u.id, u.fullname, u.email, u.phone, u.role, u.avatar, u.status, u.start_date, u.expire_date, u.leader_id, u.created_at, u.deleted_at,
                    l.fullname AS leader_name,
                    (SELECT COUNT(*) FROM users sub WHERE sub.leader_id = u.id AND sub.deleted_at IS NULL) AS leader_count
             FROM users u
@@ -382,7 +409,7 @@ export const getUserById = async (req, res) => {
  * - บันทึกประวัติ Activity Log
  */
 export const createUser = async (req, res) => {
-    const { fullname, email, password, phone, role, status, leader_id } = req.body;
+    const { fullname, email, password, phone, role, status, leader_id, start_date, expire_date } = req.body;
     try {
         const db = await connectToDatabase();
         const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
@@ -404,6 +431,8 @@ export const createUser = async (req, res) => {
 
         const sqlStatus = status === 'suspended' ? 'suspended' : 'active';
         const parsedLeaderId = leader_id && !isNaN(leader_id) ? Number(leader_id) : null;
+        const parsedStartDate = start_date && start_date.trim() !== '' ? start_date.trim() : null;
+        const parsedExpireDate = expire_date && expire_date.trim() !== '' ? expire_date.trim() : null;
 
         let avatarUrl = null;
         if (req.file) {
@@ -411,8 +440,8 @@ export const createUser = async (req, res) => {
         }
 
         const [result] = await db.query(
-            'INSERT INTO users (fullname, email, password, phone, role, status, avatar, leader_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [fullname, email, hashPassword, formattedPhone, sqlRole, sqlStatus, avatarUrl, parsedLeaderId]
+            'INSERT INTO users (fullname, email, password, phone, role, status, avatar, leader_id, start_date, expire_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [fullname, email, hashPassword, formattedPhone, sqlRole, sqlStatus, avatarUrl, parsedLeaderId, parsedStartDate, parsedExpireDate]
         );
 
         // Send welcome email to new user via emailService
@@ -436,6 +465,8 @@ export const createUser = async (req, res) => {
             status: sqlStatus,
             avatar: avatarUrl,
             leader_id: parsedLeaderId,
+            start_date: parsedStartDate,
+            expire_date: parsedExpireDate,
         });
 
         res.status(201).json({ message: 'User created successfully', id: result.insertId });
@@ -450,11 +481,11 @@ export const createUser = async (req, res) => {
  */
 export const updateUser = async (req, res) => {
     const { id } = req.params;
-    const { fullname, email, password, phone, role, status, creatorId, currentPassword, leader_id } = req.body;
+    const { fullname, email, password, phone, role, status, creatorId, currentPassword, leader_id, start_date, expire_date } = req.body;
     try {
         const db = await connectToDatabase();
         
-        const [oldUserRows] = await db.query('SELECT password, status, role, leader_id FROM users WHERE id = ?', [id]);
+        const [oldUserRows] = await db.query('SELECT password, status, role, leader_id, start_date, expire_date FROM users WHERE id = ?', [id]);
         const oldPasswordHash = oldUserRows[0]?.password;
         const oldStatus = oldUserRows[0]?.status;
         const existingLeaderId = oldUserRows[0]?.leader_id;
@@ -488,8 +519,11 @@ export const updateUser = async (req, res) => {
                 : null;
         }
 
-        let query = 'UPDATE users SET fullname = ?, email = ?, phone = ?, role = ?, status = ?, leader_id = ?';
-        let params = [fullname, email, formattedPhone, role, status || 'active', parsedLeaderId];
+        const parsedStartDate = start_date !== undefined ? (start_date && start_date.trim() !== '' ? start_date.trim() : null) : (oldUserRows[0]?.start_date || null);
+        const parsedExpireDate = expire_date !== undefined ? (expire_date && expire_date.trim() !== '' ? expire_date.trim() : null) : (oldUserRows[0]?.expire_date || null);
+
+        let query = 'UPDATE users SET fullname = ?, email = ?, phone = ?, role = ?, status = ?, leader_id = ?, start_date = ?, expire_date = ?';
+        let params = [fullname, email, formattedPhone, role, status || 'active', parsedLeaderId, parsedStartDate, parsedExpireDate];
         
         let sqlRole = 'storyboard';
         const normRole = (role || '').trim().toLowerCase();
@@ -547,6 +581,8 @@ export const updateUser = async (req, res) => {
             status: targetStatus,
             avatar: updatedAvatar,
             leader_id: parsedLeaderId,
+            start_date: parsedStartDate,
+            expire_date: parsedExpireDate,
             updatedBy: creatorId,
         });
 

@@ -62,7 +62,17 @@ export const useLogin = (t) => {
         navigate("/Dashboard");
       }
     } catch (err) {
-      setError(err.response?.data?.message || t("loginFailed"));
+      const errData = err.response?.data;
+      if (errData?.code === "ACCOUNT_EXPIRED") {
+        setError(t("accountExpired") || "บัญชีของคุณหมดอายุการใช้งานแล้ว กรุณาติดต่อผู้ดูแลระบบ");
+      } else if (errData?.code === "ACCOUNT_NOT_STARTED") {
+        const notStartedMsg = t("accountNotStarted") || "บัญชีนี้จะเริ่มใช้งานได้ตั้งแต่วันที่ {startDate}";
+        setError(notStartedMsg.replace("{startDate}", errData.startDate || ""));
+      } else if (errData?.code === "ACCOUNT_SUSPENDED") {
+        setError(t("accountSuspended") || "บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ");
+      } else {
+        setError(errData?.message || t("loginFailed"));
+      }
     } finally {
       setLoading(false);
     }

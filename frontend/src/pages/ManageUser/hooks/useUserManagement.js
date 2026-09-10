@@ -85,6 +85,8 @@ export const useUserManagement = (t, language = "en") => {
           role: displayRole,
           rawRole: u.role,
           status: u.status || "active",
+          startDate: u.start_date ? u.start_date.split("T")[0] : "",
+          expireDate: u.expire_date ? u.expire_date.split("T")[0] : "",
           avatar: u.avatar || null,
           leaderId: u.leader_id || null,
           leaderName: u.leader_name || null,
@@ -136,6 +138,8 @@ export const useUserManagement = (t, language = "en") => {
               phone: payload.phone !== undefined && payload.phone !== "-" ? payload.phone : prev.phone,
               role: dbRole || prev.role,
               leaderId: payload.leader_id !== undefined ? (payload.leader_id ? String(payload.leader_id) : "") : prev.leaderId,
+              startDate: payload.start_date !== undefined ? (payload.start_date ? payload.start_date.split("T")[0] : "") : prev.startDate,
+              expireDate: payload.expire_date !== undefined ? (payload.expire_date ? payload.expire_date.split("T")[0] : "") : prev.expireDate,
               isActive: payload.status !== undefined ? payload.status === "active" : prev.isActive,
             }));
 
@@ -191,6 +195,8 @@ export const useUserManagement = (t, language = "en") => {
       phone: "",
       role: "storyboard",
       leaderId: "",
+      startDate: "",
+      expireDate: "",
       isActive: true,
     });
     setAvatarFile(null);
@@ -223,6 +229,8 @@ export const useUserManagement = (t, language = "en") => {
       phone: user.phone && user.phone !== "-" ? user.phone : "",
       role: dbRole,
       leaderId: user.leaderId ? String(user.leaderId) : "",
+      startDate: user.startDate || "",
+      expireDate: user.expireDate || "",
       isActive: user.status === "active",
     });
     setAvatarFile(null);
@@ -237,6 +245,11 @@ export const useUserManagement = (t, language = "en") => {
     setModalError("");
     setModalSuccess("");
 
+    if (formData.startDate && formData.expireDate && formData.startDate > formData.expireDate) {
+      setModalError("วันเริ่มใช้งานไม่สามารถมากกว่าวันหมดอายุได้");
+      return;
+    }
+
     const data = new FormData();
     data.append("fullname", `${formData.firstName} ${formData.lastName}`.trim());
     data.append("email", formData.email);
@@ -246,6 +259,8 @@ export const useUserManagement = (t, language = "en") => {
     data.append("phone", formData.phone || "");
     data.append("role", formData.role);
     data.append("leader_id", formData.leaderId || "");
+    data.append("start_date", formData.startDate || "");
+    data.append("expire_date", formData.expireDate || "");
     data.append("status", formData.isActive ? "active" : "suspended");
     if (avatarFile) {
       data.append("avatar", avatarFile);
@@ -438,6 +453,8 @@ export const useUserManagement = (t, language = "en") => {
         { header: "email", key: "email", width: 30 },
         { header: "role", key: "role", width: 15 },
         { header: "status", key: "status", width: 15 },
+        { header: "start_date", key: "start_date", width: 18 },
+        { header: "expire_date", key: "expire_date", width: 18 },
       ];
 
       // Add user rows
@@ -455,6 +472,8 @@ export const useUserManagement = (t, language = "en") => {
           email: u.email || "",
           role: rawRole,
           status: u.status || "active",
+          start_date: u.startDate || "",
+          expire_date: u.expireDate || "",
         });
       });
 

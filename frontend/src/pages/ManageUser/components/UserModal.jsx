@@ -211,6 +211,62 @@ const UserModal = ({
                   className="w-100"
                 />
               </div>
+
+              {/* Account Validity: Start Date & Expire Date */}
+              <div className="row g-2">
+                <div className="col-12 col-sm-6">
+                  <label
+                    className="form-label mb-1"
+                    style={{
+                      fontSize: "0.85rem",
+                      fontWeight: "700",
+                      color: "var(--text-secondary)",
+                    }}
+                  >
+                    {t("modalStartDateLabel") || "วันเริ่มใช้งาน"}
+                  </label>
+                  <input
+                    type="date"
+                    name="startDate"
+                    className="form-control rounded-xl py-2 px-3 text-sm focus:outline-none transition-all shadow-sm"
+                    value={formData.startDate || ""}
+                    onChange={handleInputChange}
+                  />
+                  <small
+                    className="text-muted d-block mt-0.5"
+                    style={{ fontSize: "0.72rem" }}
+                  >
+                    {t("modalStartDatePlaceholder") || "ไม่ระบุ (เริ่มทันที)"}
+                  </small>
+                </div>
+                <div className="col-12 col-sm-6">
+                  <label
+                    className="form-label mb-1"
+                    style={{
+                      fontSize: "0.85rem",
+                      fontWeight: "700",
+                      color: "var(--text-secondary)",
+                    }}
+                  >
+                    {t("modalExpireDateLabel") || "วันหมดอายุ"}
+                  </label>
+                  <input
+                    type="date"
+                    name="expireDate"
+                    min={formData.startDate || undefined}
+                    className="form-control rounded-xl py-2 px-3 text-sm focus:outline-none transition-all shadow-sm"
+                    value={formData.expireDate || ""}
+                    onChange={handleInputChange}
+                  />
+                  <small
+                    className="text-muted d-block mt-0.5"
+                    style={{ fontSize: "0.72rem" }}
+                  >
+                    {t("modalExpireDatePlaceholder") ||
+                      "ไม่ระบุ (ไม่มีวันหมดอายุ)"}
+                  </small>
+                </div>
+              </div>
             </div>
 
             {/* Right Column */}
