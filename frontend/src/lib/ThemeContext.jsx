@@ -229,7 +229,7 @@ export const ThemeProvider = ({ children }) => {
       root.style.setProperty("--bg-surface-hover", "#F1F5F9");
       root.style.setProperty("--text-primary", "#0F172A");
       root.style.setProperty("--text-secondary", "#475569");
-      root.style.setProperty("--border-surface", "#E2E8F0");
+      root.style.setProperty("--border-surface", "#CBD5E1");
 
       // Statuses in Light Mode (Deep & High Contrast)
       root.style.setProperty("--status-todo", "#64748B");

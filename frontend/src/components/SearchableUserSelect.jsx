@@ -156,26 +156,34 @@ export default function SearchableUserSelect({
 
       {/* Dropdown Button */}
       <div
-        className={`form-control w-full text-sm py-2.5 px-3 d-flex align-items-center justify-content-between transition-all shadow-sm ${triggerClassName}`}
+        className={`w-full text-sm d-flex align-items-center justify-content-between transition-all ${
+          triggerClassName ? triggerClassName : "form-control rounded-xl py-2.5 px-3 text-sm shadow-sm"
+        }`}
         style={{
           cursor: "pointer",
           color: selectedUser ? "var(--text-primary, #0f172a)" : "var(--text-secondary, #64748b)",
-          borderColor: isOpen ? "var(--brand-color, #3b82f6)" : undefined,
-          boxShadow: isOpen ? "0 0 0 3px rgba(59, 130, 246, 0.15)" : undefined,
           ...triggerStyle,
+          ...(isOpen && !triggerClassName
+            ? {
+                borderColor: "var(--brand-color, #3b82f6)",
+                boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.15)",
+              }
+            : {}),
         }}
         onClick={() => setIsOpen(!isOpen)}
       >
         <span
           style={{
-            color: selectedUser ? "#0f172a" : "#64748b",
+            color: selectedUser
+              ? (triggerStyle.color || "var(--text-primary, #0f172a)")
+              : "var(--text-secondary, #64748b)",
             fontWeight: selectedUser ? "600" : "400",
             fontSize: "0.875rem",
           }}
         >
           {selectedUser ? (selectedUser.fullname || selectedUser.name || selectedUser.username) : placeholder}
         </span>
-        <span style={{ fontSize: "0.75rem", color: "#94a3b8", marginLeft: "8px" }}>
+        <span style={{ fontSize: "0.75rem", color: "var(--text-secondary, #94a3b8)", marginLeft: "8px" }}>
           {isOpen ? "▲" : "▼"}
         </span>
       </div>
@@ -194,7 +202,7 @@ export default function SearchableUserSelect({
             overflowY: "auto",
             borderRadius: "0.75rem",
             backgroundColor: "#ffffff",
-            borderColor: "#e2e8f0",
+            borderColor: "#cbd5e1",
             boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
           }}
         >

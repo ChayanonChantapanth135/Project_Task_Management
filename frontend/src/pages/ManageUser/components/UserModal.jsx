@@ -209,7 +209,6 @@ const UserModal = ({
                   ]}
                   placement="auto"
                   className="w-100"
-                  triggerClassName="rounded-xl"
                 />
               </div>
             </div>
