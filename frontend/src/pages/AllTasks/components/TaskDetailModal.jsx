@@ -910,7 +910,7 @@ const TaskDetailModal = ({
                 </button>
                 <button
                   type="button"
-                  className="px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-lg cursor-pointer"
+                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-md cursor-pointer"
                   onClick={onSave}
                 >
                   {language === "th" ? "บันทึกข้อมูล" : "Save Changes"}
@@ -927,7 +927,7 @@ const TaskDetailModal = ({
                 </button>
                 <button
                   type="button"
-                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-lg"
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-md"
                   onClick={handleUpdateStatusOnly}
                 >
                   {t("updateStatusBtn") || "Update Status"}

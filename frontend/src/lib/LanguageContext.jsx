@@ -187,6 +187,20 @@ const translations = {
     importResultTitle: "Import Completed",
     importResultDesc:
       "Successfully imported {imported} new users and updated {updated} existing users.",
+    importPreviewTitle: "Review Users Before Import",
+    importPreviewSub: "File:",
+    importPreviewTotal: "Total",
+    importTotalCount: "Total Records",
+    importNewUsers: "New Users",
+    importUpdateUsers: "Update Existing",
+    importInvalidUsers: "Incomplete/Invalid",
+    importActionCol: "Import Action",
+    importActionCreate: "New Account",
+    importActionUpdate: "Update Account",
+    importActionInvalid: "Skip (Missing data)",
+    importConfirmSummary: "Ready to import",
+    importInvalidSkipped: "Incomplete rows skipped:",
+    importingProgress: "Importing users...",
     exportUsersBtn: "Export Users",
 
     // ManageUsers Modal
@@ -842,6 +856,20 @@ const translations = {
     importResultTitle: "นำเข้าข้อมูลเสร็จสิ้น",
     importResultDesc:
       "นำเข้าผู้ใช้งานใหม่สำเร็จ {imported} คน และอัปเดตผู้ใช้งานเดิม {updated} คน",
+    importPreviewTitle: "ตรวจสอบข้อมูลก่อนนำเข้า",
+    importPreviewSub: "ไฟล์:",
+    importPreviewTotal: "ทั้งหมด",
+    importTotalCount: "รายการทั้งหมด",
+    importNewUsers: "เพิ่มผู้ใช้ใหม่",
+    importUpdateUsers: "อัปเดตข้อมูลเดิม",
+    importInvalidUsers: "ข้อมูลไม่สมบูรณ์",
+    importActionCol: "ผลลัพธ์การนำเข้า",
+    importActionCreate: "สร้างใหม่",
+    importActionUpdate: "อัปเดตเดิม",
+    importActionInvalid: "ข้าม / ไม่สมบูรณ์",
+    importConfirmSummary: "พร้อมนำเข้าทั้งหมด",
+    importInvalidSkipped: "ระบบจะข้ามรายการที่ไม่สมบูรณ์",
+    importingProgress: "กำลังนำเข้าข้อมูล...",
     exportUsersBtn: "ส่งออกผู้ใช้งาน",
 
     // ManageUsers Modal

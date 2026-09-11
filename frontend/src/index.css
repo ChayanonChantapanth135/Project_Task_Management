@@ -219,6 +219,38 @@ input:focus, select:focus, textarea:focus {
   background: var(--brand-color);
 }
 
+/* Light Modal Specific Scrollbar */
+.modal-content ::-webkit-scrollbar,
+.modal-body ::-webkit-scrollbar,
+.modal-custom-scrollbar::-webkit-scrollbar,
+.light-scrollbar::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+.modal-content ::-webkit-scrollbar-track,
+.modal-body ::-webkit-scrollbar-track,
+.modal-custom-scrollbar::-webkit-scrollbar-track,
+.light-scrollbar::-webkit-scrollbar-track {
+  background: #F1F5F9 !important;
+  border-radius: 9999px !important;
+}
+
+.modal-content ::-webkit-scrollbar-thumb,
+.modal-body ::-webkit-scrollbar-thumb,
+.modal-custom-scrollbar::-webkit-scrollbar-thumb,
+.light-scrollbar::-webkit-scrollbar-thumb {
+  background: #CBD5E1 !important;
+  border-radius: 9999px !important;
+}
+
+.modal-content ::-webkit-scrollbar-thumb:hover,
+.modal-body ::-webkit-scrollbar-thumb:hover,
+.modal-custom-scrollbar::-webkit-scrollbar-thumb:hover,
+.light-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8 !important;
+}
+
 /* Glassmorphism Styles (30% Surface) */
 .glass-panel {
   background: var(--bg-surface) !important;

@@ -7,6 +7,7 @@ import { getCurrentUser } from "../../lib/auth";
 import { useUserManagement } from "./hooks/useUserManagement";
 import UserTable from "./components/UserTable";
 import UserModal from "./components/UserModal";
+import ImportPreviewModal from "./components/ImportPreviewModal";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
@@ -313,22 +314,16 @@ const ManageUserPage = () => {
         type="warning"
       />
 
-      {/* IMPORT CONFIRM MODAL */}
-      <ConfirmModal
+      {/* IMPORT PREVIEW DEMO MODAL */}
+      <ImportPreviewModal
         show={userHook.showImportConfirm}
         onHide={() => userHook.setShowImportConfirm(false)}
-        title={t("importConfirmTitle")}
-        description={
-          t("importConfirmDesc")
-            ? t("importConfirmDesc")
-                .replace("{filename}", userHook.importFileName)
-                .replace("{count}", userHook.importUsersList.length)
-            : ""
-        }
+        fileName={userHook.importFileName}
+        users={userHook.importUsersList}
+        existingUsers={userHook.users}
         onConfirm={userHook.handleImportConfirm}
-        confirmText={t("confirmBtn")}
-        cancelText={t("cancelBtn")}
-        type="warning"
+        t={t}
+        loading={userHook.loading}
       />
 
       {/* IMPORT RESULT SUCCESS MODAL */}

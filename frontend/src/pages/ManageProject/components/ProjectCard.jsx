@@ -110,16 +110,28 @@ const ProjectCard = ({
         </div>
 
         <div className="flex justify-end items-center gap-2 pt-4 border-t border-white/5">
-          <button className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-medium transition-colors" onClick={() => handleViewDetails(project)}>
-            {t("viewBtn")}
+          <button
+            className="px-3.5 py-1.5 rounded-xl bg-slate-700 hover:bg-slate-800 !text-white text-xs font-bold transition-all shadow-md hover:shadow-lg cursor-pointer"
+            style={{ color: "#FFFFFF" }}
+            onClick={() => handleViewDetails(project)}
+          >
+            {t("viewBtn") || "View"}
           </button>
           {canManage && (
             <>
-              <button className="px-3 py-1.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 text-xs font-medium transition-colors" onClick={() => handleOpenEdit(project)}>
-                {t("editBtn")}
+              <button
+                className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 !text-white text-xs font-bold transition-all shadow-md hover:shadow-lg cursor-pointer"
+                style={{ color: "#FFFFFF" }}
+                onClick={() => handleOpenEdit(project)}
+              >
+                {t("editBtn") || "Edit"}
               </button>
-              <button className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-xs font-medium transition-colors" onClick={() => handleOpenDelete(project)}>
-                {t("deleteBtn")}
+              <button
+                className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 !text-white text-xs font-bold transition-all shadow-md hover:shadow-lg cursor-pointer"
+                style={{ color: "#FFFFFF" }}
+                onClick={() => handleOpenDelete(project)}
+              >
+                {t("deleteBtn") || "Delete"}
               </button>
             </>
           )}
