@@ -33,17 +33,17 @@ const ProjectFilter = ({
       </div>
 
       {/* Toolbar Controls */}
-      <div className="flex items-center gap-4 w-full md:w-auto justify-end">
+      <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between sm:justify-end">
         {/* View Switcher Segmented Control */}
         <div 
-          className="flex items-center p-1.5 rounded-full"
+          className="flex items-center p-1 sm:p-1.5 rounded-full"
           style={{
             background: "var(--bg-surface-hover)",
             border: "1px solid var(--border-surface)",
           }}
         >
           <button
-            className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
+            className={`px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
               viewMode === "table"
                 ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/30"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -53,7 +53,7 @@ const ProjectFilter = ({
             📋 {t("tableView")}
           </button>
           <button
-            className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
+            className={`px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
               viewMode === "board"
                 ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/30"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -67,7 +67,7 @@ const ProjectFilter = ({
         {/* Create Button (Admin & PM only) */}
         {canCreate && (
           <button
-            className="px-6 py-2.5 rounded-full bg-indigo-600 text-white font-bold text-xs glow-button"
+            className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-indigo-600 text-white font-bold text-xs glow-button whitespace-nowrap cursor-pointer shadow-md"
             onClick={handleOpenCreate}
           >
             {t("createProjectBtn")}

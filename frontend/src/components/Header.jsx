@@ -469,12 +469,12 @@ const Header = () => {
               >
                 {t("appearance")}
               </h4>
-              <div className="flex gap-4">
+              <div className="grid grid-cols-3 gap-2 sm:gap-4">
                 {/* Light */}
                 <div className="flex flex-col items-center gap-2">
                   <div
                     onClick={() => setAppearance("Light")}
-                    className={`w-28 h-16 rounded-2xl border-2 flex flex-col p-2 cursor-pointer bg-white transition-all ${
+                    className={`w-full h-16 rounded-2xl border-2 flex flex-col p-2 cursor-pointer bg-white transition-all ${
                       appearance === "Light"
                         ? "border-[#3b82f6] shadow-lg shadow-blue-500/20"
                         : "border-slate-200/80 opacity-80 hover:opacity-100"
@@ -488,7 +488,7 @@ const Header = () => {
                     <div className="h-1 w-10 bg-slate-200 rounded"></div>
                   </div>
                   <span
-                    className="text-xs font-bold"
+                    className="text-xs font-bold text-center"
                     style={{
                       color:
                         appearance === "Light"
@@ -504,7 +504,7 @@ const Header = () => {
                 <div className="flex flex-col items-center gap-2">
                   <div
                     onClick={() => setAppearance("Dark")}
-                    className={`w-28 h-16 rounded-2xl border-2 flex flex-col p-2 cursor-pointer bg-[#2c2c2c] transition-all ${
+                    className={`w-full h-16 rounded-2xl border-2 flex flex-col p-2 cursor-pointer bg-[#2c2c2c] transition-all ${
                       appearance === "Dark"
                         ? "border-[#3b82f6] shadow-lg shadow-blue-500/20"
                         : "border-transparent opacity-80 hover:opacity-100"
@@ -518,7 +518,7 @@ const Header = () => {
                     <div className="h-1 w-10 bg-slate-600 rounded"></div>
                   </div>
                   <span
-                    className="text-xs font-bold"
+                    className="text-xs font-bold text-center"
                     style={{
                       color:
                         appearance === "Dark"
@@ -534,7 +534,7 @@ const Header = () => {
                 <div className="flex flex-col items-center gap-2">
                   <div
                     onClick={() => setAppearance("Auto")}
-                    className={`w-28 h-16 rounded-2xl border-2 flex overflow-hidden cursor-pointer transition-all ${
+                    className={`w-full h-16 rounded-2xl border-2 flex overflow-hidden cursor-pointer transition-all ${
                       appearance === "Auto"
                         ? "border-[#3b82f6] shadow-lg shadow-blue-500/20"
                         : "border-slate-300/40 opacity-80 hover:opacity-100"
@@ -550,7 +550,7 @@ const Header = () => {
                     </div>
                   </div>
                   <span
-                    className="text-xs font-bold"
+                    className="text-xs font-bold text-center"
                     style={{
                       color:
                         appearance === "Auto"

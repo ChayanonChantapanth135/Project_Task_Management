@@ -14,7 +14,7 @@ export default function ReportHeader({
     <div className="relative mb-10">
       {/* Hero Section */}
       <div
-        className="relative overflow-hidden rounded-3xl p-8 md:p-10"
+        className="relative overflow-hidden rounded-3xl p-5 sm:p-8 md:p-10"
         style={{
           background:
             "linear-gradient(135deg, rgba(20,184,166,0.12) 0%, rgba(99,102,241,0.15) 50%, rgba(168,85,247,0.10) 100%)",
@@ -70,14 +70,14 @@ export default function ReportHeader({
             </div>
 
             <h1
-              className="text-3xl md:text-4xl font-black tracking-tight mb-2"
+              className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-2"
               style={{
                 color: "var(--text-primary)",
               }}
             >
               {roleTitle}
             </h1>
-            <p className="text-sm max-w-lg leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+            <p className="text-xs sm:text-sm max-w-lg leading-relaxed" style={{ color: "var(--text-secondary)" }}>
               {roleDesc}
             </p>
           </div>

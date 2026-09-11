@@ -176,46 +176,46 @@ const ImportPreviewModal = ({
         </div>
 
         {/* Quick Stats Banner */}
-        <div className="px-6 py-4 grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-100/60 border-b border-slate-200">
-          <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col">
-            <span className="text-xs font-bold text-slate-500">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 bg-slate-100/60 border-b border-slate-200">
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col">
+            <span className="text-[11px] sm:text-xs font-bold text-slate-500">
               {t("importTotalCount") || "รายการทั้งหมด"}
             </span>
-            <span className="text-2xl font-black text-slate-800 mt-0.5">
+            <span className="text-xl sm:text-2xl font-black text-slate-800 mt-0.5">
               {stats.total}
             </span>
           </div>
-          <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 shadow-sm flex flex-col">
-            <span className="text-xs font-bold text-emerald-700 flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 shadow-sm flex flex-col">
+            <span className="text-[11px] sm:text-xs font-bold text-emerald-700 flex items-center gap-1.5">
+              <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-emerald-500"></span>
               {t("importNewUsers") || "เพิ่มผู้ใช้ใหม่"}
             </span>
-            <span className="text-2xl font-black text-emerald-600 mt-0.5">
+            <span className="text-xl sm:text-2xl font-black text-emerald-600 mt-0.5">
               +{stats.newCount}
             </span>
           </div>
-          <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 shadow-sm flex flex-col">
-            <span className="text-xs font-bold text-amber-700 flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-amber-50 border border-amber-200 shadow-sm flex flex-col">
+            <span className="text-[11px] sm:text-xs font-bold text-amber-700 flex items-center gap-1.5">
+              <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-amber-500"></span>
               {t("importUpdateUsers") || "อัปเดตข้อมูลเดิม"}
             </span>
-            <span className="text-2xl font-black text-amber-600 mt-0.5">
+            <span className="text-xl sm:text-2xl font-black text-amber-600 mt-0.5">
               {stats.updateCount}
             </span>
           </div>
-          <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 shadow-sm flex flex-col">
-            <span className="text-xs font-bold text-rose-700 flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-rose-50 border border-rose-200 shadow-sm flex flex-col">
+            <span className="text-[11px] sm:text-xs font-bold text-rose-700 flex items-center gap-1.5">
+              <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-rose-500"></span>
               {t("importInvalidUsers") || "ข้อมูลไม่สมบูรณ์"}
             </span>
-            <span className="text-2xl font-black text-rose-600 mt-0.5">
+            <span className="text-xl sm:text-2xl font-black text-rose-600 mt-0.5">
               {stats.invalidCount}
             </span>
           </div>
         </div>
 
         {/* Filter / Search Bar */}
-        <div className="p-6 pb-3 flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div className="p-4 sm:p-6 pb-3 flex flex-col sm:flex-row justify-between items-center gap-3">
           <div className="relative w-full sm:w-80">
             <input
               type="text"

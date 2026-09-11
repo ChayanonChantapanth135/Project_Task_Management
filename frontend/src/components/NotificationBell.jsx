@@ -565,7 +565,7 @@ const NotificationBell = () => {
       {/* Notifications Popover Drawer */}
       {isOpen && (
         <div 
-          className="absolute right-0 mt-3 w-80 sm:w-96 rounded-3xl backdrop-blur-2xl shadow-2xl z-50 overflow-hidden animate-fade-in"
+          className="fixed inset-x-3 sm:absolute sm:inset-x-auto sm:right-0 mt-3 max-w-sm mx-auto sm:mx-0 sm:w-96 rounded-3xl backdrop-blur-2xl shadow-2xl z-50 overflow-hidden animate-fade-in"
           style={{
             background: "var(--bg-surface)",
             border: "1px solid var(--border-surface)",

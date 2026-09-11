@@ -86,7 +86,7 @@ const PersonalTaskPage = () => {
             </p>
           </div>
 
-          <div className="flex items-center flex-wrap gap-3">
+          <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto flex-wrap gap-2.5">
             {/* View Mode Toggle Switcher */}
             <div 
               className="flex items-center gap-1 p-1 rounded-2xl shadow-md text-xs font-bold"
@@ -98,7 +98,7 @@ const PersonalTaskPage = () => {
               <button
                 type="button"
                 onClick={() => setViewMode("board")}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
                   viewMode === "board"
                     ? "bg-indigo-600 text-white shadow-md"
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-500/10"
@@ -111,7 +111,7 @@ const PersonalTaskPage = () => {
               <button
                 type="button"
                 onClick={() => setViewMode("calendar")}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
                   viewMode === "calendar"
                     ? "bg-indigo-600 text-white shadow-md"
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-500/10"
@@ -125,7 +125,7 @@ const PersonalTaskPage = () => {
             {/* Add New Task Button */}
             <button
               onClick={() => handleOpenAdd("todo")}
-              className="px-5 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs glow-button flex items-center gap-2 cursor-pointer transition-all hover:scale-105 active:scale-95 shadow-lg"
+              className="px-4 sm:px-5 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs glow-button flex items-center gap-2 cursor-pointer transition-all hover:scale-105 active:scale-95 shadow-lg whitespace-nowrap"
             >
               <span className="text-sm leading-none font-extrabold">+</span>
               <span>{isThai ? "เพิ่ม Task ใหม่" : "Add New Task"}</span>
