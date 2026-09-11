@@ -745,11 +745,75 @@ export const importUsers = async (req, res) => {
             return 'storyboard';
         };
 
+        const normalizeDateStr = (dateVal) => {
+            if (!dateVal) return null;
+            const str = String(dateVal).trim();
+            if (!str || str === '-' || str.toLowerCase() === 'null') return null;
+
+            // DD/MM/YYYY or DD-MM-YYYY
+            const dmyMatch = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+            if (dmyMatch) {
+                const day = dmyMatch[1].padStart(2, '0');
+                const month = dmyMatch[2].padStart(2, '0');
+                const year = dmyMatch[3];
+                return `${year}-${month}-${day}`;
+            }
+
+            // ISO String
+            if (str.includes('T')) {
+                return str.split('T')[0];
+            }
+
+            // YYYY-MM-DD
+            const ymdMatch = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+            if (ymdMatch) {
+                const year = ymdMatch[1];
+                const month = ymdMatch[2].padStart(2, '0');
+                const day = ymdMatch[3].padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            const d = new Date(str);
+            if (!isNaN(d.getTime())) {
+                return d.toISOString().split('T')[0];
+            }
+            return null;
+        };
+
+        // Cache existing users map for fast leader lookups by email, name, or id
+        const [allDbUsers] = await db.query('SELECT id, email, fullname FROM users WHERE deleted_at IS NULL');
+        const userByEmail = new Map();
+        const userByName = new Map();
+        const userById = new Map();
+
+        allDbUsers.forEach((u) => {
+            if (u.email) userByEmail.set(u.email.toLowerCase().trim(), u.id);
+            if (u.fullname) userByName.set(u.fullname.toLowerCase().trim(), u.id);
+            userById.set(Number(u.id), u.id);
+        });
+
         for (const item of users) {
-            const fullname = (item.fullname || item.username || '').trim();
+            const fullname = (item.fullname || item.username || item.name || '').trim();
             const email = (item.email || '').trim();
             const password = (item.password || '').trim();
             const role = normalizeRole(item.role);
+            const status = (item.status || 'active').trim().toLowerCase() === 'suspended' ? 'suspended' : 'active';
+            const phone = formatPhoneNumber(item.phone || item.phonenumber || item.tel || '');
+            const startDate = normalizeDateStr(item.start_date || item.startdate || item.startDate);
+            const expireDate = normalizeDateStr(item.expire_date || item.expiredate || item.expireDate);
+
+            // Resolve leader_id
+            const leaderInput = (item.leader_email || item.leader || item.leader_name || item.leader_id || item.leaderId || '').toString().trim();
+            let leaderId = null;
+            if (leaderInput && leaderInput !== '-' && leaderInput.toLowerCase() !== 'null') {
+                if (!isNaN(leaderInput) && userById.has(Number(leaderInput))) {
+                    leaderId = Number(leaderInput);
+                } else if (userByEmail.has(leaderInput.toLowerCase())) {
+                    leaderId = userByEmail.get(leaderInput.toLowerCase());
+                } else if (userByName.has(leaderInput.toLowerCase())) {
+                    leaderId = userByName.get(leaderInput.toLowerCase());
+                }
+            }
 
             if (!email || !fullname) {
                 continue;
@@ -759,8 +823,13 @@ export const importUsers = async (req, res) => {
 
             if (existing.length > 0) {
                 const userIdToUpdate = existing[0].id;
-                let query = 'UPDATE users SET fullname = ?, role = ?';
-                let params = [fullname, role];
+                let query = 'UPDATE users SET fullname = ?, role = ?, status = ?, phone = ?, start_date = ?, expire_date = ?';
+                let params = [fullname, role, status, phone, startDate, expireDate];
+
+                if (leaderId && leaderId !== userIdToUpdate) {
+                    query += ', leader_id = ?';
+                    params.push(leaderId);
+                }
 
                 if (password) {
                     const hashPassword = await bcrypt.hash(password, 10);
@@ -777,12 +846,14 @@ export const importUsers = async (req, res) => {
                 const finalPassword = password || '123456';
                 const hashPassword = await bcrypt.hash(finalPassword, 10);
                 await db.query(
-                    'INSERT INTO users (fullname, email, password, role, status) VALUES (?, ?, ?, ?, ?)',
-                    [fullname, email, hashPassword, role, 'active']
+                    'INSERT INTO users (fullname, email, password, role, status, phone, leader_id, start_date, expire_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    [fullname, email, hashPassword, role, status, phone, leaderId, startDate, expireDate]
                 );
                 importedCount++;
             }
         }
+
+        memoryCache.del('team_leaders');
 
         await logActivity(
             db,

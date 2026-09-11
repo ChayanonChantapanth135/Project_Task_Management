@@ -63,10 +63,12 @@ const ImportPreviewModal = ({
         ""
       ).trim();
       const email = (user.email || "").toLowerCase().trim();
+      const phone = (user.phone || user.phonenumber || user.tel || "").trim();
       const role = user.role || "storyboard";
+      const leader = (user.leader_email || user.leader || user.leader_name || user.leader_id || "").trim();
       const status = user.status || "active";
-      const startDate = user.start_date || user.startdate || "";
-      const expireDate = user.expire_date || user.expiredate || "";
+      const startDate = user.start_date || user.startdate || user.startDate || "";
+      const expireDate = user.expire_date || user.expiredate || user.expireDate || "";
 
       const isValid = Boolean(email && fullname);
       const isExisting = existingEmailSet.has(email);
@@ -82,7 +84,9 @@ const ImportPreviewModal = ({
         idx: idx + 1,
         fullname: fullname || "-",
         email: email || "-",
+        phone: phone || "-",
         role,
+        leader: leader || "-",
         status,
         startDate: startDate || "-",
         expireDate: expireDate || "-",
@@ -112,6 +116,8 @@ const ImportPreviewModal = ({
         searchTerm === "" ||
         u.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
         u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.leader.toLowerCase().includes(searchTerm.toLowerCase()) ||
         u.role.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesStatus =
@@ -281,7 +287,7 @@ const ImportPreviewModal = ({
         </div>
 
         {/* Table Preview */}
-        <div className="px-6 py-2">
+        <div className="px-4 sm:px-6 py-2">
           <div
             className="overflow-x-auto rounded-2xl border border-slate-200 bg-white light-scrollbar"
             style={{ maxHeight: "380px", overflowY: "auto" }}
@@ -298,11 +304,23 @@ const ImportPreviewModal = ({
                   <th className="py-3 px-4 text-left whitespace-nowrap text-slate-600">
                     {t("colEmail") || "อีเมล"}
                   </th>
+                  <th className="py-3 px-4 text-left whitespace-nowrap text-slate-600">
+                    {t("modalPhoneLabel") || "เบอร์โทรศัพท์"}
+                  </th>
                   <th className="py-3 px-4 text-center whitespace-nowrap text-slate-600">
                     {t("colRole") || "บทบาท"}
                   </th>
+                  <th className="py-3 px-4 text-left whitespace-nowrap text-slate-600">
+                    {t("modalLeaderLabel") || "หัวหน้า"}
+                  </th>
                   <th className="py-3 px-4 text-center whitespace-nowrap text-slate-600">
                     {t("colStatus") || "สถานะ"}
+                  </th>
+                  <th className="py-3 px-4 text-center whitespace-nowrap text-slate-600">
+                    {t("modalStartDateLabel") || "วันเริ่ม"}
+                  </th>
+                  <th className="py-3 px-4 text-center whitespace-nowrap text-slate-600">
+                    {t("modalExpireDateLabel") || "วันหมดอายุ"}
                   </th>
                   <th className="py-3 px-4 text-center whitespace-nowrap text-slate-600">
                     {t("importActionCol") || "ผลลัพธ์การนำเข้า"}
@@ -334,6 +352,9 @@ const ImportPreviewModal = ({
                       <td className="py-3 px-4 text-left text-slate-600 font-medium whitespace-nowrap">
                         {user.email}
                       </td>
+                      <td className="py-3 px-4 text-left text-slate-600 font-medium whitespace-nowrap">
+                        {user.phone}
+                      </td>
                       <td className="py-3 px-4 text-center whitespace-nowrap">
                         <span
                           className={`inline-block px-2.5 py-1 rounded-lg text-[11px] font-bold ${getRoleBadgeStyle(
@@ -342,6 +363,9 @@ const ImportPreviewModal = ({
                         >
                           {formatRole(user.role)}
                         </span>
+                      </td>
+                      <td className="py-3 px-4 text-left text-slate-600 font-medium whitespace-nowrap">
+                        {user.leader}
                       </td>
                       <td className="py-3 px-4 text-center whitespace-nowrap">
                         {user.status === "suspended" ? (
@@ -353,6 +377,12 @@ const ImportPreviewModal = ({
                             {t("activeLabel") || "Active"}
                           </span>
                         )}
+                      </td>
+                      <td className="py-3 px-4 text-center text-slate-600 font-medium whitespace-nowrap">
+                        {user.startDate}
+                      </td>
+                      <td className="py-3 px-4 text-center text-slate-600 font-medium whitespace-nowrap">
+                        {user.expireDate}
                       </td>
                       <td className="py-3 px-4 text-center whitespace-nowrap">
                         {user.importType === "new" && (

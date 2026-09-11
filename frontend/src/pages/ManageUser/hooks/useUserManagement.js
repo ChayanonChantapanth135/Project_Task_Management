@@ -437,6 +437,101 @@ export const useUserManagement = (t, language = "en") => {
   };
 
   // ฟังก์ชันส่งออกรายชื่อผู้ใช้ทั้งหมดเป็นไฟล์ Excel (.xlsx)
+  // ฟังก์ชันดาวน์โหลดเทมเพลต Excel สำหรับนำเข้าผู้ใช้งาน
+  const handleDownloadTemplate = async () => {
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Template");
+
+      worksheet.columns = [
+        { header: "fullname", key: "fullname", width: 25 },
+        { header: "email", key: "email", width: 30 },
+        { header: "phone", key: "phone", width: 18 },
+        { header: "role", key: "role", width: 18 },
+        { header: "leader_email", key: "leader_email", width: 30 },
+        { header: "status", key: "status", width: 15 },
+        { header: "start_date", key: "start_date", width: 18 },
+        { header: "expire_date", key: "expire_date", width: 18 },
+        { header: "password", key: "password", width: 18 },
+      ];
+
+      // ตัวอย่างข้อมูลในเทมเพลต
+      worksheet.addRow({
+        fullname: "Somchai Jaidee",
+        email: "somchai@company.com",
+        phone: "+66812345678",
+        role: "storyboard",
+        leader_email: "leader@company.com",
+        status: "active",
+        start_date: "2026-09-01",
+        expire_date: "2027-09-01",
+        password: "password123",
+      });
+
+      worksheet.addRow({
+        fullname: "Somsak Rakdee",
+        email: "somsak@company.com",
+        phone: "+66898765432",
+        role: "programmer",
+        leader_email: "",
+        status: "active",
+        start_date: "",
+        expire_date: "",
+        password: "",
+      });
+
+      // ตกแต่งส่วนหัวตาราง
+      const headerRow = worksheet.getRow(1);
+      headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      headerRow.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FF4F46E5" }, // Indigo
+      };
+
+      const roleOptions = ["admin", "manager", "storyboard", "animation", "designer", "programmer"];
+      const statusOptions = ["active", "suspended"];
+
+      worksheet.dataValidations.add("D2:D500", {
+        type: "list",
+        allowBlank: true,
+        formulae: [`"${roleOptions.join(",")}"`],
+        showErrorMessage: true,
+        errorTitle: "Invalid Role",
+        error: "Please select a role from the dropdown list."
+      });
+
+      worksheet.dataValidations.add("F2:F500", {
+        type: "list",
+        allowBlank: true,
+        formulae: [`"${statusOptions.join(",")}"`],
+        showErrorMessage: true,
+        errorTitle: "Invalid Status",
+        error: "Please select a status from the dropdown list."
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", "Import_Users_Template.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Error generating Excel template:", error);
+      // Fallback to static template
+      const link = document.createElement("a");
+      link.href = "/Import_Users_Template.xlsx";
+      link.setAttribute("download", "Import_Users_Template.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  // ฟังก์ชันส่งออกรายชื่อผู้ใช้ทั้งหมดเป็นไฟล์ Excel (.xlsx)
   const handleExportExcel = async () => {
     if (users.length === 0) {
       alert("No users to export");
@@ -451,7 +546,9 @@ export const useUserManagement = (t, language = "en") => {
       worksheet.columns = [
         { header: "fullname", key: "fullname", width: 25 },
         { header: "email", key: "email", width: 30 },
-        { header: "role", key: "role", width: 15 },
+        { header: "phone", key: "phone", width: 18 },
+        { header: "role", key: "role", width: 18 },
+        { header: "leader_email", key: "leader_email", width: 30 },
         { header: "status", key: "status", width: 15 },
         { header: "start_date", key: "start_date", width: 18 },
         { header: "expire_date", key: "expire_date", width: 18 },
@@ -467,22 +564,34 @@ export const useUserManagement = (t, language = "en") => {
         else if (u.role === "Designer") rawRole = "designer";
         else if (u.role === "Programmer") rawRole = "programmer";
 
+        const leaderUser = u.leaderId ? users.find((lead) => Number(lead.id) === Number(u.leaderId)) : null;
+
         worksheet.addRow({
           fullname: u.name || "",
           email: u.email || "",
+          phone: u.phone !== "-" ? u.phone : "",
           role: rawRole,
+          leader_email: leaderUser ? leaderUser.email : "",
           status: u.status || "active",
           start_date: u.startDate || "",
           expire_date: u.expireDate || "",
         });
       });
 
+      // Style header row
+      const headerRow = worksheet.getRow(1);
+      headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      headerRow.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FF059669" }, // Emerald
+      };
+
       // Define role options & status options
       const roleOptions = ["admin", "manager", "storyboard", "animation", "designer", "programmer"];
       const statusOptions = ["active", "suspended"];
 
-      // Add dropdown validation for rows 2 to 100
-      worksheet.dataValidations.add("C2:C100", {
+      worksheet.dataValidations.add("D2:D500", {
         type: "list",
         allowBlank: true,
         formulae: [`"${roleOptions.join(",")}"`],
@@ -491,7 +600,7 @@ export const useUserManagement = (t, language = "en") => {
         error: "Please select a role from the dropdown list."
       });
 
-      worksheet.dataValidations.add("D2:D100", {
+      worksheet.dataValidations.add("F2:F500", {
         type: "list",
         allowBlank: true,
         formulae: [`"${statusOptions.join(",")}"`],
@@ -507,9 +616,8 @@ export const useUserManagement = (t, language = "en") => {
       const link = document.createElement("a");
       link.setAttribute("href", url);
 
-      // วันที่ปัจจุบันในรูปแบบ YYYY-MM-DD
       const now = new Date();
-      const dateStr = now.toISOString().split("T")[0]; // e.g. 2026-08-25
+      const dateStr = now.toISOString().split("T")[0];
       link.setAttribute("download", `user_xport_${dateStr}.xlsx`);
       document.body.appendChild(link);
       link.click();
@@ -592,6 +700,7 @@ export const useUserManagement = (t, language = "en") => {
     handleImportFile,
     handleImportConfirm,
     handleExportExcel,
+    handleDownloadTemplate,
     filteredUsers,
   };
 };

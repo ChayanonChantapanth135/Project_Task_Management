@@ -256,7 +256,7 @@ export const initializeDatabase = async () => {
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS status ENUM('active','suspended') DEFAULT 'active'",
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS start_date DATE NULL DEFAULT NULL",
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS expire_date DATE NULL DEFAULT NULL",
-      "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_force_reset TINYINT(1) DEFAULT 1",
+      "ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50) DEFAULT NULL",
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS leader_id INT NULL",
       "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS task_type VARCHAR(50) DEFAULT NULL",
       "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS priority ENUM('Low', 'Medium', 'High') DEFAULT 'Medium'",

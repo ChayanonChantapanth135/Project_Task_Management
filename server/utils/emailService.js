@@ -138,7 +138,7 @@ export async function sendProjectCreationEmail({ recipientEmail, recipientName, 
 }
 
 /**
- * Send email when a new task is created (English version)
+ * Send email when a new task is created
  */
 export async function sendTaskCreationEmail({ recipientEmail, recipientName, taskTitle, projectName, priority, taskType, dueDate, description, creatorName, roleLabel }) {
   if (!recipientEmail) return;
