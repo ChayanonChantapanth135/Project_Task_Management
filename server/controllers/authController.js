@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { sendProjectCreationEmail, sendTaskCreationEmail, sendWelcomeUserEmail, sendOtpEmail } from '../utils/emailService.js';
+import { memoryCache } from '../utils/cacheService.js';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -469,6 +470,7 @@ export const createUser = async (req, res) => {
             expire_date: parsedExpireDate,
         });
 
+        memoryCache.del('team_leaders');
         res.status(201).json({ message: 'User created successfully', id: result.insertId });
     } catch (error) {
         console.error('Error creating user:', error.message);
@@ -586,6 +588,7 @@ export const updateUser = async (req, res) => {
             updatedBy: creatorId,
         });
 
+        memoryCache.del('team_leaders');
         res.status(200).json({ message: 'User updated successfully' });
     } catch (error) {
         console.error('Error updating user:', error.message);
@@ -616,6 +619,7 @@ export const softDeleteUser = async (req, res) => {
             deletedBy: creatorId,
         });
 
+        memoryCache.del('team_leaders');
         res.status(200).json({ message: 'User soft-deleted successfully' });
     } catch (error) {
         console.error('Error soft deleting user:', error.message);
@@ -647,6 +651,7 @@ export const restoreUser = async (req, res) => {
             email,
         });
 
+        memoryCache.del('team_leaders');
         res.status(200).json({ message: 'User restored successfully' });
     } catch (error) {
         console.error('Error restoring user:', error.message);
@@ -680,6 +685,7 @@ export const permanentDeleteUser = async (req, res) => {
             deletedBy: creatorId,
         });
 
+        memoryCache.del('team_leaders');
         res.status(200).json({ message: 'User permanently deleted successfully' });
     } catch (error) {
         console.error('Error permanently deleting user:', error.message);
@@ -805,6 +811,12 @@ export const importUsers = async (req, res) => {
  */
 export const getTeamLeaders = async (req, res) => {
     try {
+        const cacheKey = 'team_leaders';
+        const cached = memoryCache.get(cacheKey);
+        if (cached) {
+            return res.status(200).json(cached);
+        }
+
         const db = await connectToDatabase();
         let [rows] = await db.query("SELECT id, fullname, email FROM users WHERE role = 'team_leader' AND deleted_at IS NULL");
         if (rows.length === 0) {
@@ -817,6 +829,7 @@ export const getTeamLeaders = async (req, res) => {
                 { id: 5, fullname: "Anong Rakdee (Simulated)" }
             ];
         }
+        memoryCache.set(cacheKey, rows, 120); // 2 minutes TTL
         res.status(200).json(rows);
     } catch (error) {
         console.error('Error fetching team leaders:', error.message);
@@ -958,34 +971,38 @@ export const getProjects = async (req, res) => {
             ORDER BY p.created_at DESC
         `);
 
+        if (projects.length === 0) {
+            return res.status(200).json([]);
+        }
+
+        const projectIds = projects.map(p => p.id);
+        const [allTasks] = await db.query(`
+            SELECT t.id, t.project_id, t.title, t.status, t.due_date, t.assigned_to, t.description, t.task_type, t.priority, u.fullname AS assigned_to_name
+            FROM tasks t
+            LEFT JOIN users u ON t.assigned_to = u.id
+            WHERE t.project_id IN (?) AND t.deleted_at IS NULL
+            ORDER BY t.created_at ASC
+        `, [projectIds]);
+
+        // Group tasks by project_id in O(N)
+        const tasksByProjectId = {};
+        for (const task of allTasks) {
+            if (!tasksByProjectId[task.project_id]) tasksByProjectId[task.project_id] = [];
+            tasksByProjectId[task.project_id].push(task);
+        }
+
         for (const p of projects) {
-            const [tasks] = await db.query(`
-                SELECT t.id, t.title, t.status, t.due_date, t.assigned_to, t.description, t.task_type, t.priority, u.fullname AS assigned_to_name
-                FROM tasks t
-                LEFT JOIN users u ON t.assigned_to = u.id
-                WHERE t.project_id = ? AND t.deleted_at IS NULL
-            `, [p.id]);
+            const tasks = tasksByProjectId[p.id] || [];
             p.tasks = tasks;
             if (tasks.length > 0) {
                 const hasReviewing = tasks.some(t => t.status && (t.status.toLowerCase() === 'reviewing' || t.status.toLowerCase() === 'review'));
                 const completed = tasks.filter(t => t.status && t.status.toLowerCase() === 'completed').length;
                 p.progress = Math.round((completed / tasks.length) * 100);
 
-                if (hasReviewing) {
-                    if (p.status !== 'Reviewing') {
-                        p.status = 'Reviewing';
-                        await db.query("UPDATE projects SET status = 'Reviewing' WHERE id = ?", [p.id]);
-                    }
-                } else if (p.progress === 100) {
-                    if (p.status !== 'Completed') {
-                        p.status = 'Completed';
-                        await db.query("UPDATE projects SET status = 'Completed' WHERE id = ?", [p.id]);
-                    }
-                } else {
-                    if (p.status !== 'In Progress') {
-                        p.status = 'In Progress';
-                        await db.query("UPDATE projects SET status = 'In Progress' WHERE id = ?", [p.id]);
-                    }
+                let targetStatus = hasReviewing ? 'Reviewing' : (p.progress === 100 ? 'Completed' : 'In Progress');
+                if (p.status !== targetStatus) {
+                    p.status = targetStatus;
+                    await db.query("UPDATE projects SET status = ? WHERE id = ?", [targetStatus, p.id]);
                 }
             } else {
                 p.progress = 0;
@@ -2202,4 +2219,22 @@ export const deletePersonalTask = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+/**
+ * Trigger manual check for overdue tasks and send notifications to leaders
+ */
+export const triggerCheckOverdueTasks = async (req, res) => {
+    try {
+        const { checkOverdueTasksAndNotifyLeaders } = await import('../utils/taskScheduler.js');
+        const result = await checkOverdueTasksAndNotifyLeaders();
+        res.status(200).json({
+            message: 'Overdue tasks check completed',
+            data: result
+        });
+    } catch (error) {
+        console.error('Error triggering overdue tasks check:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 

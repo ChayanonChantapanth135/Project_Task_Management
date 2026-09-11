@@ -1,6 +1,7 @@
 import React from "react";
 import { Modal } from "react-bootstrap";
 import SearchableUserSelect from "../../../components/SearchableUserSelect";
+import CustomDateInput from "../../../components/CustomDateInput";
 
 const UserModal = ({
   showAddModal,
@@ -173,6 +174,7 @@ const UserModal = ({
                   className="form-control rounded-xl py-2.5 px-3 text-sm focus:outline-none transition-all shadow-sm"
                   value={formData.phone}
                   onChange={handleInputChange}
+                  placeholder="+66"
                 />
               </div>
 
@@ -225,12 +227,13 @@ const UserModal = ({
                   >
                     {t("modalStartDateLabel") || "วันเริ่มใช้งาน"}
                   </label>
-                  <input
-                    type="date"
+                  <CustomDateInput
                     name="startDate"
-                    className="form-control rounded-xl py-2 px-3 text-sm focus:outline-none transition-all shadow-sm"
                     value={formData.startDate || ""}
                     onChange={handleInputChange}
+                    placeholder="DD/MM/YYYY"
+                    placement="auto"
+                    className="form-control rounded-xl py-2 px-3 text-sm focus:outline-none transition-all shadow-sm"
                   />
                   <small
                     className="text-muted d-block mt-0.5"
@@ -250,13 +253,13 @@ const UserModal = ({
                   >
                     {t("modalExpireDateLabel") || "วันหมดอายุ"}
                   </label>
-                  <input
-                    type="date"
+                  <CustomDateInput
                     name="expireDate"
-                    min={formData.startDate || undefined}
-                    className="form-control rounded-xl py-2 px-3 text-sm focus:outline-none transition-all shadow-sm"
                     value={formData.expireDate || ""}
                     onChange={handleInputChange}
+                    placeholder="DD/MM/YYYY"
+                    placement="auto"
+                    className="form-control rounded-xl py-2 px-3 text-sm focus:outline-none transition-all shadow-sm"
                   />
                   <small
                     className="text-muted d-block mt-0.5"

@@ -8,21 +8,21 @@ import { useLanguage } from "../../../lib/LanguageContext";
 
 const STATUS_CONFIG = {
   todo: {
-    labelTh: "To Do",
+    labelTh: "ต้องทำ",
     labelEn: "To Do",
     color: "#007aeb",
     bg: "rgba(0, 122, 235, 0.18)",
     border: "rgba(0, 122, 235, 0.5)",
   },
   "in-progress": {
-    labelTh: "In Progress",
+    labelTh: "กำลังทำ",
     labelEn: "In Progress",
     color: "#f59e0b",
     bg: "rgba(245, 158, 11, 0.18)",
     border: "rgba(245, 158, 11, 0.5)",
   },
   completed: {
-    labelTh: "Completed",
+    labelTh: "เสร็จสิ้น",
     labelEn: "Completed",
     color: "#00b884",
     bg: "rgba(0, 184, 132, 0.18)",
@@ -304,17 +304,21 @@ const PersonalTaskCalendar = ({
           >
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-[#007aeb]"></span>
-              <span style={{ color: "var(--text-secondary)" }}>To Do</span>
+              <span style={{ color: "var(--text-secondary)" }}>
+                {isThai ? STATUS_CONFIG.todo.labelTh : STATUS_CONFIG.todo.labelEn}
+              </span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-[#f59e0b]"></span>
               <span style={{ color: "var(--text-secondary)" }}>
-                In Progress
+                {isThai ? STATUS_CONFIG["in-progress"].labelTh : STATUS_CONFIG["in-progress"].labelEn}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-[#00b884]"></span>
-              <span style={{ color: "var(--text-secondary)" }}>Completed</span>
+              <span style={{ color: "var(--text-secondary)" }}>
+                {isThai ? STATUS_CONFIG.completed.labelTh : STATUS_CONFIG.completed.labelEn}
+              </span>
             </div>
           </div>
         </div>

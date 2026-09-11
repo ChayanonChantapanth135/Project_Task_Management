@@ -116,6 +116,11 @@ const NotificationBell = () => {
       console.error("Failed to mark as read:", err);
     }
 
+    // หากเป็นการแจ้งเตือนงานเกินกำหนดส่ง (task_overdue) หรือไม่มี link ไม่ต้องทำการ redirect หน้า
+    if (item.type === "task_overdue" || !link) {
+      return;
+    }
+
     // Determine the navigation target
     let targetLink = link;
     try {
@@ -461,6 +466,24 @@ const NotificationBell = () => {
             </svg>
           </div>
         );
+      case "task_overdue":
+        return (
+          <div className="w-8 h-8 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center shrink-0">
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+        );
       case "alert":
         return (
           <div className="w-8 h-8 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
@@ -586,7 +609,7 @@ const NotificationBell = () => {
               onClick={() => setFilter("all")}
               className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
                 filter === "all"
-                  ? "text-white shadow-md"
+                  ? "notif-filter-active shadow-md"
                   : "hover:bg-black/5 dark:hover:bg-white/5"
               }`}
               style={
@@ -595,13 +618,15 @@ const NotificationBell = () => {
                   : { color: "var(--text-secondary)" }
               }
             >
-              {t("all") || "ทั้งหมด"} ({notifications.length})
+              <span style={{ color: filter === "all" ? "#ffffff" : "inherit" }}>
+                {t("all") || "All"} ({notifications.length})
+              </span>
             </button>
             <button
               onClick={() => setFilter("unread")}
               className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
                 filter === "unread"
-                  ? "text-white shadow-md"
+                  ? "notif-filter-active shadow-md"
                   : "hover:bg-black/5 dark:hover:bg-white/5"
               }`}
               style={
@@ -610,7 +635,9 @@ const NotificationBell = () => {
                   : { color: "var(--text-secondary)" }
               }
             >
-              {t("unread") || "ยังไม่อ่าน"} ({unreadCount})
+              <span style={{ color: filter === "unread" ? "#ffffff" : "inherit" }}>
+                {t("unread") || "Unread"} ({unreadCount})
+              </span>
             </button>
             {notifications.length > 0 && (
               <button

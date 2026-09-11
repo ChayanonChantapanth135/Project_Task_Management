@@ -520,28 +520,29 @@ export const usePersonalTasks = () => {
   };
 
   const handleUpdateTaskDate = async (taskDbId, newDateStr) => {
-    try {
-      const isoDate = newDateStr
-        ? (newDateStr.includes("T") ? newDateStr.split("T")[0] : newDateStr)
-        : null;
+    const isoDate = newDateStr
+      ? (newDateStr.includes("T") ? newDateStr.split("T")[0] : newDateStr)
+      : null;
 
+    // Optimistic UI update
+    setData((prev) => {
+      const taskIdStr = `task-${taskDbId}`;
+      if (!prev.tasks[taskIdStr]) return prev;
+      return {
+        ...prev,
+        tasks: {
+          ...prev.tasks,
+          [taskIdStr]: {
+            ...prev.tasks[taskIdStr],
+            task_date: isoDate,
+          },
+        },
+      };
+    });
+
+    try {
       await axios.put(`${API_URL}/auth/personal-tasks/${taskDbId}`, {
         task_date: isoDate,
-      });
-
-      setData((prev) => {
-        const taskIdStr = `task-${taskDbId}`;
-        if (!prev.tasks[taskIdStr]) return prev;
-        return {
-          ...prev,
-          tasks: {
-            ...prev.tasks,
-            [taskIdStr]: {
-              ...prev.tasks[taskIdStr],
-              task_date: isoDate,
-            },
-          },
-        };
       });
 
       const Toast = Swal.mixin({
@@ -564,47 +565,49 @@ export const usePersonalTasks = () => {
         title: isThai ? "เกิดข้อผิดพลาด" : "Error",
         text: isThai ? "ไม่สามารถอัปเดตวันที่ได้" : "Failed to update date",
       });
-      fetchTasks();
+      fetchTasks(); // Rollback on error
     }
   };
 
   const handleUpdateTaskStatus = async (taskDbId, newStatus) => {
+    const isCompleted = newStatus === "completed" ? 1 : 0;
+
+    // Optimistic UI update
+    setData((prev) => {
+      const taskIdStr = `task-${taskDbId}`;
+      if (!prev.tasks[taskIdStr]) return prev;
+
+      const oldStatus = prev.tasks[taskIdStr].status;
+      if (oldStatus === newStatus) return prev;
+
+      const oldCol = prev.columns[oldStatus] || prev.columns["todo"];
+      const newCol = prev.columns[newStatus] || prev.columns["todo"];
+
+      const oldTaskIds = oldCol.taskIds.filter((id) => id !== taskIdStr);
+      const newTaskIds = [...newCol.taskIds, taskIdStr];
+
+      return {
+        ...prev,
+        tasks: {
+          ...prev.tasks,
+          [taskIdStr]: {
+            ...prev.tasks[taskIdStr],
+            status: newStatus,
+            is_completed: isCompleted,
+          },
+        },
+        columns: {
+          ...prev.columns,
+          [oldCol.id]: { ...oldCol, taskIds: oldTaskIds },
+          [newCol.id]: { ...newCol, taskIds: newTaskIds },
+        },
+      };
+    });
+
     try {
-      const isCompleted = newStatus === "completed" ? 1 : 0;
       await axios.put(`${API_URL}/auth/personal-tasks/${taskDbId}`, {
         status: newStatus,
         is_completed: isCompleted,
-      });
-
-      setData((prev) => {
-        const taskIdStr = `task-${taskDbId}`;
-        if (!prev.tasks[taskIdStr]) return prev;
-
-        const oldStatus = prev.tasks[taskIdStr].status;
-        if (oldStatus === newStatus) return prev;
-
-        const oldCol = prev.columns[oldStatus] || prev.columns["todo"];
-        const newCol = prev.columns[newStatus] || prev.columns["todo"];
-
-        const oldTaskIds = oldCol.taskIds.filter((id) => id !== taskIdStr);
-        const newTaskIds = [...newCol.taskIds, taskIdStr];
-
-        return {
-          ...prev,
-          tasks: {
-            ...prev.tasks,
-            [taskIdStr]: {
-              ...prev.tasks[taskIdStr],
-              status: newStatus,
-              is_completed: isCompleted,
-            },
-          },
-          columns: {
-            ...prev.columns,
-            [oldCol.id]: { ...oldCol, taskIds: oldTaskIds },
-            [newCol.id]: { ...newCol, taskIds: newTaskIds },
-          },
-        };
       });
 
       const Toast = Swal.mixin({
@@ -622,7 +625,7 @@ export const usePersonalTasks = () => {
       });
     } catch (err) {
       console.error("Error updating task status:", err);
-      fetchTasks();
+      fetchTasks(); // Rollback on error
     }
   };
 

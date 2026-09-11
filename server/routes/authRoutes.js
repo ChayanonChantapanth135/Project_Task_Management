@@ -29,6 +29,7 @@ router.put('/projects/:id', authCtrl.updateProject);
 router.delete('/projects/:id', authCtrl.deleteProject);
 
 router.post('/tasks', authCtrl.createTask);
+router.post('/tasks/check-overdue', authCtrl.triggerCheckOverdueTasks);
 router.put('/tasks/:id/status', authCtrl.updateTaskStatus);
 router.put('/tasks/:id', authCtrl.updateTask);
 router.delete('/tasks/:id', authCtrl.deleteTask);

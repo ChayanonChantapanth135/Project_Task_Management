@@ -65,7 +65,7 @@ const LoginForm = ({
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold text-base glow-button transition-all disabled:opacity-50 mt-2 cursor-pointer"
+        className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-bold text-base glow-button transition-all disabled:opacity-50 mt-2 cursor-pointer"
       >
         {loading
           ? language === "th"

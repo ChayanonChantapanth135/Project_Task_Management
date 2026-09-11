@@ -129,6 +129,20 @@ export const THEME_ACCENTS = {
       200: "#a7f3d0",
     },
   },
+  Gold: {
+    name: "Gold",
+    code: "#FFD700",
+    light: "#ca8a04",
+    dark: "#FFD700",
+    gradient: "from-amber-400 to-yellow-500",
+    shades: {
+      600: "#ca8a04",
+      500: "#FFD700",
+      400: "#fde047",
+      300: "#fef08a",
+      200: "#fef9c3",
+    },
+  },
   Black: {
     name: "Black",
     code: "#1e1e1e",

@@ -101,9 +101,9 @@ const ProjectCard = ({
             <span>Progress</span>
             <span className="text-white">{project.progress}%</span>
           </div>
-          <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-indigo-500 to-pink-500 rounded-full transition-all duration-300"
+              className="h-full bg-indigo-500 rounded-full transition-all duration-300"
               style={{ width: `${project.progress}%` }}
             ></div>
           </div>

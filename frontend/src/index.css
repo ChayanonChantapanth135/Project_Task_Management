@@ -78,6 +78,17 @@
   color: #ffffff !important;
 }
 
+.notif-filter-active {
+  background-color: var(--brand-color) !important;
+  color: #ffffff !important;
+}
+
+.notif-filter-active,
+.notif-filter-active *,
+.notif-filter-active span {
+  color: #ffffff !important;
+}
+
 /* Default Input Border Styling */
 input, select, textarea {
   outline: none;
@@ -253,12 +264,11 @@ input:focus, select:focus, textarea:focus {
   transform: translateY(-2px);
 }
 
-/* Gradient Text Effect */
+/* Theme Accent Text Effect */
 .gradient-text {
-  background: linear-gradient(135deg, var(--brand-color) 0%, #a78bfa 50%, #f472b6 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--brand-color) !important;
+  background: none !important;
+  -webkit-text-fill-color: var(--brand-color) !important;
 }
 
 .gradient-text-emerald {

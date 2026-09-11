@@ -361,3 +361,99 @@ export async function sendOtpEmail({ recipientEmail, recipientName, otpCode }) {
   }
 }
 
+/**
+ * Send overdue task notification email to assignee's Leader
+ */
+export async function sendTaskOverdueLeaderEmail({
+  recipientEmail,
+  recipientName,
+  assigneeName,
+  taskTitle,
+  projectName,
+  dueDate,
+  priority,
+  status
+}) {
+  if (!recipientEmail) return;
+
+  try {
+    const { transporter, emailUser, emailPass } = getTransporter();
+
+    const mailOptions = {
+      from: `"Project Management System" <${emailUser}>`,
+      to: recipientEmail,
+      subject: `[URGENT] Task Overdue: "${taskTitle}" (${assigneeName})`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background-color: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0;">
+          <div style="background: linear-gradient(135deg, #dc2626, #b91c1c); padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #ffffff; margin: 0; font-size: 20px;">⚠️ Task Overdue Alert</h2>
+            <p style="color: #fecaca; font-size: 13px; margin-top: 6px;">Notification for Team Leader</p>
+          </div>
+
+          <p style="color: #334155; font-size: 15px;">Dear <b>${recipientName || 'Team Leader'}</b>,</p>
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            The system has detected that an assigned task for <b>${assigneeName || 'Team Member'}</b> in your project is incomplete and has passed its deadline. Details are as follows:
+          </p>
+
+          <div style="background-color: #ffffff; padding: 18px; border-radius: 12px; border-left: 4px solid #dc2626; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px; color: #334155;">
+              <tr>
+                <td style="padding: 6px 0; font-weight: bold; width: 140px;">Task Name:</td>
+                <td style="padding: 6px 0; color: #0f172a; font-weight: bold;">${taskTitle}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-weight: bold;">Project:</td>
+                <td style="padding: 6px 0;">${projectName || '-'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-weight: bold;">Assignee:</td>
+                <td style="padding: 6px 0; color: #0284c7; font-weight: bold;">${assigneeName || '-'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-weight: bold;">Current Status:</td>
+                <td style="padding: 6px 0;"><span style="background-color: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${status || 'Pending'}</span></td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-weight: bold;">Priority:</td>
+                <td style="padding: 6px 0;"><span style="background-color: #fef3c7; color: #b45309; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${priority || 'Medium'}</span></td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-weight: bold;">Due Date:</td>
+                <td style="padding: 6px 0; color: #dc2626; font-weight: bold;">${formatDateEn(dueDate)}</td>
+              </tr>
+            </table>
+          </div>
+          
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+          <p style="font-size: 11px; color: #94a3b8; text-align: center;">This is an automated email notification from Project Management System.</p>
+        </div>
+      `
+    };
+
+    if (emailPass) {
+      await transporter.sendMail(mailOptions);
+      console.log(`[Overdue Email Sent] Sent to Leader: ${recipientEmail} for task: "${taskTitle}"`);
+      await logEmailActivity({
+        recipientEmail,
+        action: 'Send Email (Task Overdue to Leader)',
+        details: `Sent overdue alert to leader ${recipientEmail} for task "${taskTitle}" (Assignee: ${assigneeName})`
+      });
+    } else {
+      console.warn(`[Email Warning] EMAIL_PASS is not configured. Skipped sending overdue email to leader ${recipientEmail}.`);
+      await logEmailActivity({
+        recipientEmail,
+        action: 'Send Email Warning (Task Overdue to Leader)',
+        details: `Skipped SMTP send (missing EMAIL_PASS) for task "${taskTitle}" to leader ${recipientEmail}`
+      });
+    }
+  } catch (error) {
+    console.error(`[Email Error] Failed to send overdue task email to ${recipientEmail}:`, error.message);
+    await logEmailActivity({
+      recipientEmail,
+      action: 'Send Email Failed (Task Overdue to Leader)',
+      details: `Failed to send overdue email to ${recipientEmail}: ${error.message}`
+    });
+  }
+}
+
+

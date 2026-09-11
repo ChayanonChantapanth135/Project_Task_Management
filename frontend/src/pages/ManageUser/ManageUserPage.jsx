@@ -79,7 +79,7 @@ const ManageUserPage = () => {
               📊 {t("exportUsersBtn")}
             </button>
             <button
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-xs glow-button"
+              className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-xs glow-button"
               onClick={userHook.handleOpenAdd}
             >
               + {t("addUserBtn")}

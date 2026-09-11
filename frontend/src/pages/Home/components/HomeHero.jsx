@@ -47,7 +47,7 @@ const HomeHero = ({ t, isLoggedIn }) => {
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link
               to="/Dashboard"
-              className="px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold text-base glow-button no-underline inline-block"
+              className="px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-bold text-base glow-button no-underline inline-block"
             >
               {t("goToDashboard") || "เข้าสู่หน้าแดชบอร์ด 📊"}
             </Link>
@@ -57,7 +57,7 @@ const HomeHero = ({ t, isLoggedIn }) => {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
                 to="/Login"
-                className="px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold text-base glow-button no-underline inline-block"
+                className="px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-bold text-base glow-button no-underline inline-block"
               >
                 {t("getStartedBtn") || "เริ่มต้นใช้งานฟรี ✨"}
               </Link>

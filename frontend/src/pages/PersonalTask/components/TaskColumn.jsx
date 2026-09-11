@@ -1,8 +1,11 @@
 import React from "react";
 import { Droppable } from "@hello-pangea/dnd";
 import TaskCard from "./TaskCard";
+import { useLanguage } from "../../../lib/LanguageContext";
 
 const TaskColumn = ({ column, tasks, onAddTask, onEditTask, onDeleteTask }) => {
+  const { t } = useLanguage();
+
   return (
     <div 
       className="rounded-2xl p-3.5 flex flex-col shadow-xl h-[560px] transition-all"
@@ -22,7 +25,7 @@ const TaskColumn = ({ column, tasks, onAddTask, onEditTask, onDeleteTask }) => {
             style={{ backgroundColor: column.color || "var(--brand-color)" }}
           ></span>
           <h3 className="text-sm font-bold tracking-wider" style={{ color: "var(--text-primary)" }}>
-            {column.title}
+            {t(column.title) || column.title}
           </h3>
           <span 
             className="text-xs font-semibold px-2 py-0.5 rounded-full"

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { useLanguage } from "../../lib/LanguageContext";
+import { useTheme } from "../../lib/ThemeContext";
 import { usePersonalTasks } from "./hooks/usePersonalTasks";
 import TaskBoard from "./components/TaskBoard";
 import PersonalTaskCalendar from "./components/PersonalTaskCalendar";
@@ -9,6 +10,7 @@ import TaskModal from "./components/TaskModal";
 
 const PersonalTaskPage = () => {
   const { language } = useLanguage();
+  const { currentAccent } = useTheme();
   const [viewMode, setViewMode] = useState("board"); // "board" | "calendar"
 
   // Modal State for Add / Edit
@@ -98,8 +100,8 @@ const PersonalTaskPage = () => {
                 onClick={() => setViewMode("board")}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
                   viewMode === "board"
-                    ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/20"
+                    ? "bg-indigo-600 text-white shadow-md"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-500/10"
                 }`}
               >
                 <span>📋</span>
@@ -111,8 +113,8 @@ const PersonalTaskPage = () => {
                 onClick={() => setViewMode("calendar")}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
                   viewMode === "calendar"
-                    ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/20"
+                    ? "bg-indigo-600 text-white shadow-md"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-500/10"
                 }`}
               >
                 <span>📅</span>
@@ -123,7 +125,7 @@ const PersonalTaskPage = () => {
             {/* Add New Task Button */}
             <button
               onClick={() => handleOpenAdd("todo")}
-              className="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold text-xs glow-button flex items-center gap-2 cursor-pointer transition-all hover:scale-105 active:scale-95 shadow-lg"
+              className="px-5 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs glow-button flex items-center gap-2 cursor-pointer transition-all hover:scale-105 active:scale-95 shadow-lg"
             >
               <span className="text-sm leading-none font-extrabold">+</span>
               <span>{isThai ? "เพิ่ม Task ใหม่" : "Add New Task"}</span>

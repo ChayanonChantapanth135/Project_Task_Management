@@ -181,7 +181,7 @@ const Header = () => {
                     className="p-0 border-0 flex items-center no-underline focus:ring-0 after:hidden shadow-none"
                     id="dropdown-profile"
                   >
-                    <div className="p-0.5 rounded-full bg-gradient-to-r from-indigo-500 to-pink-500 hover:scale-105 transition-transform">
+                    <div className="p-0.5 rounded-full bg-indigo-600 hover:scale-105 transition-transform">
                       {user?.avatar ? (
                         <img
                           src={
@@ -294,7 +294,7 @@ const Header = () => {
                 <Link to="/login" className="no-underline">
                   <button
                     type="button"
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-sm glow-button transition-all"
+                    className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-sm glow-button transition-all"
                   >
                     {t("login")}
                   </button>
@@ -332,7 +332,7 @@ const Header = () => {
                     to="/Dashboard"
                     className={`rounded-xl px-3 py-2.5 font-bold text-sm transition-all flex items-center gap-3 no-underline ${
                       isActive("/dashboard")
-                        ? "bg-gradient-to-r from-teal-500 to-indigo-600 text-white shadow-md"
+                        ? "bg-indigo-600 text-white shadow-md"
                         : "text-slate-200 hover:bg-slate-800/80 hover:text-white bg-transparent"
                     }`}
                   >
@@ -346,7 +346,7 @@ const Header = () => {
                       to="/ManageUsers"
                       className={`rounded-xl px-3 py-2.5 font-bold text-sm transition-all flex items-center gap-3 no-underline mt-1 ${
                         isActive("/manageusers")
-                          ? "bg-gradient-to-r from-teal-500 to-indigo-600 text-white shadow-md"
+                          ? "bg-indigo-600 text-white shadow-md"
                           : "text-slate-200 hover:bg-slate-800/80 hover:text-white bg-transparent"
                       }`}
                     >
@@ -362,7 +362,7 @@ const Header = () => {
                     to="/PersonalTask"
                     className={`rounded-xl px-3 py-2.5 font-bold text-sm transition-all flex items-center gap-3 no-underline mt-1 ${
                       isActive("/PersonalTask")
-                        ? "bg-gradient-to-r from-teal-500 to-indigo-600 text-white shadow-md"
+                        ? "bg-indigo-600 text-white shadow-md"
                         : "text-slate-200 hover:bg-slate-800/80 hover:text-white bg-transparent"
                     }`}
                   >
@@ -377,7 +377,7 @@ const Header = () => {
                     to="/Projects"
                     className={`rounded-xl px-3 py-2.5 font-bold text-sm transition-all flex items-center gap-3 no-underline mt-1 ${
                       isActive("/projects")
-                        ? "bg-gradient-to-r from-teal-500 to-indigo-600 text-white shadow-md"
+                        ? "bg-indigo-600 text-white shadow-md"
                         : "text-slate-200 hover:bg-slate-800/80 hover:text-white bg-transparent"
                     }`}
                   >
@@ -392,7 +392,7 @@ const Header = () => {
                       isActive(
                         user?.role === "admin" ? "/alltasks" : "/mytasks",
                       )
-                        ? "bg-gradient-to-r from-teal-500 to-indigo-600 text-white shadow-md"
+                        ? "bg-indigo-600 text-white shadow-md"
                         : "text-slate-200 hover:bg-slate-800/80 hover:text-white bg-transparent"
                     }`}
                   >
@@ -407,7 +407,7 @@ const Header = () => {
                     to="/Reports"
                     className={`rounded-xl px-3 py-2.5 font-bold text-sm transition-all flex items-center gap-3 no-underline mt-1 ${
                       isActive("/reports")
-                        ? "bg-gradient-to-r from-teal-500 to-indigo-600 text-white shadow-md"
+                        ? "bg-indigo-600 text-white shadow-md"
                         : "text-slate-200 hover:bg-slate-800/80 hover:text-white bg-transparent"
                     }`}
                   >

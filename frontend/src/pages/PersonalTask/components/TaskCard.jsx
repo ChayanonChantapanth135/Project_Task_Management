@@ -3,7 +3,7 @@ import { Draggable } from "@hello-pangea/dnd";
 import { useLanguage } from "../../../lib/LanguageContext";
 
 const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
 
   if (!task) return null;
 
@@ -54,16 +54,14 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
 
   // จัดการสีและสไตล์ของป้ายสถานะตามรูปตัวอย่าง (Soft Tinted Pill Style)
   const getStatusBadge = () => {
-    const status = (
-      task.status || (task.is_completed ? "completed" : column?.id || "todo")
-    ).toLowerCase();
+    const status = (task.status || "todo").toLowerCase();
     if (
       status.includes("complete") ||
       status === "completed" ||
       task.is_completed
     ) {
       return {
-        text: column?.title || "Completed",
+        text: t(column?.title) || column?.title || t("Completed"),
         className: "badge-status-completed",
       };
     }
@@ -73,7 +71,7 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
       status === "in_progress"
     ) {
       return {
-        text: column?.title || "In Progress",
+        text: t(column?.title) || column?.title || t("In Progress"),
         className: "badge-status-in-progress",
       };
     }
@@ -83,12 +81,12 @@ const TaskCard = ({ task, column, index, onEdit, onDelete }) => {
       status === "in_review"
     ) {
       return {
-        text: column?.title || "In Review",
+        text: t(column?.title) || column?.title || t("In Review"),
         className: "badge-status-in-review",
       };
     }
     return {
-      text: column?.title || "To Do",
+      text: t(column?.title) || column?.title || t("To Do"),
       className: "badge-status-todo",
     };
   };

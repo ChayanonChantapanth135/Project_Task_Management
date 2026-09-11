@@ -4,6 +4,7 @@ import cors from 'cors'
 import authRoutes from './routes/authRoutes.js'
 import { initializeDatabase } from './lib/initDb.js'
 import { initSocket } from './lib/socket.js'
+import { startTaskScheduler } from './utils/taskScheduler.js'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -20,6 +21,14 @@ initSocket(server)
 // เปิดใช้งาน CORS เพื่อให้แอปพลิเคชันฝั่ง Frontend สามารถยิง API ข้ามโดเมนได้
 app.use(cors())
 
+// เปิดใช้งาน Response Compression เพื่อลดขนาด Payload ของ JSON และไฟล์ Static ผ่าน Network
+try {
+  const compression = (await import('compression')).default;
+  app.use(compression());
+} catch (e) {
+  // Fallback if compression is optional
+}
+
 // ตั้งค่าให้ Express สามารถแปลง body ของ Request ที่เป็น JSON ได้
 app.use(express.json())
 
@@ -30,8 +39,12 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 app.use('/auth', authRoutes)
 
 // ทำการตั้งค่าและตรวจสอบฐานข้อมูลเบื้องต้นขณะรันเซิร์ฟเวอร์ (แบบ non-blocking)
-initializeDatabase().catch(err => {
+initializeDatabase().then(() => {
+    // เริ่มการทำงานของ Task Scheduler เพื่อตรวจสอบงานเกินกำหนดส่งและแจ้งเตือน Leader
+    startTaskScheduler()
+}).catch(err => {
     console.error('Database initialization failed, proceeding anyway:', err.message)
+    startTaskScheduler()
 })
 
 // กำหนด Port และเริ่มต้นการทำงานของ Express Server พร้อม WebSockets
@@ -39,4 +52,4 @@ const PORT = process.env.PORT || 3000
 const HOST = '0.0.0.0'
 server.listen(PORT, HOST, () => {
     console.log(`Server is running on port ${PORT} with WebSocket support`)
-})
+})

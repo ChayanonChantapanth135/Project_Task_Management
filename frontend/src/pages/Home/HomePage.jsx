@@ -94,14 +94,14 @@ const HomePage = () => {
             {isLoggedIn ? (
               <Link
                 to="/Dashboard"
-                className="px-10 py-4 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-extrabold shadow-xl text-base glow-button no-underline inline-block"
+                className="px-10 py-4 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-extrabold shadow-xl text-base glow-button no-underline inline-block"
               >
                 {t("goToDashboard") || "ไปที่แดชบอร์ดเลย 📊"}
               </Link>
             ) : (
               <Link
                 to="/Login"
-                className="px-10 py-4 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-extrabold shadow-xl text-base glow-button no-underline inline-block"
+                className="px-10 py-4 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-extrabold shadow-xl text-base glow-button no-underline inline-block"
               >
                 {t("getStartedBtn") || "เริ่มต้นสมัครใช้งานฟรี ✨"}
               </Link>
