@@ -1,6 +1,6 @@
 # Enterprise Project & Task Management System (RNM AUTH)
 
-ระบบบริหารจัดการโครงการและติดตามภารกิจในทีมแบบครบวงจร ออกแบบด้วยสถาปัตยกรรม **Modern Modular Frontend & High-Performance RESTful Backend** บนระบบการปรับแต่งธีม **Multi-Accent Theme & Solid Brand Accents** ที่ทันสมัย ลื่นไหล และปลอดภัย พร้อมระบบคำนวณความคืบหน้าอัตโนมัติ การจัดการสิทธิ์ผู้ใช้งานตามบทบาท (RBAC) ปฏิทินกำหนดส่งงานแบบสองทิศทาง (Bidirectional Drag & Drop) ระบบ Personal Kanban Board ระบบแคชความเร็วสูง (In-Memory Caching) และระบบแจ้งเตือนงานเกินกำหนดอัตโนมัติผ่านอีเมล
+ระบบบริหารจัดการโครงการและติดตามภารกิจในทีมแบบครบวงจร ออกแบบด้วยสถาปัตยกรรม **Modern Modular Frontend & High-Performance RESTful Backend** บนระบบการปรับแต่งธีม **Multi-Accent Theme & Solid Contrast Design System** ที่ทันสมัย สบายตา ลื่นไหล และปลอดภัย พร้อมระบบคำนวณความคืบหน้าอัตโนมัติ การจัดการสิทธิ์ผู้ใช้งานตามบทบาท (RBAC) ปฏิทินกำหนดส่งงานแบบสองทิศทาง (Bidirectional Drag & Drop) ระบบ Personal Kanban Board ระบบนำเข้าข้อมูลผู้ใช้พร้อมหน้าต่างพรีวิวก่อนบันทึกจริง (Import Preview Modal) ระบบแคชความเร็วสูง (In-Memory Caching) และระบบแจ้งเตือนงานเกินกำหนดอัตโนมัติผ่านอีเมล
 
 ---
 
@@ -9,8 +9,8 @@
 ### 1. ระบบยืนยันตัวตนและความปลอดภัย (Authentication & Security)
 - **JWT & bcrypt Authentication**: ล็อกอินปลอดภัย เข้ารหัสรหัสผ่านด้วย `bcrypt` และออก Session Token ด้วย `jsonwebtoken`
 - **OTP Email Verification & Password Reset**: ระบบกู้คืนรหัสผ่านด้วยรหัส OTP 6 หลัก ส่งตรงผ่าน SMTP (`nodemailer`) พร้อม HTML Email Template ภาษาอังกฤษมาตรฐานสากล
-- **First-Time Password Change**: บังคับให้ผู้ใช้งานเปลี่ยนรหัสผ่านทันทีเมื่อเข้าสู่ระบบครั้งแรกเพื่อความปลอดภัย
-- **User Suspension Control**: ผู้ดูแลระบบสามารถสั่งระงับ (Suspend) หรือเปิดใช้งานผู้ใช้ได้ทันที
+- **First-Time Password Change**: บังคับให้ผู้ใช้งานเปลี่ยนรหัสผ่านทันทีเมื่อเข้าสู่ระบบครั้งแรกเพื่อความปลอดภัยสูงสุด
+- **User Suspension Control**: ผู้ดูแลระบบสามารถสั่งระงับ (Suspend) หรือเปิดใช้งานบัญชีผู้ใช้ได้ทันที
 
 ### 2. การจัดการผู้ใช้และสิทธิ์การเข้าถึง (User & RBAC Management)
 - **ระบบสิทธิ์ตามบทบาทหน้าที่ (Role-Based Access Control)**:
@@ -22,7 +22,11 @@
   6. **Programmer** (`programmer`) - นักพัฒนาซอฟต์แวร์ ดำเนินงานด้านระบบและเขียนโปรแกรม
   *(หมายเหตุ: ทุกบทบาทสามารถได้รับมอบหมายให้เป็น **Team Leader** ของแต่ละโครงการเพื่อดูแลโครงการและแจกจ่ายงานในทีมได้)*
 - **Direct Leader Binding**: สมาชิกสามารถเลือกหัวหน้าสายตรง (Leader) ได้ในหน้าโปรไฟล์
-- **Excel Import / Export**: นำเข้าผู้ใช้งานด้วยไฟล์ Excel (`.xlsx`) และ Export รายชื่อพร้อมระบบค้นหาและกรองข้อมูล
+- **Interactive Excel / CSV Import Preview**:
+  - รองรับการนำเข้าไฟล์ Excel (`.xlsx`) และ CSV (`.csv`) พร้อมดาวน์โหลดตัวอย่างเทมเพลต
+  - **หน้าต่างพรีวิวตรวจสอบข้อมูลล่วงหน้า (Import Preview Modal)** แสดงสรุปจำนวนรายการทั้งหมด ผู้ใช้ใหม่ที่จะเพิ่ม (Create), ผู้ใช้เดิมที่จะอัปเดต (Update), และแถวที่มีข้อมูลไม่สมบูรณ์
+  - ค้นหาและกรองตรวจสอบรายชื่อในตารางพรีวิวก่อนกดยืนยันบันทึกจริงลงฐานข้อมูล
+- **User Export**: ส่งออกรายชื่อผู้ใช้ทั้งหมดเป็นไฟล์ Excel พร้อมข้อมูลบทบาทและสถานะ
 - **Profile Management**: อัปโหลดเปลี่ยนรูปโปรไฟล์ (Multer Storage) แก้ไขเบอร์โทรศัพท์ และเปลี่ยนรหัสผ่าน
 
 ### 3. การบริหารโครงการ (Project Management)
@@ -31,6 +35,7 @@
   - **Auto In-Progress**: เปลี่ยนสถานะโครงการเป็น `In Progress` ทันทีที่มีการสร้างงานในโครงการ
   - **Auto Complete**: ปรับสถานะโครงการเป็น `Completed` อัตโนมัติเมื่อ Task ในโครงการเสร็จครบ 100%
 - **Team Leader Assignment**: มอบหมายหัวหน้าทีมผู้รับผิดชอบโครงการ พร้อมระบุกำหนดวันส่ง (End Date) และระดับความสำคัญ (Priority)
+- **Dual View Modes (Grid & Board View)**: สลับมุมมองแสดงผลโครงการแบบ Grid การ์ด หรือ Board View จัดกลุ่มตามสถานะได้อย่างยืดหยุ่น
 
 ### 4. การจัดการงานในโครงการ (Project Tasks)
 - **Task Assignment & Priority**: สร้างงาน มอบหมายผู้รับผิดชอบ ระบุประเภทงาน (เช่น งานแปล, งานตัดต่อ) และระดับความสำคัญ (High, Medium, Low)
@@ -57,10 +62,12 @@
 - **HTTP Compression**: บีบอัดข้อมูลฝั่งเซิร์ฟเวอร์ด้วย `compression` middleware ลดขนาด Payload สูงสุดถึง 70%
 - **Optimistic UI Updates**: อัปเดต UI ทันทีในฝั่ง Frontend ก่อนที่เซิร์ฟเวอร์จะตอบกลับ มอบประสบการณ์ใช้งานที่ไร้รอยต่อ
 
-### 8. ระบบธีมและหลายภาษา (Theming & Internationalization)
+### 8. ระบบธีม ดีไซน์คอนทราสต์สูง และหลายภาษา (Design System & i18n)
+- **Solid Contrast Action Buttons**: ออกแบบปุ่มแอ็กชัน (View, Edit, Delete, Update Status, Save Changes) ด้วยเฉดสีทึบชัดเจน คมชัด ตัวอักษรสีขาวบริสุทธิ์เพื่อความสบายตาและใช้งานง่ายในทุกสภาพแสง
+- **Custom Modern Scrollbars**: ปรับแต่งแถบเลื่อน (Scrollbar) สไตล์ Modern Light Slate สำหรับกล่องป๊อปอัป Modal และ Dark Theme Scrollbar สำหรับบอร์ดและคอนเทนเนอร์หลัก
 - **Solid Accent Colors Theme**: เลือกระดับสีหลักของระบบได้หลากหลายเฉด เช่น Blue, Purple, Pink, Violet, Indigo, Orange, Teal, Bronze, Mint และ **Gold (#FFD700)**
 - **Dark / Light Mode**: รองรับการสลับโหมดมืดและโหมดสว่างได้อย่างสมบูรณ์แบบ
-- **Dynamic Bilingual (i18n)**: สลับระหว่าง **ภาษาไทย (TH)** และ **ภาษาอังกฤษ (EN)** ได้ทันที ครอบคลุม Activity Logs, Kanban Columns, Status Legends และทุก Modals ผ่าน `LanguageContext.jsx`
+- **Dynamic Bilingual (i18n)**: สลับระหว่าง **ภาษาไทย (TH)** และ **ภาษาอังกฤษ (EN)** ได้ทันที ครอบคลุม Activity Logs, Kanban Columns, Status Legends, Import Preview Modal และทุก Modals ผ่าน `LanguageContext.jsx`
 
 ---
 
@@ -68,9 +75,9 @@
 
 ### **Frontend**
 - **Core**: React 19, Vite, React Router DOM v7
-- **Architecture**: Custom Hooks Pattern (`useDashboard`, `usePersonalTasks`, `useMyTasks`, `useProjectManagement`, `useNotifications`, etc.)
+- **Architecture**: Custom Hooks Pattern (`useDashboard`, `usePersonalTasks`, `useMyTasks`, `useProjectManagement`, `useUserManagement`, `useNotifications`, etc.)
 - **Styling & UI**: Tailwind CSS v4, Vanilla CSS Design Tokens, GSAP, Framer Motion
-- **Libraries & Plugins**: `@fullcalendar/react`, `@hello-pangea/dnd`, `sweetalert2`, `exceljs`, `xlsx`, `axios`, `socket.io-client`
+- **Libraries & Plugins**: `@fullcalendar/react`, `@hello-pangea/dnd`, `sweetalert2`, `exceljs`, `xlsx`, `axios`, `socket.io-client`, `lucide-react`
 
 ### **Backend**
 - **Runtime & Framework**: Node.js (v20+), Express.js (ES Modules), WebSockets (`socket.io`)
@@ -94,16 +101,16 @@ RNM AUTH/
 │   │   ├── assets/             # รูปภาพ ไอคอน โลโก้
 │   │   ├── components/         # คอมโพเนนต์ส่วนกลาง (Header, Footer, CustomDateInput, NotificationBell)
 │   │   ├── lib/                # Context & Utilities (LanguageContext, ThemeContext, SocketContext, auth, dateUtils)
-│   │   ├── pages/              # แยกโฟลเดอร์แต่ละหน้าตาม Clean Architecture
+│   │   ├── pages/              # หน้าหลักและโมดูลคอมโพเนนต์ย่อย
 │   │   │   ├── About/          # หน้าเกี่ยวกับเรา (Features, Tech Stack)
 │   │   │   ├── Activity/       # หน้าบันทึกประวัติกิจกรรมทั้งหมดในระบบ
-│   │   │   ├── AllTasks/       # หน้าภาพรวมงานทั้งหมดสำหรับ Admin
+│   │   │   ├── AllTasks/       # หน้าภาพรวมงานทั้งหมดสำหรับ Admin & TaskDetailModal
 │   │   │   ├── Contract/       # หน้าติดต่อเราและฟอร์มส่งข้อความ
 │   │   │   ├── Dashboard/      # หน้าแดชบอร์ดสรุปผล & useDashboard Hook
 │   │   │   ├── Home/           # หน้าแรก (Landing Page)
 │   │   │   ├── Login/          # หน้าเข้าสู่ระบบ & useLogin Hook
-│   │   │   ├── ManageProject/  # หน้าจัดการโครงการ & useProjectManagement Hook
-│   │   │   ├── ManageUser/     # หน้าจัดการผู้ใช้งาน & useUserManagement Hook
+│   │   │   ├── ManageProject/  # หน้าจัดการโครงการ & Sub-components (ProjectCard, ViewTaskModal, Modals)
+│   │   │   ├── ManageUser/     # หน้าจัดการผู้ใช้ (ImportPreviewModal, UserTable, UserFormModal, Modals)
 │   │   │   ├── MyActivity/     # หน้าประวัติกิจกรรมส่วนบุคคล
 │   │   │   ├── MyTasks/        # หน้างานที่ได้รับมอบหมาย & useMyTasks Hook
 │   │   │   ├── PersonalTask/   # หน้างานส่วนตัว (Kanban Board & Calendar Tray)
@@ -112,6 +119,7 @@ RNM AUTH/
 │   │   │   ├── ResetPassword/  # หน้ารีเซ็ตรหัสผ่านด้วย OTP
 │   │   │   └── ResetPasswordFirstTime/ # หน้าบังคับเปลี่ยนรหัสผ่านครั้งแรก
 │   │   ├── App.jsx
+│   │   ├── index.css           # Global Theme Tokens & Custom Scrollbars
 │   │   └── main.jsx
 │   ├── index.html
 │   ├── vite.config.js
@@ -121,7 +129,7 @@ RNM AUTH/
 │
 ├── server/                     # ส่วนให้บริการ API (Node.js + Express Server)
 │   ├── controllers/
-│   │   ├── authController.js   # Logic หลัก: จัดการสิทธิ์ โครงการ งาน และฐานข้อมูล
+│   │   ├── authController.js   # Logic หลัก: จัดการสิทธิ์ โครงการ งาน ผู้ใช้ และฐานข้อมูล
 │   │   └── notificationController.js # Logic การจัดการระบบแจ้งเตือน
 │   ├── lib/
 │   │   ├── db.js               # เชื่อมต่อ MySQL Connection Pool
@@ -204,13 +212,16 @@ npm run dev
 | `POST` | `/auth/reset-password` | รีเซ็ตรหัสผ่านใหม่ด้วย OTP |
 | `GET` | `/auth/users` | ดึงรายชื่อผู้ใช้ทั้งหมด |
 | `POST` | `/auth/users` | เพิ่มผู้ใช้ใหม่พร้อมอัปโหลดรูปภาพ |
+| `POST` | `/auth/users/import` | นำเข้าผู้ใช้งานจำนวนมากแบบ Batch (Excel / CSV) |
 | `PUT` | `/auth/users/:id` | แก้ไขข้อมูลผู้ใช้งาน / เปลี่ยนสิทธิ์ |
 | `DELETE` | `/auth/users/:id` | ลบผู้ใช้ (Soft Delete) |
 | `GET` | `/auth/projects` | ดึงรายการโครงการ (พร้อมคำนวณ Progress อัตโนมัติ) |
 | `POST` | `/auth/projects` | สร้างโครงการใหม่และมอบหมาย Team Leader |
 | `PUT` | `/auth/projects/:id` | อัปเดตข้อมูลโครงการ |
+| `DELETE` | `/auth/projects/:id` | ลบโครงการพร้อมงานทั้งหมดในโครงการ |
 | `POST` | `/auth/tasks` | สร้างงานใหม่ภายใต้โครงการ |
 | `PUT` | `/auth/tasks/:id/status` | เปลี่ยนสถานะงาน (Sync กับสถานะโครงการ) |
+| `GET` | `/auth/tasks/:id/timeline` | ดึงประวัติการเปลี่ยนสถานะงาน (Status History Timeline) |
 | `GET` | `/auth/tasks/:id/comments` | ดึงรายการความคิดเห็นในงาน |
 | `POST` | `/auth/tasks/:id/comments` | เพิ่มความคิดเห็นใหม่ในงาน |
 | `POST` | `/auth/tasks/:id/files` | อัปโหลดไฟล์แนบประกอบงาน |
