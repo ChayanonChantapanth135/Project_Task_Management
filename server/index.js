@@ -12,14 +12,38 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+import helmet from 'helmet'
+
 const app = express()
 const server = http.createServer(app)
+
+// 1. เพิ่ม Security Headers ด้วย Helmet (พร้อมปรับ crossOriginResourcePolicy ให้โหลดรูป avatar ได้)
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}))
 
 // เริ่มต้นใช้งาน Socket.io บน HTTP Server
 initSocket(server)
 
-// เปิดใช้งาน CORS เพื่อให้แอปพลิเคชันฝั่ง Frontend สามารถยิง API ข้ามโดเมนได้
-app.use(cors())
+// 2. ตั้งค่า CORS ให้รัดกุม รองรับทั้ง localhost และ Network Origin ทั่วไป
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // อนุญาตถ้าไม่มี origin (เช่น mobile app/curl) หรืออยู่ใน allowed list หรืออยู่ใน local subnet
+    if (!origin || allowedOrigins.includes(origin) || /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?$/.test(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Blocked by CORS policy'));
+  },
+  credentials: true
+}))
 
 // เปิดใช้งาน Response Compression เพื่อลดขนาด Payload ของ JSON และไฟล์ Static ผ่าน Network
 try {

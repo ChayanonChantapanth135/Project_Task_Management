@@ -63,3 +63,23 @@ export const verifyToken = (req, res, next) => {
         return res.status(403).json({ message: 'Invalid or expired token' });
     }
 };
+
+// Rate limiter for Login attempts (ป้องกัน Brute Force: 10 ครั้งต่อ 1 นาทีต่อ 1 IP)
+import rateLimit from 'express-rate-limit';
+
+export const loginLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 10, // Limit each IP to 10 login requests per windowMs
+    message: { message: 'มีคำขอเข้าสู่ระบบบ่อยเกินไป กรุณารอ 1 นาทีก่อนลองใหม่อีกครั้ง' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// Rate limiter for OTP Requests (ป้องกันการสแปมขอ OTP: 3 ครั้งต่อ 1 นาทีต่อ 1 IP)
+export const otpLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 3, // Limit each IP to 3 OTP requests per windowMs
+    message: { message: 'มีการขอรหัส OTP บ่อยเกินไป กรุณารอ 1 นาทีแล้วลองใหม่' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
