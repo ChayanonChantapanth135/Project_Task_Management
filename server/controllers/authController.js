@@ -155,24 +155,45 @@ async function notifyProjectMembers({ db, projectId, taskId = null, title, messa
       }
     }
 
-    for (const targetUserId of memberIds) {
-      if (!targetUserId) continue;
+    if (memberIds.size === 0) return;
 
-      // ป้องกันการแจ้งเตือนเรื่องเดิมซ้ำให้ผู้ใช้คนเดิมภายใน 30 วินาที
-      const [recentNotif] = await db.query(
-        `SELECT id FROM notifications 
-         WHERE user_id = ? AND (task_id = ? OR (task_id IS NULL AND ? IS NULL)) AND title = ? AND message = ? AND created_at >= NOW() - INTERVAL 30 SECOND LIMIT 1`,
-        [targetUserId, taskId || null, taskId || null, title, message]
-      );
-      if (recentNotif.length > 0) continue;
+    // ตรวจสอบและกรองคนที่มีการแจ้งเตือนเรื่องเดียวกันภายใน 30 วินาที
+    const memberArray = Array.from(memberIds);
+    const placeholders = memberArray.map(() => '?').join(',');
+    const checkParams = [...memberArray, taskId || null, taskId || null, title, message];
+    
+    const [recentNotifs] = await db.query(
+      `SELECT user_id FROM notifications 
+       WHERE user_id IN (${placeholders}) 
+         AND (task_id = ? OR (task_id IS NULL AND ? IS NULL)) 
+         AND title = ? AND message = ? 
+         AND created_at >= NOW() - INTERVAL 30 SECOND`,
+      checkParams
+    );
+    
+    const recentUserSet = new Set(recentNotifs.map(r => r.user_id));
+    const targetMembers = memberArray.filter(uid => !recentUserSet.has(uid));
 
-      const [insertRes] = await db.query(
-        `INSERT INTO notifications (user_id, task_id, title, message, type, link, is_read, read_status) 
-         VALUES (?, ?, ?, ?, ?, ?, 0, 0)`,
-        [targetUserId, taskId || null, title, message, type, link]
-      );
+    if (targetMembers.length === 0) return;
+
+    // เตรียม Batch Insert สำหรับผู้ใช้ที่ยังไม่ได้รับการแจ้งเตือนซ้ำ
+    const insertValues = [];
+    const insertParams = [];
+    for (const targetUserId of targetMembers) {
+      insertValues.push('(?, ?, ?, ?, ?, ?, 0, 0)');
+      insertParams.push(targetUserId, taskId || null, title, message, type, link);
+    }
+
+    const [insertRes] = await db.query(
+      `INSERT INTO notifications (user_id, task_id, title, message, type, link, is_read, read_status) 
+       VALUES ${insertValues.join(', ')}`,
+      insertParams
+    );
+
+    let firstInsertId = insertRes.insertId;
+    targetMembers.forEach((targetUserId, idx) => {
       emitNotificationToUser(targetUserId, {
-        id: insertRes.insertId,
+        id: firstInsertId ? (firstInsertId + idx) : null,
         user_id: targetUserId,
         task_id: taskId || null,
         project_id: projectId || null,
@@ -181,7 +202,7 @@ async function notifyProjectMembers({ db, projectId, taskId = null, title, messa
         type,
         link,
       });
-    }
+    });
   } catch (error) {
     console.error("Error notifying project members:", error.message);
   }
@@ -1894,18 +1915,24 @@ export const getTaskStatusHistory = async (req, res) => {
 
 /**
  * ดึงสถิติต่างๆ สำหรับแสดงผลหน้า Dashboard (จำนวนผู้ใช้, โปรเจกต์, งาน, งานที่เกินกำหนด)
+ * พร้อม In-Memory Caching (15s) และรันแบบ Parallel ด้วย Promise.all
  */
 export const getDashboardStats = async (req, res) => {
     try {
-        const db = await connectToDatabase();
         const role = (req.query.role || '').toLowerCase().trim().replace(/\s+/g, '_');
         const userId = req.query.userId ? parseInt(req.query.userId, 10) : null;
         const isAdmin = role === 'admin';
         const isManager = role === 'manager' || role === 'project_manager';
         const isTeamLeader = role === 'team_leader';
 
-        const [userRows] = await db.query('SELECT COUNT(*) as count FROM users WHERE deleted_at IS NULL');
-        const userCount = userRows[0]?.count || 0;
+        // 1. Check in-memory cache first
+        const cacheKey = `dashboard_stats_${role}_${userId || 'all'}`;
+        const cachedData = memoryCache.get(cacheKey);
+        if (cachedData) {
+            return res.status(200).json(cachedData);
+        }
+
+        const db = await connectToDatabase();
 
         let projectCount = 0;
         let pendingProjects = 0;
@@ -1922,9 +1949,13 @@ export const getDashboardStats = async (req, res) => {
         let completedTasks = 0;
 
         try {
+            // ดึงจำนวนผู้ใช้งานทั้งหมดพร้อมกับสถิติโปรเจกต์และงานแบบ Parallel
+            const userCountPromise = db.query('SELECT COUNT(*) as count FROM users WHERE deleted_at IS NULL');
+            let pStatsPromise;
+            let tStatsPromise;
+
             if (isAdmin) {
-                // Admin: Overall system project & task metrics
-                const [pStats] = await db.query(`
+                pStatsPromise = db.query(`
                     SELECT 
                         COUNT(*) AS total,
                         SUM(CASE WHEN LOWER(status) = 'pending' THEN 1 ELSE 0 END) AS pending,
@@ -1936,16 +1967,7 @@ export const getDashboardStats = async (req, res) => {
                     WHERE deleted_at IS NULL
                 `);
 
-                if (pStats.length > 0) {
-                    projectCount = Number(pStats[0].total) || 0;
-                    pendingProjects = Number(pStats[0].pending) || 0;
-                    inProgressProjects = Number(pStats[0].inProgress) || 0;
-                    reviewProjects = Number(pStats[0].review) || 0;
-                    completedProjects = Number(pStats[0].completed) || 0;
-                    overdueProjectCount = Number(pStats[0].overdue) || 0;
-                }
-
-                const [tStats] = await db.query(`
+                tStatsPromise = db.query(`
                     SELECT 
                         COUNT(*) AS total,
                         SUM(CASE WHEN LOWER(status) = 'pending' THEN 1 ELSE 0 END) AS pending,
@@ -1956,18 +1978,8 @@ export const getDashboardStats = async (req, res) => {
                     FROM tasks 
                     WHERE deleted_at IS NULL
                 `);
-
-                if (tStats.length > 0) {
-                    taskCount = Number(tStats[0].total) || 0;
-                    pendingTasks = Number(tStats[0].pending) || 0;
-                    inProgressTasks = Number(tStats[0].inProgress) || 0;
-                    reviewingTasks = Number(tStats[0].reviewing) || 0;
-                    completedTasks = Number(tStats[0].completed) || 0;
-                    overdueTaskCount = Number(tStats[0].overdue) || 0;
-                }
             } else if (isManager) {
-                // Manager: Projects created by manager and tasks within those projects (or assigned to manager)
-                const [pStats] = await db.query(`
+                pStatsPromise = db.query(`
                     SELECT 
                         COUNT(*) AS total,
                         SUM(CASE WHEN LOWER(p.status) = 'pending' THEN 1 ELSE 0 END) AS pending,
@@ -1979,17 +1991,8 @@ export const getDashboardStats = async (req, res) => {
                     WHERE p.deleted_at IS NULL ${userId ? 'AND (p.created_by = ?)' : ''}
                 `, userId ? [userId] : []);
 
-                if (pStats.length > 0) {
-                    projectCount = Number(pStats[0].total) || 0;
-                    pendingProjects = Number(pStats[0].pending) || 0;
-                    inProgressProjects = Number(pStats[0].inProgress) || 0;
-                    reviewProjects = Number(pStats[0].review) || 0;
-                    completedProjects = Number(pStats[0].completed) || 0;
-                    overdueProjectCount = Number(pStats[0].overdue) || 0;
-                }
-
                 if (userId) {
-                    const [tStats] = await db.query(`
+                    tStatsPromise = db.query(`
                         SELECT 
                             COUNT(DISTINCT t.id) AS total,
                             SUM(CASE WHEN LOWER(t.status) = 'pending' THEN 1 ELSE 0 END) AS pending,
@@ -2002,19 +2005,9 @@ export const getDashboardStats = async (req, res) => {
                         WHERE p.deleted_at IS NULL AND t.deleted_at IS NULL 
                           AND (p.created_by = ? OR t.assigned_to = ?)
                     `, [userId, userId]);
-
-                    if (tStats.length > 0) {
-                        taskCount = Number(tStats[0].total) || 0;
-                        pendingTasks = Number(tStats[0].pending) || 0;
-                        inProgressTasks = Number(tStats[0].inProgress) || 0;
-                        reviewingTasks = Number(tStats[0].reviewing) || 0;
-                        completedTasks = Number(tStats[0].completed) || 0;
-                        overdueTaskCount = Number(tStats[0].overdue) || 0;
-                    }
                 }
             } else if (isTeamLeader) {
-                // Team Leader: Projects where user is TL or creator, and tasks within those projects
-                const [pStats] = await db.query(`
+                pStatsPromise = db.query(`
                     SELECT 
                         COUNT(DISTINCT p.id) AS total,
                         COUNT(DISTINCT CASE WHEN LOWER(p.status) = 'pending' THEN p.id END) AS pending,
@@ -2027,17 +2020,8 @@ export const getDashboardStats = async (req, res) => {
                     WHERE p.deleted_at IS NULL ${userId ? 'AND (ptl.user_id = ? OR p.created_by = ?)' : ''}
                 `, userId ? [userId, userId] : []);
 
-                if (pStats.length > 0) {
-                    projectCount = Number(pStats[0].total) || 0;
-                    pendingProjects = Number(pStats[0].pending) || 0;
-                    inProgressProjects = Number(pStats[0].inProgress) || 0;
-                    reviewProjects = Number(pStats[0].review) || 0;
-                    completedProjects = Number(pStats[0].completed) || 0;
-                    overdueProjectCount = Number(pStats[0].overdue) || 0;
-                }
-
                 if (userId) {
-                    const [tStats] = await db.query(`
+                    tStatsPromise = db.query(`
                         SELECT 
                             COUNT(DISTINCT t.id) AS total,
                             SUM(CASE WHEN LOWER(t.status) = 'pending' THEN 1 ELSE 0 END) AS pending,
@@ -2051,20 +2035,10 @@ export const getDashboardStats = async (req, res) => {
                         WHERE p.deleted_at IS NULL AND t.deleted_at IS NULL 
                           AND (ptl.user_id = ? OR p.created_by = ? OR t.assigned_to = ?)
                     `, [userId, userId, userId]);
-
-                    if (tStats.length > 0) {
-                        taskCount = Number(tStats[0].total) || 0;
-                        pendingTasks = Number(tStats[0].pending) || 0;
-                        inProgressTasks = Number(tStats[0].inProgress) || 0;
-                        reviewingTasks = Number(tStats[0].reviewing) || 0;
-                        completedTasks = Number(tStats[0].completed) || 0;
-                        overdueTaskCount = Number(tStats[0].overdue) || 0;
-                    }
                 }
             } else {
-                // Standard Member: Tasks assigned to this user
                 if (userId) {
-                    const [tStats] = await db.query(`
+                    tStatsPromise = db.query(`
                         SELECT 
                             COUNT(*) AS total,
                             SUM(CASE WHEN LOWER(status) = 'pending' THEN 1 ELSE 0 END) AS pending,
@@ -2075,19 +2049,39 @@ export const getDashboardStats = async (req, res) => {
                         FROM tasks 
                         WHERE assigned_to = ? AND deleted_at IS NULL
                     `, [userId]);
-
-                    if (tStats.length > 0) {
-                        taskCount = Number(tStats[0].total) || 0;
-                        pendingTasks = Number(tStats[0].pending) || 0;
-                        inProgressTasks = Number(tStats[0].inProgress) || 0;
-                        reviewingTasks = Number(tStats[0].reviewing) || 0;
-                        completedTasks = Number(tStats[0].completed) || 0;
-                        overdueTaskCount = Number(tStats[0].overdue) || 0;
-                    }
                 }
             }
 
-            return res.status(200).json({
+            // รัน Parallel Queries ทั้งหมดพร้อมกัน
+            const [userRowsRes, pStatsRes, tStatsRes] = await Promise.all([
+                userCountPromise,
+                pStatsPromise ? pStatsPromise : Promise.resolve([[]]),
+                tStatsPromise ? tStatsPromise : Promise.resolve([[]])
+            ]);
+
+            const userCount = userRowsRes[0][0]?.count || 0;
+            const pStats = pStatsRes[0] || [];
+            const tStats = tStatsRes[0] || [];
+
+            if (pStats.length > 0) {
+                projectCount = Number(pStats[0].total) || 0;
+                pendingProjects = Number(pStats[0].pending) || 0;
+                inProgressProjects = Number(pStats[0].inProgress) || 0;
+                reviewProjects = Number(pStats[0].review) || 0;
+                completedProjects = Number(pStats[0].completed) || 0;
+                overdueProjectCount = Number(pStats[0].overdue) || 0;
+            }
+
+            if (tStats.length > 0) {
+                taskCount = Number(tStats[0].total) || 0;
+                pendingTasks = Number(tStats[0].pending) || 0;
+                inProgressTasks = Number(tStats[0].inProgress) || 0;
+                reviewingTasks = Number(tStats[0].reviewing) || 0;
+                completedTasks = Number(tStats[0].completed) || 0;
+                overdueTaskCount = Number(tStats[0].overdue) || 0;
+            }
+
+            const responseData = {
                 users: userCount,
                 projects: projectCount,
                 tasks: taskCount,
@@ -2105,13 +2099,18 @@ export const getDashboardStats = async (req, res) => {
                     reviewing: reviewingTasks,
                     completed: completedTasks
                 }
-            });
+            };
+
+            // บันทึกผลลัพธ์ลง In-Memory Cache เป็นเวลา 15 วินาที
+            memoryCache.set(cacheKey, responseData, 15);
+
+            return res.status(200).json(responseData);
         } catch (innerError) {
             console.error('Error in stats inner query:', innerError.message);
             return res.status(200).json({
-                users: userCount,
-                projects: projectCount,
-                tasks: taskCount,
+                users: 0,
+                projects: 0,
+                tasks: 0,
                 overdueTasks: 0,
                 overdueProjects: 0,
                 projectStatus: { pending: 0, inProgress: 0, review: 0, completed: 0 },
@@ -2408,7 +2407,7 @@ export const getPersonalTasks = async (req, res) => {
     const { userId } = req.query;
     try {
         const db = await connectToDatabase();
-        let query = 'SELECT * FROM personal_tasks';
+        let query = 'SELECT id, user_id, title, status, position, is_completed, task_date, created_at FROM personal_tasks';
         let params = [];
         if (userId) {
             query += ' WHERE user_id = ?';
@@ -2511,6 +2510,7 @@ export const updatePersonalTask = async (req, res) => {
 
 /**
  * จัดเรียงลำดับงานส่วนตัวใหม่หลังการลากและวาง (Drag & Drop Reorder)
+ * อัปเดตแบบ Single Batch Query เพื่อลดโหลด I/O ของ Database
  */
 export const reorderPersonalTasks = async (req, res) => {
     const { tasks } = req.body; // Array of { id, status, position }
@@ -2519,14 +2519,40 @@ export const reorderPersonalTasks = async (req, res) => {
             return res.status(400).json({ message: 'Tasks array is required' });
         }
         const db = await connectToDatabase();
-        
-        for (const item of tasks) {
-            const isCompleted = item.status === 'completed' ? 1 : 0;
-            await db.query(
-                'UPDATE personal_tasks SET status = ?, position = ?, is_completed = ? WHERE id = ?',
-                [item.status, item.position, isCompleted, item.id]
-            );
+
+        const ids = tasks.map(t => parseInt(t.id, 10)).filter(Boolean);
+        if (ids.length === 0) {
+            return res.status(400).json({ message: 'Invalid task IDs' });
         }
+
+        const placeholders = ids.map(() => '?').join(',');
+
+        // สร้าง CASE statements สำหรับ batch update ใน 1 query
+        let statusCases = '';
+        let positionCases = '';
+        let completedCases = '';
+        const params = [];
+
+        tasks.forEach(item => {
+            const isCompleted = item.status === 'completed' ? 1 : 0;
+            statusCases += 'WHEN id = ? THEN ? ';
+            positionCases += 'WHEN id = ? THEN ? ';
+            completedCases += 'WHEN id = ? THEN ? ';
+            params.push(item.id, item.status, item.id, item.position, item.id, isCompleted);
+        });
+
+        params.push(...ids);
+
+        const sql = `
+            UPDATE personal_tasks 
+            SET 
+                status = CASE ${statusCases} ELSE status END,
+                position = CASE ${positionCases} ELSE position END,
+                is_completed = CASE ${completedCases} ELSE is_completed END
+            WHERE id IN (${placeholders})
+        `;
+
+        await db.query(sql, params);
         res.status(200).json({ message: 'Tasks reordered successfully' });
     } catch (error) {
         console.error('Error reordering personal tasks:', error.message);
