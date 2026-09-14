@@ -47,9 +47,7 @@ const ResetPasswordFirstTimeForm = ({
           {t("confirmPasswordLabel")}
         </label>
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none">
-            🔑
-          </span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none"></span>
           <input
             id="confirmPassword"
             type="password"

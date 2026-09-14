@@ -49,6 +49,7 @@ router.delete('/personal-tasks/:id', authCtrl.deletePersonalTask);
 
 // --- DASHBOARD & LOGS ROUTES ---
 router.get('/dashboard-stats', authCtrl.getDashboardStats);
+router.get('/calendar-events', authCtrl.getCalendarEvents);
 router.get('/activity-logs', authCtrl.getActivityLogs);
 
 // --- OTP & RESET PASSWORD ROUTES ---

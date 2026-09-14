@@ -1898,7 +1898,12 @@ export const getTaskStatusHistory = async (req, res) => {
 export const getDashboardStats = async (req, res) => {
     try {
         const db = await connectToDatabase();
-        
+        const role = (req.query.role || '').toLowerCase().trim().replace(/\s+/g, '_');
+        const userId = req.query.userId ? parseInt(req.query.userId, 10) : null;
+        const isAdmin = role === 'admin';
+        const isManager = role === 'manager' || role === 'project_manager';
+        const isTeamLeader = role === 'team_leader';
+
         const [userRows] = await db.query('SELECT COUNT(*) as count FROM users WHERE deleted_at IS NULL');
         const userCount = userRows[0].count;
 
@@ -1907,6 +1912,7 @@ export const getDashboardStats = async (req, res) => {
         let inProgressProjects = 0;
         let reviewProjects = 0;
         let completedProjects = 0;
+        let overdueProjectCount = 0;
 
         let taskCount = 0;
         let overdueTaskCount = 0;
@@ -1916,41 +1922,142 @@ export const getDashboardStats = async (req, res) => {
         let completedTasks = 0;
 
         try {
-            const [pRows] = await db.query('SELECT COUNT(*) as count FROM projects WHERE deleted_at IS NULL');
-            projectCount = pRows[0].count;
+            if (isAdmin) {
+                // Admin gets overall system statistics
+                const [pRows] = await db.query('SELECT COUNT(*) as count FROM projects WHERE deleted_at IS NULL');
+                projectCount = pRows[0].count;
 
-            const [pPendingRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'Pending' AND deleted_at IS NULL");
-            pendingProjects = pPendingRows[0].count;
+                const [pPendingRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'Pending' AND deleted_at IS NULL");
+                pendingProjects = pPendingRows[0].count;
 
-            const [pProgressRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'In Progress' AND deleted_at IS NULL");
-            inProgressProjects = pProgressRows[0].count;
+                const [pProgressRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE (status = 'In Progress' OR status = 'in_progress') AND deleted_at IS NULL");
+                inProgressProjects = pProgressRows[0].count;
 
-            const [pReviewRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'Reviewing' AND deleted_at IS NULL");
-            reviewProjects = pReviewRows[0].count;
+                const [pReviewRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE (status = 'Reviewing' OR status = 'Review' OR status = 'review') AND deleted_at IS NULL");
+                reviewProjects = pReviewRows[0].count;
 
-            const [pCompletedRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'Completed' AND deleted_at IS NULL");
-            completedProjects = pCompletedRows[0].count;
+                const [pCompletedRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'Completed' AND deleted_at IS NULL");
+                completedProjects = pCompletedRows[0].count;
 
-            const [tRows] = await db.query('SELECT COUNT(*) as count FROM tasks WHERE deleted_at IS NULL');
-            taskCount = tRows[0].count;
-            
-            const [pendingRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'Pending' AND deleted_at IS NULL");
-            pendingTasks = pendingRows[0].count;
+                const [tRows] = await db.query('SELECT COUNT(*) as count FROM tasks WHERE deleted_at IS NULL');
+                taskCount = tRows[0].count;
+                
+                const [pendingRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'Pending' AND deleted_at IS NULL");
+                pendingTasks = pendingRows[0].count;
 
-            const [progressRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'In Progress' AND deleted_at IS NULL");
-            inProgressTasks = progressRows[0].count;
+                const [progressRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE (status = 'In Progress' OR status = 'in_progress') AND deleted_at IS NULL");
+                inProgressTasks = progressRows[0].count;
 
-            const [reviewRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'Reviewing' AND deleted_at IS NULL");
-            reviewingTasks = reviewRows[0].count;
+                const [reviewRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE (status = 'Reviewing' OR status = 'Review' OR status = 'review') AND deleted_at IS NULL");
+                reviewingTasks = reviewRows[0].count;
 
-            const [completedRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'Completed' AND deleted_at IS NULL");
-            completedTasks = completedRows[0].count;
+                const [completedRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'Completed' AND deleted_at IS NULL");
+                completedTasks = completedRows[0].count;
 
-            const [overdueRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE due_date < NOW() AND status != 'Completed' AND deleted_at IS NULL");
-            overdueTaskCount = overdueRows[0].count;
+                const [overdueRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE due_date < NOW() AND status != 'Completed' AND deleted_at IS NULL");
+                overdueTaskCount = overdueRows[0].count;
 
-            const [overdueProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE end_date < NOW() AND status != 'Completed' AND deleted_at IS NULL");
-            const overdueProjectCount = overdueProjRows[0].count;
+                const [overdueProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE end_date < NOW() AND status != 'Completed' AND deleted_at IS NULL");
+                overdueProjectCount = overdueProjRows[0].count;
+            } else if (isManager) {
+                // Manager stats: Projects created by manager
+                const managerFilter = userId ? ' AND (p.created_by = ?)' : '';
+                const managerParams = userId ? [userId] : [];
+
+                const [pRows] = await db.query(`SELECT COUNT(*) as count FROM projects p WHERE p.deleted_at IS NULL${managerFilter}`, managerParams);
+                projectCount = pRows[0].count;
+
+                const [pPendingRows] = await db.query(`SELECT COUNT(*) as count FROM projects p WHERE p.status = 'Pending' AND p.deleted_at IS NULL${managerFilter}`, managerParams);
+                pendingProjects = pPendingRows[0].count;
+
+                const [pProgressRows] = await db.query(`SELECT COUNT(*) as count FROM projects p WHERE (p.status = 'In Progress' OR p.status = 'in_progress') AND p.deleted_at IS NULL${managerFilter}`, managerParams);
+                inProgressProjects = pProgressRows[0].count;
+
+                const [pReviewRows] = await db.query(`SELECT COUNT(*) as count FROM projects p WHERE (p.status = 'Reviewing' OR p.status = 'Review' OR p.status = 'review') AND p.deleted_at IS NULL${managerFilter}`, managerParams);
+                reviewProjects = pReviewRows[0].count;
+
+                const [pCompletedRows] = await db.query(`SELECT COUNT(*) as count FROM projects p WHERE p.status = 'Completed' AND p.deleted_at IS NULL${managerFilter}`, managerParams);
+                completedProjects = pCompletedRows[0].count;
+
+                const [overdueProjRows] = await db.query(`SELECT COUNT(*) as count FROM projects p WHERE p.end_date < NOW() AND p.status != 'Completed' AND p.deleted_at IS NULL${managerFilter}`, managerParams);
+                overdueProjectCount = overdueProjRows[0].count;
+
+                // Tasks assigned to this manager or in their projects
+                if (userId) {
+                    const [tRows] = await db.query(`SELECT COUNT(*) as count FROM tasks t JOIN projects p ON t.project_id = p.id WHERE p.deleted_at IS NULL AND t.deleted_at IS NULL AND (p.created_by = ? OR t.assigned_to = ?)`, [userId, userId]);
+                    taskCount = tRows[0].count;
+                }
+            } else if (isTeamLeader) {
+                // Team Leader stats
+                const [pRows] = await db.query(`
+                    SELECT COUNT(DISTINCT p.id) as count 
+                    FROM projects p 
+                    LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id 
+                    WHERE p.deleted_at IS NULL AND (ptl.user_id = ? OR p.created_by = ?)
+                `, [userId, userId]);
+                projectCount = pRows[0].count;
+
+                const [pPendingRows] = await db.query(`
+                    SELECT COUNT(DISTINCT p.id) as count 
+                    FROM projects p 
+                    LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id 
+                    WHERE p.status = 'Pending' AND p.deleted_at IS NULL AND (ptl.user_id = ? OR p.created_by = ?)
+                `, [userId, userId]);
+                pendingProjects = pPendingRows[0].count;
+
+                const [pProgressRows] = await db.query(`
+                    SELECT COUNT(DISTINCT p.id) as count 
+                    FROM projects p 
+                    LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id 
+                    WHERE (p.status = 'In Progress' OR p.status = 'in_progress') AND p.deleted_at IS NULL AND (ptl.user_id = ? OR p.created_by = ?)
+                `, [userId, userId]);
+                inProgressProjects = pProgressRows[0].count;
+
+                const [pReviewRows] = await db.query(`
+                    SELECT COUNT(DISTINCT p.id) as count 
+                    FROM projects p 
+                    LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id 
+                    WHERE (p.status = 'Reviewing' OR p.status = 'Review' OR p.status = 'review') AND p.deleted_at IS NULL AND (ptl.user_id = ? OR p.created_by = ?)
+                `, [userId, userId]);
+                reviewProjects = pReviewRows[0].count;
+
+                const [pCompletedRows] = await db.query(`
+                    SELECT COUNT(DISTINCT p.id) as count 
+                    FROM projects p 
+                    LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id 
+                    WHERE p.status = 'Completed' AND p.deleted_at IS NULL AND (ptl.user_id = ? OR p.created_by = ?)
+                `, [userId, userId]);
+                completedProjects = pCompletedRows[0].count;
+
+                const [overdueProjRows] = await db.query(`
+                    SELECT COUNT(DISTINCT p.id) as count 
+                    FROM projects p 
+                    LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id 
+                    WHERE p.end_date < NOW() AND p.status != 'Completed' AND p.deleted_at IS NULL AND (ptl.user_id = ? OR p.created_by = ?)
+                `, [userId, userId]);
+                overdueProjectCount = overdueProjRows[0].count;
+            } else {
+                // Standard Member stats: personal tasks
+                if (userId) {
+                    const [tRows] = await db.query('SELECT COUNT(*) as count FROM tasks WHERE assigned_to = ? AND deleted_at IS NULL', [userId]);
+                    taskCount = tRows[0].count;
+
+                    const [pendingRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE assigned_to = ? AND status = 'Pending' AND deleted_at IS NULL", [userId]);
+                    pendingTasks = pendingRows[0].count;
+
+                    const [progressRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE assigned_to = ? AND (status = 'In Progress' OR status = 'in_progress') AND deleted_at IS NULL", [userId]);
+                    inProgressTasks = progressRows[0].count;
+
+                    const [reviewRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE assigned_to = ? AND (status = 'Reviewing' OR status = 'Review' OR status = 'review') AND deleted_at IS NULL", [userId]);
+                    reviewingTasks = reviewRows[0].count;
+
+                    const [completedRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE assigned_to = ? AND status = 'Completed' AND deleted_at IS NULL", [userId]);
+                    completedTasks = completedRows[0].count;
+
+                    const [overdueRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE assigned_to = ? AND due_date < NOW() AND status != 'Completed' AND deleted_at IS NULL", [userId]);
+                    overdueTaskCount = overdueRows[0].count;
+                }
+            }
 
             return res.status(200).json({
                 users: userCount,
@@ -1985,6 +2092,129 @@ export const getDashboardStats = async (req, res) => {
         }
     } catch (error) {
         console.error('Error fetching dashboard stats:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+/**
+ * ดึง Event สำหรับแสดงผลบนปฏิทินแบบ Range Filter (Calendar Events Endpoint)
+ */
+export const getCalendarEvents = async (req, res) => {
+    try {
+        const db = await connectToDatabase();
+        const { start, end, userId, role } = req.query;
+        const normRole = (role || '').toLowerCase().trim().replace(/\s+/g, '_');
+        const parsedUserId = userId ? parseInt(userId, 10) : null;
+        const isAdmin = normRole === 'admin';
+        const isManager = normRole === 'manager' || normRole === 'project_manager';
+        const isTeamLeader = normRole === 'team_leader';
+
+        const events = [];
+
+        if (isAdmin || isManager || isTeamLeader) {
+            let query = `
+                SELECT p.id, p.name, p.end_date, p.status, p.priority
+                FROM projects p
+            `;
+            const conditions = ['p.deleted_at IS NULL', 'p.end_date IS NOT NULL'];
+            const params = [];
+
+            if (isManager && parsedUserId) {
+                conditions.push('(p.created_by = ?)');
+                params.push(parsedUserId);
+            } else if (isTeamLeader && parsedUserId) {
+                query += ` LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id`;
+                conditions.push('(ptl.user_id = ? OR p.created_by = ?)');
+                params.push(parsedUserId, parsedUserId);
+            }
+
+            if (start) {
+                conditions.push('p.end_date >= ?');
+                params.push(start);
+            }
+            if (end) {
+                conditions.push('p.end_date <= ?');
+                params.push(end);
+            }
+
+            query += ` WHERE ` + conditions.join(' AND ') + ` ORDER BY p.end_date ASC`;
+
+            const [rows] = await db.query(query, params);
+            for (const project of rows) {
+                const status = (project.status || '').toLowerCase();
+                let color = '#ef4444';
+                if (status === 'completed') color = '#10b981';
+                else if (status === 'in progress' || status === 'in_progress') color = '#6366f1';
+                else if (status === 'review' || status === 'reviewing') color = '#f59e0b';
+
+                events.push({
+                    id: `proj-${project.id}`,
+                    title: project.name,
+                    date: project.end_date ? new Date(project.end_date).toISOString().split('T')[0] : '',
+                    color,
+                    extendedProps: {
+                        type: 'project',
+                        projectId: project.id,
+                        projectName: project.name,
+                        status: project.status,
+                        priority: project.priority,
+                    }
+                });
+            }
+        } else {
+            // Regular member: tasks assigned to user
+            let query = `
+                SELECT t.id, t.title, t.due_date, t.status, t.priority, t.project_id, p.name as project_name
+                FROM tasks t
+                LEFT JOIN projects p ON t.project_id = p.id
+                WHERE t.deleted_at IS NULL AND t.due_date IS NOT NULL
+            `;
+            const params = [];
+
+            if (parsedUserId) {
+                query += ` AND t.assigned_to = ?`;
+                params.push(parsedUserId);
+            }
+            if (start) {
+                query += ` AND t.due_date >= ?`;
+                params.push(start);
+            }
+            if (end) {
+                query += ` AND t.due_date <= ?`;
+                params.push(end);
+            }
+
+            query += ` ORDER BY t.due_date ASC`;
+
+            const [rows] = await db.query(query, params);
+            for (const task of rows) {
+                const status = (task.status || '').toLowerCase();
+                let color = '#ef4444';
+                if (status === 'completed') color = '#10b981';
+                else if (status === 'in progress' || status === 'in_progress') color = '#6366f1';
+                else if (status === 'review' || status === 'reviewing') color = '#f59e0b';
+
+                events.push({
+                    id: `task-${task.id}`,
+                    title: task.title,
+                    date: task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '',
+                    color,
+                    extendedProps: {
+                        type: 'task',
+                        taskId: task.id,
+                        taskTitle: task.title,
+                        projectName: task.project_name,
+                        projectId: task.project_id,
+                        status: task.status,
+                        priority: task.priority,
+                    }
+                });
+            }
+        }
+
+        res.status(200).json(events);
+    } catch (error) {
+        console.error('Error fetching calendar events:', error.message);
         res.status(500).json({ message: error.message });
     }
 };

@@ -83,7 +83,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 px-4 py-3 bg-[#153648]/90 backdrop-blur-2xl shadow-xl shadow-black/20 transition-all">
+      <header className="sticky top-0 z-50 px-4 py-3 shadow-sm transition-all">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo */}
           <Link
@@ -100,13 +100,13 @@ const Header = () => {
 
           {/* Navigation Links */}
           {isLoggedIn && (
-            <nav className="hidden md:flex items-center gap-1 bg-slate-800/80 p-1.5 rounded-2xl backdrop-blur-md">
+            <nav className="hidden md:flex items-center gap-1 header-nav-container p-1.5 rounded-2xl shadow-inner">
               <Link
                 to="/Dashboard"
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all no-underline ${
+                className={`px-4 py-2 rounded-xl text-sm font-semibold no-underline ${
                   isActive("/dashboard")
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/25"
-                    : "text-slate-300 hover:text-white hover:bg-white/5"
+                    ? "header-nav-link-active"
+                    : "header-nav-link"
                 }`}
               >
                 {t("dashboard")}
@@ -114,10 +114,10 @@ const Header = () => {
               {user?.role === "admin" && (
                 <Link
                   to="/ManageUsers"
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all no-underline ${
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold no-underline ${
                     isActive("/manageusers")
-                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/25"
-                      : "text-slate-300 hover:text-white hover:bg-white/5"
+                      ? "header-nav-link-active"
+                      : "header-nav-link"
                   }`}
                 >
                   {t("manageUsers")}
@@ -125,40 +125,40 @@ const Header = () => {
               )}
               <Link
                 to="/PersonalTask"
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all no-underline ${
+                className={`px-4 py-2 rounded-xl text-sm font-semibold no-underline ${
                   isActive("/PersonalTask")
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/25"
-                    : "text-slate-300 hover:text-white hover:bg-white/5"
+                    ? "header-nav-link-active"
+                    : "header-nav-link"
                 }`}
               >
                 {t("personalTask")}
               </Link>
               <Link
                 to="/Projects"
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all no-underline ${
+                className={`px-4 py-2 rounded-xl text-sm font-semibold no-underline ${
                   isActive("/projects")
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/25"
-                    : "text-slate-300 hover:text-white hover:bg-white/5"
+                    ? "header-nav-link-active"
+                    : "header-nav-link"
                 }`}
               >
                 {t("projects")}
               </Link>
               <Link
                 to={user?.role === "admin" ? "/AllTasks" : "/MyTasks"}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all no-underline ${
+                className={`px-4 py-2 rounded-xl text-sm font-semibold no-underline ${
                   isActive(user?.role === "admin" ? "/alltasks" : "/mytasks")
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/25"
-                    : "text-slate-300 hover:text-white hover:bg-white/5"
+                    ? "header-nav-link-active"
+                    : "header-nav-link"
                 }`}
               >
                 {user?.role === "admin" ? t("allTasks") : t("myTask")}
               </Link>
               <Link
                 to="/Reports"
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all no-underline ${
+                className={`px-4 py-2 rounded-xl text-sm font-semibold no-underline ${
                   isActive("/reports")
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/25"
-                    : "text-slate-300 hover:text-white hover:bg-white/5"
+                    ? "header-nav-link-active"
+                    : "header-nav-link"
                 }`}
               >
                 {t("reports")}
@@ -190,25 +190,40 @@ const Header = () => {
                               : `${API_URL}${user.avatar}`
                           }
                           alt="Profile"
-                          className="w-9 h-9 rounded-full object-cover border-2 border-[#153648]"
+                          className="w-9 h-9 rounded-full object-cover border-2"
+                          style={{ borderColor: "var(--bg-surface)" }}
                         />
                       ) : (
-                        <div className="w-9 h-9 rounded-full bg-slate-800 border-2 border-[#153648] flex items-center justify-center text-teal-400 font-bold text-sm">
+                        <div 
+                          className="w-9 h-9 rounded-full border-2 flex items-center justify-center font-bold text-sm"
+                          style={{
+                            backgroundColor: "var(--bg-surface-hover)",
+                            borderColor: "var(--bg-surface)",
+                            color: "var(--brand-color)",
+                          }}
+                        >
                           {user?.name?.[0]?.toUpperCase() || "U"}
                         </div>
                       )}
                     </div>
                   </Dropdown.Toggle>
-                  <Dropdown.Menu className="bg-[#0f172a] shadow-2xl p-2 text-slate-200 mt-2 min-w-[200px] border-0">
+                  <Dropdown.Menu 
+                    className="shadow-2xl p-2 mt-2 min-w-[210px] rounded-2xl border"
+                    style={{
+                      backgroundColor: "var(--bg-surface)",
+                      borderColor: "var(--border-surface)",
+                      color: "var(--text-primary)",
+                    }}
+                  >
                     <Dropdown.Header className="px-3 py-2 bg-transparent">
-                      <strong className="text-white text-base block">
+                      <strong className="text-base block" style={{ color: "var(--text-primary)" }}>
                         {user?.name || "User"}
                       </strong>
-                      <small className="text-slate-400 text-xs block truncate">
+                      <small className="text-xs block truncate" style={{ color: "var(--text-secondary)" }}>
                         {user?.email}
                       </small>
                       {user?.role && (
-                        <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-semibold">
+                        <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-400 text-xs font-semibold">
                           {(() => {
                             const r = String(user.role).toLowerCase().trim();
                             if (
@@ -229,11 +244,12 @@ const Header = () => {
                         </span>
                       )}
                     </Dropdown.Header>
-                    <Dropdown.Divider className="my-1 border-white/5" />
+                    <Dropdown.Divider className="my-1" style={{ borderColor: "var(--border-surface)" }} />
                     <Dropdown.Item
                       as={Link}
                       to="/Profile"
-                      className="rounded-full px-3 py-2 text-slate-300 hover:text-white hover:bg-indigo-600/30 font-medium transition-colors bg-transparent d-flex align-items-center gap-2"
+                      className="rounded-xl px-3 py-2 font-medium transition-colors bg-transparent d-flex align-items-center gap-2"
+                      style={{ color: "var(--text-primary)" }}
                     >
                       <ion-icon
                         name="person-outline"
@@ -245,7 +261,8 @@ const Header = () => {
                       <Dropdown.Item
                         as={Link}
                         to="/MyTasks"
-                        className="rounded-full px-3 py-2 text-slate-300 hover:text-white hover:bg-indigo-600/30 font-medium transition-colors bg-transparent d-flex align-items-center gap-2"
+                        className="rounded-xl px-3 py-2 font-medium transition-colors bg-transparent d-flex align-items-center gap-2"
+                        style={{ color: "var(--text-primary)" }}
                       >
                         <ion-icon
                           name="clipboard-outline"
@@ -257,7 +274,8 @@ const Header = () => {
                     <Dropdown.Item
                       as={Link}
                       to="/MyActivity"
-                      className="rounded-full px-3 py-2 text-slate-300 hover:text-white hover:bg-indigo-600/30 font-medium transition-colors bg-transparent d-flex align-items-center gap-2"
+                      className="rounded-xl px-3 py-2 font-medium transition-colors bg-transparent d-flex align-items-center gap-2"
+                      style={{ color: "var(--text-primary)" }}
                     >
                       <ion-icon
                         name="time-outline"
@@ -268,7 +286,8 @@ const Header = () => {
                     <Dropdown.Item
                       as="button"
                       onClick={() => setShowThemeModal(true)}
-                      className="rounded-full px-3 py-2 text-slate-300 hover:text-white hover:bg-indigo-600/30 font-medium transition-colors w-full text-left bg-transparent d-flex align-items-center gap-2"
+                      className="rounded-xl px-3 py-2 font-medium transition-colors w-full text-left bg-transparent d-flex align-items-center gap-2"
+                      style={{ color: "var(--text-primary)" }}
                     >
                       <ion-icon
                         name="color-palette-outline"
@@ -276,11 +295,11 @@ const Header = () => {
                       ></ion-icon>
                       <span>{t("themes") || "Themes"}</span>
                     </Dropdown.Item>
-                    <Dropdown.Divider className="my-1 border-white/5" />
+                    <Dropdown.Divider className="my-1" style={{ borderColor: "var(--border-surface)" }} />
                     <Dropdown.Item
                       as="button"
                       onClick={handleSignOut}
-                      className="rounded-full px-3 py-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 font-medium transition-colors w-full text-left bg-transparent d-flex align-items-center gap-2"
+                      className="rounded-xl px-3 py-2 text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 font-medium transition-colors w-full text-left bg-transparent d-flex align-items-center gap-2"
                     >
                       <ion-icon
                         name="log-out-outline"
@@ -307,7 +326,12 @@ const Header = () => {
               <Dropdown align="end" className="md:hidden">
                 <Dropdown.Toggle
                   variant="link"
-                  className="p-2 text-slate-300 hover:text-white rounded-xl bg-slate-800/80 hover:bg-slate-700 transition-colors focus:outline-none border-0 no-underline after:hidden shadow-none flex items-center justify-center"
+                  className="p-2 rounded-xl transition-colors focus:outline-none border no-underline after:hidden shadow-none flex items-center justify-center"
+                  style={{
+                    backgroundColor: "var(--bg-surface-hover)",
+                    borderColor: "var(--border-surface)",
+                    color: "var(--text-primary)",
+                  }}
                   id="dropdown-mobile-nav"
                   aria-label="Mobile Navigation Menu"
                 >
@@ -326,14 +350,20 @@ const Header = () => {
                   </svg>
                 </Dropdown.Toggle>
 
-                <Dropdown.Menu className="bg-[#0f172a]/95 backdrop-blur-2xl border border-slate-800 shadow-2xl p-2 text-slate-200 mt-2 min-w-[220px] rounded-2xl">
+                <Dropdown.Menu 
+                  className="shadow-2xl p-2 mt-2 min-w-[220px] rounded-2xl border"
+                  style={{
+                    backgroundColor: "var(--bg-surface)",
+                    borderColor: "var(--border-surface)",
+                  }}
+                >
                   <Dropdown.Item
                     as={Link}
                     to="/Dashboard"
                     className={`rounded-xl px-3 py-2.5 font-bold text-sm transition-all flex items-center gap-3 no-underline ${
                       isActive("/dashboard")
-                        ? "bg-indigo-600 text-white shadow-md"
-                        : "text-slate-200 hover:bg-slate-800/80 hover:text-white bg-transparent"
+                        ? "header-nav-link-active"
+                        : "header-nav-link"
                     }`}
                   >
                     <span className="text-base">📊</span>
@@ -346,8 +376,8 @@ const Header = () => {
                       to="/ManageUsers"
                       className={`rounded-xl px-3 py-2.5 font-bold text-sm transition-all flex items-center gap-3 no-underline mt-1 ${
                         isActive("/manageusers")
-                          ? "bg-indigo-600 text-white shadow-md"
-                          : "text-slate-200 hover:bg-slate-800/80 hover:text-white bg-transparent"
+                          ? "header-nav-link-active"
+                          : "header-nav-link"
                       }`}
                     >
                       <span className="text-base">👥</span>
@@ -362,8 +392,8 @@ const Header = () => {
                     to="/PersonalTask"
                     className={`rounded-xl px-3 py-2.5 font-bold text-sm transition-all flex items-center gap-3 no-underline mt-1 ${
                       isActive("/PersonalTask")
-                        ? "bg-indigo-600 text-white shadow-md"
-                        : "text-slate-200 hover:bg-slate-800/80 hover:text-white bg-transparent"
+                        ? "header-nav-link-active"
+                        : "header-nav-link"
                     }`}
                   >
                     <span className="text-base">📝</span>
@@ -377,8 +407,8 @@ const Header = () => {
                     to="/Projects"
                     className={`rounded-xl px-3 py-2.5 font-bold text-sm transition-all flex items-center gap-3 no-underline mt-1 ${
                       isActive("/projects")
-                        ? "bg-indigo-600 text-white shadow-md"
-                        : "text-slate-200 hover:bg-slate-800/80 hover:text-white bg-transparent"
+                        ? "header-nav-link-active"
+                        : "header-nav-link"
                     }`}
                   >
                     <span className="text-base">📂</span>
@@ -392,8 +422,8 @@ const Header = () => {
                       isActive(
                         user?.role === "admin" ? "/alltasks" : "/mytasks",
                       )
-                        ? "bg-indigo-600 text-white shadow-md"
-                        : "text-slate-200 hover:bg-slate-800/80 hover:text-white bg-transparent"
+                        ? "header-nav-link-active"
+                        : "header-nav-link"
                     }`}
                   >
                     <span className="text-base">📋</span>
@@ -407,8 +437,8 @@ const Header = () => {
                     to="/Reports"
                     className={`rounded-xl px-3 py-2.5 font-bold text-sm transition-all flex items-center gap-3 no-underline mt-1 ${
                       isActive("/reports")
-                        ? "bg-indigo-600 text-white shadow-md"
-                        : "text-slate-200 hover:bg-slate-800/80 hover:text-white bg-transparent"
+                        ? "header-nav-link-active"
+                        : "header-nav-link"
                     }`}
                   >
                     <span className="text-base">📈</span>

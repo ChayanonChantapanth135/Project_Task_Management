@@ -56,14 +56,14 @@ const ResetPasswordFirstTimePage = () => {
         color: "var(--text-primary)",
       }}
     >
-      {/* Background Animated GSAP Glowing Orbs */}
+      {/* Background Animated Glowing Orbs */}
       <div
         ref={orb1Ref}
-        className="absolute -top-20 -left-20 w-[500px] h-[500px] bg-teal-500/25 rounded-full filter blur-[120px] pointer-events-none"
+        className="absolute -top-20 -left-20 w-[500px] h-[500px] rounded-full pointer-events-none ambient-blob-1"
       />
       <div
         ref={orb2Ref}
-        className="absolute -bottom-20 -right-20 w-[500px] h-[500px] bg-cyan-500/20 rounded-full filter blur-[120px] pointer-events-none"
+        className="absolute -bottom-20 -right-20 w-[500px] h-[500px] rounded-full pointer-events-none ambient-blob-2"
       />
 
       {/* Language Switcher Positioned Top-Right */}

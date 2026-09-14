@@ -44,9 +44,9 @@ const HomePage = () => {
       <Header />
 
       {/* Ambient Orbs */}
-      <div className="absolute top-10 left-1/4 w-[450px] h-[450px] bg-indigo-600/20 rounded-full filter blur-[100px] pointer-events-none ambient-blob-1"></div>
-      <div className="absolute top-40 right-1/4 w-[400px] h-[400px] bg-violet-600/20 rounded-full filter blur-[110px] pointer-events-none ambient-blob-2"></div>
-      <div className="absolute bottom-10 left-1/3 w-[500px] h-[500px] bg-pink-600/15 rounded-full filter blur-[120px] pointer-events-none ambient-blob-3"></div>
+      <div className="absolute top-10 left-1/4 w-[450px] h-[450px] rounded-full pointer-events-none ambient-blob-1"></div>
+      <div className="absolute top-40 right-1/4 w-[400px] h-[400px] rounded-full pointer-events-none ambient-blob-2"></div>
+      <div className="absolute bottom-10 left-1/3 w-[500px] h-[500px] rounded-full pointer-events-none ambient-blob-3"></div>
 
       <main className="flex-1 z-10">
         {/* Hero Section */}

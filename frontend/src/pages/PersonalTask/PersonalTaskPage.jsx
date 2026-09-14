@@ -68,9 +68,9 @@ const PersonalTaskPage = () => {
       <Header />
 
       {/* Background Static Blobs */}
-      <div className="absolute top-10 left-1/4 w-[400px] h-[400px] bg-blue-500/10 rounded-full filter blur-[100px] pointer-events-none -z-0"></div>
-      <div className="absolute top-1/3 right-1/4 w-[350px] h-[350px] bg-indigo-600/15 rounded-full filter blur-[110px] pointer-events-none -z-0"></div>
-      <div className="absolute bottom-10 left-1/3 w-[450px] h-[450px] bg-teal-600/10 rounded-full filter blur-[120px] pointer-events-none -z-0"></div>
+      <div className="absolute top-10 left-1/4 w-[400px] h-[400px] rounded-full pointer-events-none ambient-blob-1"></div>
+      <div className="absolute top-1/3 right-1/4 w-[350px] h-[350px] rounded-full pointer-events-none ambient-blob-2"></div>
+      <div className="absolute bottom-10 left-1/3 w-[450px] h-[450px] rounded-full pointer-events-none ambient-blob-3"></div>
 
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full relative z-10 space-y-6">
         {/* Title Header Section */}

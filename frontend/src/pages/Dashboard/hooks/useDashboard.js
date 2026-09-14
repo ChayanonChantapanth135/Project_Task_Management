@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import axios from "axios";
 import { getCurrentUser } from "../../../lib/auth";
 import { useLanguage } from "../../../lib/LanguageContext";
@@ -11,12 +11,15 @@ export const useDashboard = () => {
     projects: 0,
     tasks: 0,
     overdueTasks: 0,
+    overdueProjects: 0,
     projectStatus: { pending: 0, inProgress: 0, review: 0, completed: 0 },
     taskStatus: { pending: 0, inProgress: 0, reviewing: 0, completed: 0 },
   });
   const [recentActivities, setRecentActivities] = useState([]);
-  const [projects, setProjects] = useState([]);
+  const [calendarEvents, setCalendarEvents] = useState([]);
+  const [calendarRange, setCalendarRange] = useState({ start: null, end: null });
 
+  // 1. Initial User Fetch
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -26,34 +29,7 @@ export const useDashboard = () => {
         console.error("Error fetching current user:", error);
       }
     };
-    const fetchStats = async () => {
-      try {
-        const response = await axios.get("/auth/dashboard-stats");
-        setStats(response.data);
-      } catch (error) {
-        console.error("Error fetching stats:", error);
-      }
-    };
-    const fetchActivities = async () => {
-      try {
-        const response = await axios.get("/auth/activity-logs?limit=20");
-        setRecentActivities(response.data.slice(0, 20));
-      } catch (error) {
-        console.error("Error fetching activity logs:", error);
-      }
-    };
-    const fetchProjects = async () => {
-      try {
-        const response = await axios.get("/auth/projects");
-        setProjects(response.data);
-      } catch (error) {
-        console.error("Error fetching projects:", error);
-      }
-    };
     fetchUser();
-    fetchStats();
-    fetchActivities();
-    fetchProjects();
   }, []);
 
   const userRole = currentUser?.role
@@ -67,284 +43,110 @@ export const useDashboard = () => {
   const isTeamLeader = userRole === "team_leader";
   const isManager = userRole === "manager" || userRole === "project_manager";
 
-  // Filter user's assigned tasks
-  const myTasks = useMemo(() => {
-    const list = [];
-    if (currentUser && projects && projects.length > 0) {
-      const userId = Number(currentUser.id);
-      const userFullname = (currentUser.fullname || currentUser.name || "")
-        .trim()
-        .toLowerCase();
-      const userName = (currentUser.name || "").trim().toLowerCase();
+  // 2. Fetch Stats & Activity Logs based on User & Role
+  useEffect(() => {
+    if (!currentUser) return;
 
-      projects.forEach((project) => {
-        if (project.tasks && Array.isArray(project.tasks)) {
-          project.tasks.forEach((task) => {
-            const taskAssigneeId = task.assigned_to
-              ? Number(task.assigned_to)
-              : null;
-            const taskAssigneeName = (task.assigned_to_name || "")
-              .trim()
-              .toLowerCase();
-
-            const isAssigned =
-              (taskAssigneeId !== null && taskAssigneeId === userId) ||
-              (userFullname && taskAssigneeName === userFullname) ||
-              (userName && taskAssigneeName === userName);
-
-            if (isAssigned) {
-              list.push({
-                ...task,
-                projectName: project.name,
-                projectId: project.id,
-                projectDueDate: project.end_date,
-              });
-            }
-          });
-        }
-      });
-    }
-    return list;
-  }, [currentUser, projects]);
-
-  // Calendar Events
-  const calendarEvents = useMemo(() => {
-    if (isAdminOrManager || isTeamLeader) {
-      return projects
-        .filter((project) => {
-          if (isAdmin) return true;
-          if (isManager) {
-            return (
-              Number(project.created_by) === Number(currentUser?.id) ||
-              Number(project.manager_id) === Number(currentUser?.id) ||
-              Number(project.managerId) === Number(currentUser?.id)
-            );
-          }
-          if (isTeamLeader) {
-            return (
-              Number(project.teamLeaderId) === Number(currentUser?.id) ||
-              Number(project.team_leader_id) === Number(currentUser?.id) ||
-              project.teamLeaderName === currentUser?.fullname ||
-              project.teamLeaderName === currentUser?.name ||
-              Number(project.created_by) === Number(currentUser?.id)
-            );
-          }
-          return false;
-        })
-        .map((project) => {
-          const status = (project.status || "").toLowerCase();
-          let color = "#ef4444";
-          if (status === "completed") {
-            color = "#10b981";
-          } else if (status === "in progress" || status === "in_progress") {
-            color = "#6366f1";
-          } else if (status === "review" || status === "reviewing") {
-            color = "#f59e0b";
-          }
-          return {
-            id: project.id,
-            title: project.name,
-            date: project.end_date ? project.end_date.split("T")[0] : "",
-            color: color,
-            extendedProps: {
-              type: "project",
-              projectId: project.id,
-              projectName: project.name,
-              status: project.status,
-              priority: project.priority,
+    const fetchStatsAndActivities = async () => {
+      try {
+        const [statsRes, actRes] = await Promise.all([
+          axios.get("/auth/dashboard-stats", {
+            params: {
+              role: currentUser.role,
+              userId: currentUser.id,
             },
-          };
-        })
-        .filter((event) => event.date);
-    } else {
-      return myTasks
-        .map((task) => {
-          const status = (task.status || "").toLowerCase();
-          let color = "#ef4444";
-          if (status === "completed") {
-            color = "#10b981";
-          } else if (status === "in progress" || status === "in_progress") {
-            color = "#6366f1";
-          } else if (status === "review" || status === "reviewing") {
-            color = "#f59e0b";
-          }
-          const taskDate = task.due_date || task.dueDate;
-          return {
-            id: task.id,
-            title: task.title,
-            date: taskDate ? taskDate.split("T")[0] : "",
-            color: color,
-            extendedProps: {
-              type: "task",
-              taskId: task.id,
-              taskTitle: task.title,
-              projectName: task.projectName || task.project,
-              projectId: task.projectId,
-              status: task.status,
-              priority: task.priority,
-            },
-          };
-        })
-        .filter((event) => event.date);
-    }
-  }, [isAdminOrManager, isTeamLeader, projects, currentUser, myTasks]);
-
-  const myPendingCount = myTasks.filter(
-    (t) => (t.status || "").toLowerCase() === "pending",
-  ).length;
-  const myInProgressCount = myTasks.filter((t) => {
-    const s = (t.status || "").toLowerCase();
-    return s === "in progress" || s === "in_progress";
-  }).length;
-  const myCompletedCount = myTasks.filter(
-    (t) => (t.status || "").toLowerCase() === "completed",
-  ).length;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const myOverdueCount = myTasks.filter((t) => {
-    const status = (t.status || "").toLowerCase();
-    if (status === "completed") return false;
-    const taskDue = t.due_date || t.dueDate;
-    if (!taskDue) return false;
-    const dueDate = new Date(taskDue);
-    dueDate.setHours(0, 0, 0, 0);
-    return dueDate < today;
-  }).length;
-
-  const managedProjects = useMemo(() => {
-    return projects.filter((p) => {
-      if (isAdmin) return true;
-      if (isManager) {
-        return (
-          p.created_by === currentUser?.id ||
-          p.manager_id === currentUser?.id ||
-          p.managerId === currentUser?.id
-        );
+          }),
+          axios.get("/auth/activity-logs?limit=20"),
+        ]);
+        setStats(statsRes.data);
+        setRecentActivities(actRes.data.slice(0, 20));
+      } catch (error) {
+        console.error("Error fetching dashboard stats/activities:", error);
       }
-      return false;
-    });
-  }, [projects, isAdmin, isManager, currentUser]);
-
-  const tlProjects = useMemo(() => {
-    return projects.filter((project) => {
-      return (
-        project.teamLeaderId === currentUser?.id ||
-        project.team_leader_id === currentUser?.id ||
-        project.teamLeaderName === currentUser?.fullname ||
-        project.teamLeaderName === currentUser?.name ||
-        project.created_by === currentUser?.id
-      );
-    });
-  }, [projects, currentUser]);
-
-  const currentProjectStatus = useMemo(() => {
-    if (isAdmin) {
-      return {
-        pending: projects.filter(
-          (p) => (p.status || "").toLowerCase() === "pending",
-        ).length,
-        inProgress: projects.filter((p) => {
-          const s = (p.status || "").toLowerCase();
-          return s === "in progress" || s === "in_progress";
-        }).length,
-        review: projects.filter((p) => {
-          const s = (p.status || "").toLowerCase();
-          return s === "review" || s === "reviewing";
-        }).length,
-        completed: projects.filter(
-          (p) => (p.status || "").toLowerCase() === "completed",
-        ).length,
-      };
-    }
-    if (isManager) {
-      return {
-        pending: managedProjects.filter(
-          (p) => (p.status || "").toLowerCase() === "pending",
-        ).length,
-        inProgress: managedProjects.filter((p) => {
-          const s = (p.status || "").toLowerCase();
-          return s === "in progress" || s === "in_progress";
-        }).length,
-        review: managedProjects.filter((p) => {
-          const s = (p.status || "").toLowerCase();
-          return s === "review" || s === "reviewing";
-        }).length,
-        completed: managedProjects.filter(
-          (p) => (p.status || "").toLowerCase() === "completed",
-        ).length,
-      };
-    }
-    if (isTeamLeader) {
-      return {
-        pending: tlProjects.filter(
-          (p) => (p.status || "").toLowerCase() === "pending",
-        ).length,
-        inProgress: tlProjects.filter((p) => {
-          const s = (p.status || "").toLowerCase();
-          return s === "in progress" || s === "in_progress";
-        }).length,
-        review: tlProjects.filter((p) => {
-          const s = (p.status || "").toLowerCase();
-          return s === "review" || s === "reviewing";
-        }).length,
-        completed: tlProjects.filter(
-          (p) => (p.status || "").toLowerCase() === "completed",
-        ).length,
-      };
-    }
-    return stats.projectStatus;
-  }, [isAdmin, isManager, isTeamLeader, projects, managedProjects, tlProjects, stats.projectStatus]);
-
-  const allTasksAcrossProjects = useMemo(() => {
-    const list = [];
-    if (projects && Array.isArray(projects)) {
-      projects.forEach((proj) => {
-        if (proj.tasks && Array.isArray(proj.tasks)) {
-          list.push(...proj.tasks);
-        }
-      });
-    }
-    return list;
-  }, [projects]);
-
-  const currentTaskStatus = useMemo(() => {
-    if (isAdmin) {
-      return {
-        pending: allTasksAcrossProjects.filter(
-          (t) => (t.status || "").toLowerCase() === "pending",
-        ).length,
-        inProgress: allTasksAcrossProjects.filter((t) => {
-          const s = (t.status || "").toLowerCase();
-          return s === "in progress" || s === "in_progress";
-        }).length,
-        reviewing: allTasksAcrossProjects.filter((t) => {
-          const s = (t.status || "").toLowerCase();
-          return s === "review" || s === "reviewing";
-        }).length,
-        completed: allTasksAcrossProjects.filter(
-          (t) => (t.status || "").toLowerCase() === "completed",
-        ).length,
-      };
-    }
-    return {
-      pending: myTasks.filter(
-        (t) => (t.status || "").toLowerCase() === "pending",
-      ).length,
-      inProgress: myTasks.filter((t) => {
-        const s = (t.status || "").toLowerCase();
-        return s === "in progress" || s === "in_progress";
-      }).length,
-      reviewing: myTasks.filter((t) => {
-        const s = (t.status || "").toLowerCase();
-        return s === "review" || s === "reviewing";
-      }).length,
-      completed: myTasks.filter(
-        (t) => (t.status || "").toLowerCase() === "completed",
-      ).length,
     };
-  }, [isAdmin, allTasksAcrossProjects, myTasks]);
+
+    fetchStatsAndActivities();
+  }, [currentUser]);
+
+  // 3. Dynamic Range Fetch for Calendar Events (Lazy Loading for visible month)
+  const fetchCalendarEvents = useCallback(async (startStr, endStr) => {
+    if (!currentUser) return;
+    try {
+      const res = await axios.get("/auth/calendar-events", {
+        params: {
+          start: startStr || calendarRange.start,
+          end: endStr || calendarRange.end,
+          role: currentUser.role,
+          userId: currentUser.id,
+        },
+      });
+      setCalendarEvents(res.data);
+    } catch (error) {
+      console.error("Error fetching calendar events:", error);
+    }
+  }, [currentUser, calendarRange]);
+
+  // Initial calendar fetch when user is ready
+  useEffect(() => {
+    if (currentUser) {
+      fetchCalendarEvents();
+    }
+  }, [currentUser, fetchCalendarEvents]);
+
+  // Callback when user navigates FullCalendar months
+  const onDatesSet = useCallback((arg) => {
+    const start = arg.startStr.split("T")[0];
+    const end = arg.endStr.split("T")[0];
+    setCalendarRange({ start, end });
+    fetchCalendarEvents(start, end);
+  }, [fetchCalendarEvents]);
+
+  // Status breakdown mappings from backend stats
+  const projectStatus = useMemo(() => [
+    {
+      label: t("statusPending"),
+      value: stats.projectStatus?.pending || 0,
+      badgeBg: "bg-[#1e293b] text-slate-400",
+    },
+    {
+      label: t("statusInProgress"),
+      value: stats.projectStatus?.inProgress || 0,
+      badgeBg: "bg-indigo-500/20 text-indigo-300",
+    },
+    {
+      label: t("statusReview"),
+      value: stats.projectStatus?.review || 0,
+      badgeBg: "bg-amber-500/20 text-amber-300",
+    },
+    {
+      label: t("statusCompleted"),
+      value: stats.projectStatus?.completed || 0,
+      badgeBg: "bg-emerald-500/20 text-emerald-300",
+    },
+  ], [stats.projectStatus, t]);
+
+  const taskStatus = useMemo(() => [
+    {
+      label: t("pending"),
+      value: stats.taskStatus?.pending || 0,
+      badgeBg: "bg-[#1e293b] text-slate-400",
+    },
+    {
+      label: t("inProgress"),
+      value: stats.taskStatus?.inProgress || 0,
+      badgeBg: "bg-indigo-500/20 text-indigo-300",
+    },
+    {
+      label: t("reviewing"),
+      value: stats.taskStatus?.reviewing || 0,
+      badgeBg: "bg-amber-500/20 text-amber-300",
+    },
+    {
+      label: t("completed"),
+      value: stats.taskStatus?.completed || 0,
+      badgeBg: "bg-emerald-500/20 text-emerald-300",
+    },
+  ], [stats.taskStatus, t]);
 
   const statsCards = useMemo(() => {
     if (isAdmin) {
@@ -366,7 +168,7 @@ export const useDashboard = () => {
         {
           title: t("totalTasks"),
           value: stats.tasks,
-          subtitle: `${t("completedPrefix") || "Completed:"} ${stats.taskStatus.completed}`,
+          subtitle: `${t("completedPrefix") || "Completed:"} ${stats.taskStatus?.completed || 0}`,
           icon: "📋",
         },
         {
@@ -385,56 +187,34 @@ export const useDashboard = () => {
         },
       ];
     }
-    if (isManager) {
-      const pendingP = managedProjects.filter(
-        (p) => (p.status || "").toLowerCase() === "pending",
-      ).length;
-      const inProgressP = managedProjects.filter((p) => {
-        const s = (p.status || "").toLowerCase();
-        return s === "in progress" || s === "in_progress";
-      }).length;
-      const completedP = managedProjects.filter(
-        (p) => (p.status || "").toLowerCase() === "completed",
-      ).length;
 
-      const todayObj = new Date();
-      todayObj.setHours(0, 0, 0, 0);
-      const overdueP = managedProjects.filter((p) => {
-        const s = (p.status || "").toLowerCase();
-        if (s === "completed") return false;
-        const endD = p.end_date || p.endDate;
-        if (!endD) return false;
-        const d = new Date(endD);
-        d.setHours(0, 0, 0, 0);
-        return d < todayObj;
-      }).length;
-
+    if (isManager || isTeamLeader) {
       return [
         {
           title:
             language === "th" ? "โปรเจกต์ทั้งหมดของฉัน" : "All My Projects",
-          value: managedProjects.length,
+          value: stats.projects,
           link: language === "th" ? "โปรเจกต์ของฉัน" : "My Project",
           path: "/Projects",
           icon: "📁",
         },
         {
           title: t("pending") || "Pending",
-          value: pendingP,
+          value: stats.projectStatus?.pending || 0,
           link: language === "th" ? "โปรเจกต์ของฉัน" : "My Project",
           path: "/Projects",
           icon: "⏳",
         },
         {
           title: t("inProgress") || "In Progress",
-          value: inProgressP,
+          value: stats.projectStatus?.inProgress || 0,
           link: language === "th" ? "โปรเจกต์ของฉัน" : "My Project",
           path: "/Projects",
           icon: "⚡",
         },
         {
           title: t("completed") || "Completed",
-          value: completedP,
+          value: stats.projectStatus?.completed || 0,
           link: language === "th" ? "โปรเจกต์ของฉัน" : "My Project",
           path: "/Projects",
           icon: "✅",
@@ -442,47 +222,48 @@ export const useDashboard = () => {
         {
           title:
             language === "th" ? "โปรเจกต์เกินกำหนด" : "Overdue Projects",
-          value: overdueP,
+          value: stats.overdueProjects || 0,
           link: language === "th" ? "โปรเจกต์ของฉัน" : "My Project",
           path: "/Projects",
           icon: "⚠️",
         },
       ];
     }
+
     return [
       {
         title:
           t("allMyTasks") ||
           (language === "th" ? "งานทั้งหมดของฉัน" : "All My Tasks"),
-        value: myTasks.length,
+        value: stats.tasks,
         link: t("myTask") || "งานของฉัน",
         path: "/MyTasks",
         icon: "📋",
       },
       {
         title: t("pending") || "Pending",
-        value: myPendingCount,
+        value: stats.taskStatus?.pending || 0,
         link: t("myTask") || "งานของฉัน",
         path: "/MyTasks",
         icon: "⏳",
       },
       {
         title: t("inProgress") || "In Progress",
-        value: myInProgressCount,
+        value: stats.taskStatus?.inProgress || 0,
         link: t("myTask") || "งานของฉัน",
         path: "/MyTasks",
         icon: "⚡",
       },
       {
         title: t("completed") || "Completed",
-        value: myCompletedCount,
+        value: stats.taskStatus?.completed || 0,
         link: t("myTask") || "งานของฉัน",
         path: "/MyTasks",
         icon: "✅",
       },
       {
         title: t("overdueTasks") || "Overdue Tasks",
-        value: myOverdueCount,
+        value: stats.overdueTasks || 0,
         link: t("myTask") || "งานของฉัน",
         path: "/MyTasks",
         icon: "⚠️",
@@ -491,62 +272,11 @@ export const useDashboard = () => {
   }, [
     isAdmin,
     isManager,
+    isTeamLeader,
     language,
-    myCompletedCount,
-    myInProgressCount,
-    myOverdueCount,
-    myPendingCount,
-    myTasks.length,
-    managedProjects,
     stats,
     t,
   ]);
-
-  const projectStatus = useMemo(() => [
-    {
-      label: t("statusPending"),
-      value: currentProjectStatus?.pending || 0,
-      badgeBg: "bg-[#1e293b] text-slate-400",
-    },
-    {
-      label: t("statusInProgress"),
-      value: currentProjectStatus?.inProgress || 0,
-      badgeBg: "bg-indigo-500/20 text-indigo-300",
-    },
-    {
-      label: t("statusReview"),
-      value: currentProjectStatus?.review || 0,
-      badgeBg: "bg-amber-500/20 text-amber-300",
-    },
-    {
-      label: t("statusCompleted"),
-      value: currentProjectStatus?.completed || 0,
-      badgeBg: "bg-emerald-500/20 text-emerald-300",
-    },
-  ], [currentProjectStatus, t]);
-
-  const taskStatus = useMemo(() => [
-    {
-      label: t("pending"),
-      value: currentTaskStatus?.pending || 0,
-      badgeBg: "bg-[#1e293b] text-slate-400",
-    },
-    {
-      label: t("inProgress"),
-      value: currentTaskStatus?.inProgress || 0,
-      badgeBg: "bg-indigo-500/20 text-indigo-300",
-    },
-    {
-      label: t("reviewing"),
-      value: currentTaskStatus?.reviewing || 0,
-      badgeBg: "bg-amber-500/20 text-amber-300",
-    },
-    {
-      label: t("completed"),
-      value: currentTaskStatus?.completed || 0,
-      badgeBg: "bg-emerald-500/20 text-emerald-300",
-    },
-  ], [currentTaskStatus, t]);
 
   const projectAndTaskActivities = useMemo(() => {
     return recentActivities.filter((activity) => {
@@ -568,5 +298,6 @@ export const useDashboard = () => {
     recentActivities,
     projectAndTaskActivities,
     calendarEvents,
+    onDatesSet,
   };
 };

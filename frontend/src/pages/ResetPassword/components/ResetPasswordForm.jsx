@@ -21,9 +21,7 @@ const ResetPasswordForm = ({
           {t("emailLabel")}
         </label>
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none">
-            📩
-          </span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none"></span>
           <input
             id="email"
             type="email"
@@ -43,10 +41,10 @@ const ResetPasswordForm = ({
             {loading
               ? "..."
               : otpCooldown > 0
-              ? `${Math.floor(otpCooldown / 60)}:${(otpCooldown % 60)
-                  .toString()
-                  .padStart(2, "0")}`
-              : t("sendOtpBtn")}
+                ? `${Math.floor(otpCooldown / 60)}:${(otpCooldown % 60)
+                    .toString()
+                    .padStart(2, "0")}`
+                : t("sendOtpBtn")}
           </button>
         </div>
       </div>
@@ -57,9 +55,7 @@ const ResetPasswordForm = ({
           {t("otpCodeLabel")}
         </label>
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none">
-            🔢
-          </span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none"></span>
           <input
             id="otpCode"
             type="text"
@@ -79,9 +75,7 @@ const ResetPasswordForm = ({
           {t("newPasswordLabel")}
         </label>
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none">
-            🔑
-          </span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none"></span>
           <input
             id="password"
             type={showPassword ? "text" : "password"}
@@ -108,9 +102,7 @@ const ResetPasswordForm = ({
           {t("confirmPasswordLabel")}
         </label>
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none">
-            🔑
-          </span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none"></span>
           <input
             id="confirmPassword"
             type="password"

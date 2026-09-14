@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
@@ -10,12 +10,10 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import thLocale from "@fullcalendar/core/locales/th";
 import Swal from "sweetalert2";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
 import { useDashboard } from "./hooks/useDashboard";
 
 /**
- * คอมโพเนนต์หน้าแดชบอร์ดสรุปผล (DashboardPage Component) - Redesigned Dark Luxe Glassmorphism Theme
+ * คอมโพเนนต์หน้าแดชบอร์ดสรุปผล (DashboardPage Component) - Redesigned Dark Luxe Glassmorphism Theme (GPU-Optimized)
  */
 const DashboardPage = () => {
   const { t, language } = useLanguage();
@@ -31,6 +29,7 @@ const DashboardPage = () => {
     recentActivities,
     projectAndTaskActivities,
     calendarEvents,
+    onDatesSet,
   } = useDashboard();
 
   return (
@@ -43,10 +42,10 @@ const DashboardPage = () => {
     >
       <Header />
 
-      {/* Ambient Orbs */}
-      <div className="absolute top-10 left-1/4 w-[450px] h-[450px] bg-teal-500/15 rounded-full filter blur-[100px] pointer-events-none ambient-blob-1"></div>
-      <div className="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-indigo-600/20 rounded-full filter blur-[110px] pointer-events-none ambient-blob-2"></div>
-      <div className="absolute bottom-10 left-1/3 w-[500px] h-[500px] bg-cyan-600/15 rounded-full filter blur-[120px] pointer-events-none ambient-blob-3"></div>
+      {/* Hardware-Accelerated Ambient Orbs */}
+      <div className="absolute top-10 left-1/4 w-[450px] h-[450px] rounded-full pointer-events-none ambient-blob-1"></div>
+      <div className="absolute top-1/3 right-1/4 w-[400px] h-[400px] rounded-full pointer-events-none ambient-blob-2"></div>
+      <div className="absolute bottom-10 left-1/3 w-[500px] h-[500px] rounded-full pointer-events-none ambient-blob-3"></div>
 
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full animate-fade-in-up relative z-10">
         {/* Stats Cards */}
@@ -218,6 +217,7 @@ const DashboardPage = () => {
               initialView="dayGridMonth"
               locale={language === "th" ? thLocale : "en"}
               events={calendarEvents}
+              datesSet={onDatesSet}
               eventClick={(info) => {
                 info.jsEvent.preventDefault();
                 const props = info.event.extendedProps || {};
