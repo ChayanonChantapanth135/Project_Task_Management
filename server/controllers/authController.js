@@ -1905,7 +1905,7 @@ export const getDashboardStats = async (req, res) => {
         const isTeamLeader = role === 'team_leader';
 
         const [userRows] = await db.query('SELECT COUNT(*) as count FROM users WHERE deleted_at IS NULL');
-        const userCount = userRows[0].count;
+        const userCount = userRows[0]?.count || 0;
 
         let projectCount = 0;
         let pendingProjects = 0;
@@ -1923,139 +1923,167 @@ export const getDashboardStats = async (req, res) => {
 
         try {
             if (isAdmin) {
-                // Admin gets overall system statistics
-                const [pRows] = await db.query('SELECT COUNT(*) as count FROM projects WHERE deleted_at IS NULL');
-                projectCount = pRows[0].count;
+                // Admin: Overall system project & task metrics
+                const [pStats] = await db.query(`
+                    SELECT 
+                        COUNT(*) AS total,
+                        SUM(CASE WHEN LOWER(status) = 'pending' THEN 1 ELSE 0 END) AS pending,
+                        SUM(CASE WHEN LOWER(status) IN ('in progress', 'in_progress') THEN 1 ELSE 0 END) AS inProgress,
+                        SUM(CASE WHEN LOWER(status) IN ('review', 'reviewing') THEN 1 ELSE 0 END) AS review,
+                        SUM(CASE WHEN LOWER(status) = 'completed' THEN 1 ELSE 0 END) AS completed,
+                        SUM(CASE WHEN end_date < NOW() AND LOWER(status) != 'completed' THEN 1 ELSE 0 END) AS overdue
+                    FROM projects 
+                    WHERE deleted_at IS NULL
+                `);
 
-                const [pPendingRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'Pending' AND deleted_at IS NULL");
-                pendingProjects = pPendingRows[0].count;
+                if (pStats.length > 0) {
+                    projectCount = Number(pStats[0].total) || 0;
+                    pendingProjects = Number(pStats[0].pending) || 0;
+                    inProgressProjects = Number(pStats[0].inProgress) || 0;
+                    reviewProjects = Number(pStats[0].review) || 0;
+                    completedProjects = Number(pStats[0].completed) || 0;
+                    overdueProjectCount = Number(pStats[0].overdue) || 0;
+                }
 
-                const [pProgressRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE (status = 'In Progress' OR status = 'in_progress') AND deleted_at IS NULL");
-                inProgressProjects = pProgressRows[0].count;
+                const [tStats] = await db.query(`
+                    SELECT 
+                        COUNT(*) AS total,
+                        SUM(CASE WHEN LOWER(status) = 'pending' THEN 1 ELSE 0 END) AS pending,
+                        SUM(CASE WHEN LOWER(status) IN ('in progress', 'in_progress') THEN 1 ELSE 0 END) AS inProgress,
+                        SUM(CASE WHEN LOWER(status) IN ('review', 'reviewing') THEN 1 ELSE 0 END) AS reviewing,
+                        SUM(CASE WHEN LOWER(status) = 'completed' THEN 1 ELSE 0 END) AS completed,
+                        SUM(CASE WHEN due_date < NOW() AND LOWER(status) != 'completed' THEN 1 ELSE 0 END) AS overdue
+                    FROM tasks 
+                    WHERE deleted_at IS NULL
+                `);
 
-                const [pReviewRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE (status = 'Reviewing' OR status = 'Review' OR status = 'review') AND deleted_at IS NULL");
-                reviewProjects = pReviewRows[0].count;
-
-                const [pCompletedRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE status = 'Completed' AND deleted_at IS NULL");
-                completedProjects = pCompletedRows[0].count;
-
-                const [tRows] = await db.query('SELECT COUNT(*) as count FROM tasks WHERE deleted_at IS NULL');
-                taskCount = tRows[0].count;
-                
-                const [pendingRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'Pending' AND deleted_at IS NULL");
-                pendingTasks = pendingRows[0].count;
-
-                const [progressRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE (status = 'In Progress' OR status = 'in_progress') AND deleted_at IS NULL");
-                inProgressTasks = progressRows[0].count;
-
-                const [reviewRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE (status = 'Reviewing' OR status = 'Review' OR status = 'review') AND deleted_at IS NULL");
-                reviewingTasks = reviewRows[0].count;
-
-                const [completedRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE status = 'Completed' AND deleted_at IS NULL");
-                completedTasks = completedRows[0].count;
-
-                const [overdueRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE due_date < NOW() AND status != 'Completed' AND deleted_at IS NULL");
-                overdueTaskCount = overdueRows[0].count;
-
-                const [overdueProjRows] = await db.query("SELECT COUNT(*) as count FROM projects WHERE end_date < NOW() AND status != 'Completed' AND deleted_at IS NULL");
-                overdueProjectCount = overdueProjRows[0].count;
+                if (tStats.length > 0) {
+                    taskCount = Number(tStats[0].total) || 0;
+                    pendingTasks = Number(tStats[0].pending) || 0;
+                    inProgressTasks = Number(tStats[0].inProgress) || 0;
+                    reviewingTasks = Number(tStats[0].reviewing) || 0;
+                    completedTasks = Number(tStats[0].completed) || 0;
+                    overdueTaskCount = Number(tStats[0].overdue) || 0;
+                }
             } else if (isManager) {
-                // Manager stats: Projects created by manager
-                const managerFilter = userId ? ' AND (p.created_by = ?)' : '';
-                const managerParams = userId ? [userId] : [];
+                // Manager: Projects created by manager and tasks within those projects (or assigned to manager)
+                const [pStats] = await db.query(`
+                    SELECT 
+                        COUNT(*) AS total,
+                        SUM(CASE WHEN LOWER(p.status) = 'pending' THEN 1 ELSE 0 END) AS pending,
+                        SUM(CASE WHEN LOWER(p.status) IN ('in progress', 'in_progress') THEN 1 ELSE 0 END) AS inProgress,
+                        SUM(CASE WHEN LOWER(p.status) IN ('review', 'reviewing') THEN 1 ELSE 0 END) AS review,
+                        SUM(CASE WHEN LOWER(p.status) = 'completed' THEN 1 ELSE 0 END) AS completed,
+                        SUM(CASE WHEN p.end_date < NOW() AND LOWER(p.status) != 'completed' THEN 1 ELSE 0 END) AS overdue
+                    FROM projects p 
+                    WHERE p.deleted_at IS NULL ${userId ? 'AND (p.created_by = ?)' : ''}
+                `, userId ? [userId] : []);
 
-                const [pRows] = await db.query(`SELECT COUNT(*) as count FROM projects p WHERE p.deleted_at IS NULL${managerFilter}`, managerParams);
-                projectCount = pRows[0].count;
+                if (pStats.length > 0) {
+                    projectCount = Number(pStats[0].total) || 0;
+                    pendingProjects = Number(pStats[0].pending) || 0;
+                    inProgressProjects = Number(pStats[0].inProgress) || 0;
+                    reviewProjects = Number(pStats[0].review) || 0;
+                    completedProjects = Number(pStats[0].completed) || 0;
+                    overdueProjectCount = Number(pStats[0].overdue) || 0;
+                }
 
-                const [pPendingRows] = await db.query(`SELECT COUNT(*) as count FROM projects p WHERE p.status = 'Pending' AND p.deleted_at IS NULL${managerFilter}`, managerParams);
-                pendingProjects = pPendingRows[0].count;
-
-                const [pProgressRows] = await db.query(`SELECT COUNT(*) as count FROM projects p WHERE (p.status = 'In Progress' OR p.status = 'in_progress') AND p.deleted_at IS NULL${managerFilter}`, managerParams);
-                inProgressProjects = pProgressRows[0].count;
-
-                const [pReviewRows] = await db.query(`SELECT COUNT(*) as count FROM projects p WHERE (p.status = 'Reviewing' OR p.status = 'Review' OR p.status = 'review') AND p.deleted_at IS NULL${managerFilter}`, managerParams);
-                reviewProjects = pReviewRows[0].count;
-
-                const [pCompletedRows] = await db.query(`SELECT COUNT(*) as count FROM projects p WHERE p.status = 'Completed' AND p.deleted_at IS NULL${managerFilter}`, managerParams);
-                completedProjects = pCompletedRows[0].count;
-
-                const [overdueProjRows] = await db.query(`SELECT COUNT(*) as count FROM projects p WHERE p.end_date < NOW() AND p.status != 'Completed' AND p.deleted_at IS NULL${managerFilter}`, managerParams);
-                overdueProjectCount = overdueProjRows[0].count;
-
-                // Tasks assigned to this manager or in their projects
                 if (userId) {
-                    const [tRows] = await db.query(`SELECT COUNT(*) as count FROM tasks t JOIN projects p ON t.project_id = p.id WHERE p.deleted_at IS NULL AND t.deleted_at IS NULL AND (p.created_by = ? OR t.assigned_to = ?)`, [userId, userId]);
-                    taskCount = tRows[0].count;
+                    const [tStats] = await db.query(`
+                        SELECT 
+                            COUNT(DISTINCT t.id) AS total,
+                            SUM(CASE WHEN LOWER(t.status) = 'pending' THEN 1 ELSE 0 END) AS pending,
+                            SUM(CASE WHEN LOWER(t.status) IN ('in progress', 'in_progress') THEN 1 ELSE 0 END) AS inProgress,
+                            SUM(CASE WHEN LOWER(t.status) IN ('review', 'reviewing') THEN 1 ELSE 0 END) AS reviewing,
+                            SUM(CASE WHEN LOWER(t.status) = 'completed' THEN 1 ELSE 0 END) AS completed,
+                            SUM(CASE WHEN t.due_date < NOW() AND LOWER(t.status) != 'completed' THEN 1 ELSE 0 END) AS overdue
+                        FROM tasks t
+                        JOIN projects p ON t.project_id = p.id
+                        WHERE p.deleted_at IS NULL AND t.deleted_at IS NULL 
+                          AND (p.created_by = ? OR t.assigned_to = ?)
+                    `, [userId, userId]);
+
+                    if (tStats.length > 0) {
+                        taskCount = Number(tStats[0].total) || 0;
+                        pendingTasks = Number(tStats[0].pending) || 0;
+                        inProgressTasks = Number(tStats[0].inProgress) || 0;
+                        reviewingTasks = Number(tStats[0].reviewing) || 0;
+                        completedTasks = Number(tStats[0].completed) || 0;
+                        overdueTaskCount = Number(tStats[0].overdue) || 0;
+                    }
                 }
             } else if (isTeamLeader) {
-                // Team Leader stats
-                const [pRows] = await db.query(`
-                    SELECT COUNT(DISTINCT p.id) as count 
-                    FROM projects p 
-                    LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id 
-                    WHERE p.deleted_at IS NULL AND (ptl.user_id = ? OR p.created_by = ?)
-                `, [userId, userId]);
-                projectCount = pRows[0].count;
+                // Team Leader: Projects where user is TL or creator, and tasks within those projects
+                const [pStats] = await db.query(`
+                    SELECT 
+                        COUNT(DISTINCT p.id) AS total,
+                        COUNT(DISTINCT CASE WHEN LOWER(p.status) = 'pending' THEN p.id END) AS pending,
+                        COUNT(DISTINCT CASE WHEN LOWER(p.status) IN ('in progress', 'in_progress') THEN p.id END) AS inProgress,
+                        COUNT(DISTINCT CASE WHEN LOWER(p.status) IN ('review', 'reviewing') THEN p.id END) AS review,
+                        COUNT(DISTINCT CASE WHEN LOWER(p.status) = 'completed' THEN p.id END) AS completed,
+                        COUNT(DISTINCT CASE WHEN p.end_date < NOW() AND LOWER(p.status) != 'completed' THEN p.id END) AS overdue
+                    FROM projects p
+                    LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id
+                    WHERE p.deleted_at IS NULL ${userId ? 'AND (ptl.user_id = ? OR p.created_by = ?)' : ''}
+                `, userId ? [userId, userId] : []);
 
-                const [pPendingRows] = await db.query(`
-                    SELECT COUNT(DISTINCT p.id) as count 
-                    FROM projects p 
-                    LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id 
-                    WHERE p.status = 'Pending' AND p.deleted_at IS NULL AND (ptl.user_id = ? OR p.created_by = ?)
-                `, [userId, userId]);
-                pendingProjects = pPendingRows[0].count;
+                if (pStats.length > 0) {
+                    projectCount = Number(pStats[0].total) || 0;
+                    pendingProjects = Number(pStats[0].pending) || 0;
+                    inProgressProjects = Number(pStats[0].inProgress) || 0;
+                    reviewProjects = Number(pStats[0].review) || 0;
+                    completedProjects = Number(pStats[0].completed) || 0;
+                    overdueProjectCount = Number(pStats[0].overdue) || 0;
+                }
 
-                const [pProgressRows] = await db.query(`
-                    SELECT COUNT(DISTINCT p.id) as count 
-                    FROM projects p 
-                    LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id 
-                    WHERE (p.status = 'In Progress' OR p.status = 'in_progress') AND p.deleted_at IS NULL AND (ptl.user_id = ? OR p.created_by = ?)
-                `, [userId, userId]);
-                inProgressProjects = pProgressRows[0].count;
-
-                const [pReviewRows] = await db.query(`
-                    SELECT COUNT(DISTINCT p.id) as count 
-                    FROM projects p 
-                    LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id 
-                    WHERE (p.status = 'Reviewing' OR p.status = 'Review' OR p.status = 'review') AND p.deleted_at IS NULL AND (ptl.user_id = ? OR p.created_by = ?)
-                `, [userId, userId]);
-                reviewProjects = pReviewRows[0].count;
-
-                const [pCompletedRows] = await db.query(`
-                    SELECT COUNT(DISTINCT p.id) as count 
-                    FROM projects p 
-                    LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id 
-                    WHERE p.status = 'Completed' AND p.deleted_at IS NULL AND (ptl.user_id = ? OR p.created_by = ?)
-                `, [userId, userId]);
-                completedProjects = pCompletedRows[0].count;
-
-                const [overdueProjRows] = await db.query(`
-                    SELECT COUNT(DISTINCT p.id) as count 
-                    FROM projects p 
-                    LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id 
-                    WHERE p.end_date < NOW() AND p.status != 'Completed' AND p.deleted_at IS NULL AND (ptl.user_id = ? OR p.created_by = ?)
-                `, [userId, userId]);
-                overdueProjectCount = overdueProjRows[0].count;
-            } else {
-                // Standard Member stats: personal tasks
                 if (userId) {
-                    const [tRows] = await db.query('SELECT COUNT(*) as count FROM tasks WHERE assigned_to = ? AND deleted_at IS NULL', [userId]);
-                    taskCount = tRows[0].count;
+                    const [tStats] = await db.query(`
+                        SELECT 
+                            COUNT(DISTINCT t.id) AS total,
+                            SUM(CASE WHEN LOWER(t.status) = 'pending' THEN 1 ELSE 0 END) AS pending,
+                            SUM(CASE WHEN LOWER(t.status) IN ('in progress', 'in_progress') THEN 1 ELSE 0 END) AS inProgress,
+                            SUM(CASE WHEN LOWER(t.status) IN ('review', 'reviewing') THEN 1 ELSE 0 END) AS reviewing,
+                            SUM(CASE WHEN LOWER(t.status) = 'completed' THEN 1 ELSE 0 END) AS completed,
+                            SUM(CASE WHEN t.due_date < NOW() AND LOWER(t.status) != 'completed' THEN 1 ELSE 0 END) AS overdue
+                        FROM tasks t
+                        JOIN projects p ON t.project_id = p.id
+                        LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id
+                        WHERE p.deleted_at IS NULL AND t.deleted_at IS NULL 
+                          AND (ptl.user_id = ? OR p.created_by = ? OR t.assigned_to = ?)
+                    `, [userId, userId, userId]);
 
-                    const [pendingRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE assigned_to = ? AND status = 'Pending' AND deleted_at IS NULL", [userId]);
-                    pendingTasks = pendingRows[0].count;
+                    if (tStats.length > 0) {
+                        taskCount = Number(tStats[0].total) || 0;
+                        pendingTasks = Number(tStats[0].pending) || 0;
+                        inProgressTasks = Number(tStats[0].inProgress) || 0;
+                        reviewingTasks = Number(tStats[0].reviewing) || 0;
+                        completedTasks = Number(tStats[0].completed) || 0;
+                        overdueTaskCount = Number(tStats[0].overdue) || 0;
+                    }
+                }
+            } else {
+                // Standard Member: Tasks assigned to this user
+                if (userId) {
+                    const [tStats] = await db.query(`
+                        SELECT 
+                            COUNT(*) AS total,
+                            SUM(CASE WHEN LOWER(status) = 'pending' THEN 1 ELSE 0 END) AS pending,
+                            SUM(CASE WHEN LOWER(status) IN ('in progress', 'in_progress') THEN 1 ELSE 0 END) AS inProgress,
+                            SUM(CASE WHEN LOWER(status) IN ('review', 'reviewing') THEN 1 ELSE 0 END) AS reviewing,
+                            SUM(CASE WHEN LOWER(status) = 'completed' THEN 1 ELSE 0 END) AS completed,
+                            SUM(CASE WHEN due_date < NOW() AND LOWER(status) != 'completed' THEN 1 ELSE 0 END) AS overdue
+                        FROM tasks 
+                        WHERE assigned_to = ? AND deleted_at IS NULL
+                    `, [userId]);
 
-                    const [progressRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE assigned_to = ? AND (status = 'In Progress' OR status = 'in_progress') AND deleted_at IS NULL", [userId]);
-                    inProgressTasks = progressRows[0].count;
-
-                    const [reviewRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE assigned_to = ? AND (status = 'Reviewing' OR status = 'Review' OR status = 'review') AND deleted_at IS NULL", [userId]);
-                    reviewingTasks = reviewRows[0].count;
-
-                    const [completedRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE assigned_to = ? AND status = 'Completed' AND deleted_at IS NULL", [userId]);
-                    completedTasks = completedRows[0].count;
-
-                    const [overdueRows] = await db.query("SELECT COUNT(*) as count FROM tasks WHERE assigned_to = ? AND due_date < NOW() AND status != 'Completed' AND deleted_at IS NULL", [userId]);
-                    overdueTaskCount = overdueRows[0].count;
+                    if (tStats.length > 0) {
+                        taskCount = Number(tStats[0].total) || 0;
+                        pendingTasks = Number(tStats[0].pending) || 0;
+                        inProgressTasks = Number(tStats[0].inProgress) || 0;
+                        reviewingTasks = Number(tStats[0].reviewing) || 0;
+                        completedTasks = Number(tStats[0].completed) || 0;
+                        overdueTaskCount = Number(tStats[0].overdue) || 0;
+                    }
                 }
             }
 
