@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useLanguage } from "../../../lib/LanguageContext";
 import { formatDate } from "../../../lib/dateUtils";
 
@@ -32,16 +32,27 @@ function KpiCard({ icon, iconGradient, label, value, valueColor = "", accentColo
 
 /* ── Status Pill ── */
 function StatusPill({ status }) {
+  const { t } = useLanguage();
   const s = (status || "").toLowerCase();
   let bg = "rgba(100,116,139,0.2)"; let color = "#94a3b8"; let dot = "#94a3b8";
-  if (s === "completed") { bg = "rgba(16,185,129,0.15)"; color = "#34d399"; dot = "#10b981"; }
-  else if (s === "in progress" || s === "in_progress") { bg = "rgba(99,102,241,0.15)"; color = "#818cf8"; dot = "#6366f1"; }
-  else if (s === "review" || s === "reviewing") { bg = "rgba(245,158,11,0.15)"; color = "#fbbf24"; dot = "#f59e0b"; }
-  else if (s === "pending") { bg = "rgba(100,116,139,0.15)"; color = "#cbd5e1"; dot = "#94a3b8"; }
+  let text = status;
+  if (s === "completed") {
+    bg = "rgba(16,185,129,0.15)"; color = "#34d399"; dot = "#10b981";
+    text = t("statusCompleted") || "เสร็จสิ้น";
+  } else if (s === "in progress" || s === "in_progress") {
+    bg = "rgba(99,102,241,0.15)"; color = "#818cf8"; dot = "#6366f1";
+    text = t("statusInProgress") || "กำลังดำเนินการ";
+  } else if (s === "review" || s === "reviewing") {
+    bg = "rgba(245,158,11,0.15)"; color = "#fbbf24"; dot = "#f59e0b";
+    text = t("statusReview") || "รอตรวจสอบ";
+  } else if (s === "pending") {
+    bg = "rgba(100,116,139,0.15)"; color = "#cbd5e1"; dot = "#94a3b8";
+    text = t("statusPending") || "รอดำเนินการ";
+  }
   return (
     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold" style={{ background: bg, color }}>
       <span className="w-1.5 h-1.5 rounded-full" style={{ background: dot }} />
-      {status}
+      {text}
     </span>
   );
 }
@@ -84,14 +95,22 @@ function CompletionRing({ rate, gradientFrom = "#6366f1", gradientTo = "#a855f7"
 export default function UserReportView({ data }) {
   const { t, language } = useLanguage();
   const {
-    myTasks,
-    myCompletedCount,
-    myPendingCount,
-    myInProgressCount,
-    myOverdueCount,
-    myCompletionRate,
-    myTaskTypeCounts,
-  } = data;
+    myTasks = [],
+    myCompletedCount = 0,
+    myPendingCount = 0,
+    myInProgressCount = 0,
+    myOverdueCount = 0,
+    myCompletionRate = 0,
+    myTaskTypeCounts = {},
+  } = data || {};
+
+  // Table state similar to ProjectTable & ManageUserPage
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [sortByPriority, setSortByPriority] = useState("none"); // "none" | "asc" | "desc"
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const formatTaskType = (type) => {
     if (!type) return "-";
@@ -104,6 +123,75 @@ export default function UserReportView({ data }) {
     if (type === "อื่นๆ" || type === "Others") return t("taskTypeOthers") || "Others";
     return type;
   };
+
+  // Filter and sort tasks
+  const filteredTasks = useMemo(() => {
+    let result = [...(myTasks || [])];
+
+    // Search query filter (title or project name)
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (task) =>
+          (task.title || task.name || "").toLowerCase().includes(q) ||
+          (task.projectName || "").toLowerCase().includes(q)
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== "all") {
+      result = result.filter((task) => {
+        const s = (task.status || "").toLowerCase();
+        if (statusFilter === "pending") return s === "pending";
+        if (statusFilter === "in progress") return s === "in progress" || s === "in_progress";
+        if (statusFilter === "review") return s === "review" || s === "reviewing";
+        if (statusFilter === "completed") return s === "completed";
+        return true;
+      });
+    }
+
+    // Task Type filter
+    if (typeFilter !== "all") {
+      result = result.filter((task) => {
+        const type = (task.taskType || task.task_type || "").toLowerCase().trim();
+        if (typeFilter === "translate") return type === "แปล" || type.includes("translate");
+        if (typeFilter === "storyboard") return type === "สตอรี่บอร์ด" || type.includes("storyboard") || type.includes("script") || type === "บท";
+        if (typeFilter === "graphicDesign") return type === "ออกแบบ" || type.includes("design") || type.includes("graphic") || type.includes("ภาพ");
+        if (typeFilter === "animation") return type === "อนิเมชัน" || type.includes("animat");
+        if (typeFilter === "videoEdit") return type === "ตัดต่อ" || type.includes("video") || type.includes("ตัดต่อ");
+        if (typeFilter === "development") return type === "พัฒนาโปรแกรม" || type.includes("dev") || type.includes("code") || type.includes("program");
+        if (typeFilter === "others") return type === "อื่นๆ" || type.includes("other");
+        return true;
+      });
+    }
+
+    // Sort by priority
+    if (sortByPriority !== "none") {
+      const priorityOrder = { High: 3, high: 3, Medium: 2, medium: 2, Low: 1, low: 1 };
+      result.sort((a, b) => {
+        const pA = priorityOrder[a.priority] || 2;
+        const pB = priorityOrder[b.priority] || 2;
+        return sortByPriority === "asc" ? pA - pB : pB - pA;
+      });
+    }
+
+    return result;
+  }, [myTasks, searchQuery, statusFilter, typeFilter, sortByPriority]);
+
+  const totalEntries = filteredTasks.length;
+  const totalPages = Math.ceil(totalEntries / entriesPerPage) || 1;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [totalEntries, entriesPerPage]);
+
+  const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const indexOfLastEntry = safeCurrentPage * entriesPerPage;
+  const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
+  const currentEntries = filteredTasks.slice(indexOfFirstEntry, indexOfLastEntry);
+
+  const startEntry = totalEntries === 0 ? 0 : indexOfFirstEntry + 1;
+  const endEntry = Math.min(indexOfLastEntry, totalEntries);
 
   return (
     <div className="space-y-8">
@@ -335,91 +423,319 @@ export default function UserReportView({ data }) {
         </div>
       </div>
 
-      {/* ── Personal Tasks Table ── */}
-      <div className="rounded-3xl p-8 shadow-lg"
-        style={{
-          background: "var(--bg-surface)",
-          border: "1px solid var(--border-surface)",
-          backdropFilter: "blur(16px)",
-        }}
-      >
-        <div className="mb-6">
-          <h3 className="text-lg font-bold flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
-            <span className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
-              style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))" }}
-            >
-              <svg className="w-4 h-4 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-              </svg>
-            </span>
-            {t("myTaskPerformanceSummaryTitle")}
-          </h3>
-          <p className="text-xs mt-1 ml-11" style={{ color: "var(--text-secondary)" }}>{t("myTaskPerformanceSummaryDesc")}</p>
+      {/* ── Personal Tasks Table (Styled like ProjectTable) ── */}
+      <div className="glass-panel rounded-3xl p-6 shadow-2xl overflow-hidden mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <div>
+            <h3 className="text-lg font-bold flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
+              <span className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
+                style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))" }}
+              >
+                <svg className="w-4 h-4 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+              </span>
+              {t("myTaskPerformanceSummaryTitle")}
+            </h3>
+            <p className="text-xs mt-1 ml-11" style={{ color: "var(--text-secondary)" }}>{t("myTaskPerformanceSummaryDesc")}</p>
+          </div>
+
+          {/* Show Entries Dropdown */}
+          <div className="flex items-center gap-2 text-xs text-slate-400 font-semibold self-end md:self-auto">
+            <span>{t("showText") || "Show"}</span>
+            <div className="relative">
+              <select
+                className="bg-slate-900/80 rounded-xl pl-3 pr-8 py-1.5 text-white text-xs focus:outline-none appearance-none font-bold cursor-pointer border border-white/10"
+                value={entriesPerPage}
+                onChange={(e) => {
+                  setEntriesPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+              <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none text-white">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+            <span>{t("entriesPerPageText") || "Entries"}</span>
+          </div>
         </div>
 
+        {/* Filters Bar: Search, Status Filter, Task Type Filter */}
+        <div
+          className="rounded-2xl p-4 mb-6 shadow-sm"
+          style={{
+            background: "var(--bg-surface-hover)",
+            border: "1px solid var(--border-surface)",
+          }}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-center">
+            {/* Search Input */}
+            <div className="lg:col-span-2">
+              <label className="block text-[11px] font-bold mb-1.5" style={{ color: "var(--text-secondary)" }}>
+                {t("searchWork") || "ค้นหางาน"}
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  className="w-full rounded-xl py-2 pl-9 pr-3 text-xs font-medium focus:outline-none transition-all shadow-sm"
+                  style={{
+                    background: "var(--bg-surface)",
+                    color: "var(--text-primary)",
+                    border: "1px solid var(--border-surface)",
+                  }}
+                  placeholder={t("searchWorkPlaceholder") || "ค้นหาด้วยชื่องาน หรือชื่อโปรเจกต์..."}
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                />
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
+              </div>
+            </div>
+
+            {/* Status Filter */}
+            <div>
+              <label className="block text-[11px] font-bold mb-1.5" style={{ color: "var(--text-secondary)" }}>
+                {t("taskStatusLabel") || "สถานะ"}
+              </label>
+              <div className="relative">
+                <select
+                  className="w-full rounded-xl py-2 pl-3 pr-8 text-xs font-medium focus:outline-none transition-all cursor-pointer appearance-none shadow-sm"
+                  style={{
+                    background: "var(--bg-surface)",
+                    color: "var(--text-primary)",
+                    border: "1px solid var(--border-surface)",
+                  }}
+                  value={statusFilter}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <option value="all">{t("allStatus") || "ทุกสถานะ"}</option>
+                  <option value="pending">{t("statusPending") || "รอดำเนินการ"}</option>
+                  <option value="in progress">{t("statusInProgress") || "กำลังดำเนินการ"}</option>
+                  <option value="review">{t("statusReview") || "รอตรวจสอบ"}</option>
+                  <option value="completed">{t("statusCompleted") || "เสร็จสิ้น"}</option>
+                </select>
+                <div className="absolute inset-y-0 right-2.5 flex items-center pointer-events-none text-slate-400">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Task Type Filter */}
+            <div>
+              <label className="block text-[11px] font-bold mb-1.5" style={{ color: "var(--text-secondary)" }}>
+                {t("taskTypeLabel") || "ประเภทงาน"}
+              </label>
+              <div className="relative">
+                <select
+                  className="w-full rounded-xl py-2 pl-3 pr-8 text-xs font-medium focus:outline-none transition-all cursor-pointer appearance-none shadow-sm"
+                  style={{
+                    background: "var(--bg-surface)",
+                    color: "var(--text-primary)",
+                    border: "1px solid var(--border-surface)",
+                  }}
+                  value={typeFilter}
+                  onChange={(e) => {
+                    setTypeFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <option value="all">{t("allTaskTypes") || "ทุกประเภทงาน"}</option>
+                  <option value="translate">{t("taskTypeTranslate") || "แปล"}</option>
+                  <option value="storyboard">{t("taskTypeStoryboard") || "สตอรี่บอร์ด"}</option>
+                  <option value="graphicDesign">{t("taskTypeGraphicDesign") || "ออกแบบ"}</option>
+                  <option value="animation">{t("taskTypeAnimation") || "อนิเมชัน"}</option>
+                  <option value="videoEdit">{t("taskTypeVideoEdit") || "ตัดต่อ"}</option>
+                  <option value="development">{t("taskTypeDevelopment") || "พัฒนาโปรแกรม"}</option>
+                  <option value="others">{t("taskTypeOthers") || "อื่นๆ"}</option>
+                </select>
+                <div className="absolute inset-y-0 right-2.5 flex items-center pointer-events-none text-slate-400">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Table Component */}
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr 
-                className="text-xs uppercase tracking-wider font-bold"
-                style={{
-                  color: "var(--text-secondary)",
-                  borderBottom: "1px solid var(--border-surface)",
-                }}
-              >
-                <th className="py-3.5 px-4">{t("taskNameLabel")}</th>
-                <th className="py-3.5 px-4">{t("taskProjectLabel")}</th>
-                <th className="py-3.5 px-4">{t("taskTypeLabel")}</th>
-                <th className="py-3.5 px-4 text-center">{t("taskStatusLabel")}</th>
-                <th className="py-3.5 px-4 text-center">{t("taskDueDateLabel")}</th>
+              <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-300 font-bold">
+                <th className="py-4 px-6">{t("taskNameLabel") || "TASK NAME"}</th>
+                <th className="py-4 px-6">{t("taskProjectLabel") || "PROJECT"}</th>
+                <th className="py-4 px-6">{t("taskTypeLabel") || "TASK TYPE"}</th>
+                <th
+                  className="py-4 px-6 text-center cursor-pointer select-none"
+                  onClick={() => {
+                    if (sortByPriority === "none") setSortByPriority("desc");
+                    else if (sortByPriority === "desc") setSortByPriority("asc");
+                    else setSortByPriority("none");
+                  }}
+                >
+                  {t("priority") || "PRIORITY"}{" "}
+                  <span>
+                    {sortByPriority === "none"
+                      ? "⇅"
+                      : sortByPriority === "desc"
+                        ? "↓"
+                        : "↑"}
+                  </span>
+                </th>
+                <th className="py-4 px-6 text-center">{t("taskStatusLabel") || "STATUS"}</th>
+                <th className="py-4 px-6 text-center">{t("taskDueDateLabel") || "DUE DATE"}</th>
               </tr>
             </thead>
-            <tbody className="divide-y text-sm" style={{ borderColor: "var(--border-surface)" }}>
-              {myTasks.length > 0 ? (
-                myTasks.map((tItem) => {
-                  const isOverdue = (() => {
-                    const s = (tItem.status || "").toLowerCase();
-                    if (s === "completed") return false;
+            <tbody className="divide-y divide-white/5 text-sm text-slate-200">
+              {currentEntries.length > 0 ? (
+                currentEntries.map((tItem) => {
+                  const statusLower = (tItem.status || "").toLowerCase();
+                  const deadlineStyle = (() => {
                     const due = tItem.due_date || tItem.dueDate;
-                    if (!due) return false;
-                    const d = new Date(due); d.setHours(0,0,0,0);
-                    const today = new Date(); today.setHours(0,0,0,0);
-                    return d < today;
+                    if (!due || statusLower === "completed") return {};
+                    const now = new Date();
+                    const end = new Date(due);
+                    const endDay = new Date(end);
+                    endDay.setHours(23, 59, 59, 999);
+
+                    if (now > endDay) {
+                      return {
+                        backgroundColor: "rgba(244, 63, 94, 0.15)", // light red
+                      };
+                    }
+
+                    const diffTime = endDay.getTime() - now.getTime();
+                    const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+                    if (diffTime >= 0 && diffTime <= threeDaysMs) {
+                      return {
+                        backgroundColor: "rgba(245, 158, 11, 0.15)", // light yellow
+                      };
+                    }
+                    return {};
                   })();
 
+                  const priority = tItem.priority || "Medium";
+                  const priorityClass =
+                    priority === "High"
+                      ? "bg-rose-500/20 text-rose-300"
+                      : priority === "Medium"
+                      ? "bg-amber-500/20 text-amber-300"
+                      : "bg-blue-500/20 text-blue-300";
+
                   return (
-                    <tr key={tItem.id}
-                      className="hover:bg-slate-500/5 transition-colors"
-                    >
-                      <td className="py-3.5 px-4 font-bold" style={{ color: "var(--text-primary)" }}>{tItem.title}</td>
-                      <td className="py-3.5 px-4 text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>{tItem.projectName}</td>
-                      <td className="py-3.5 px-4">
-                        <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold"
+                    <tr key={tItem.id} className="hover:bg-white/5 transition-colors">
+                      {/* Task Name */}
+                      <td className="py-4 px-6 font-bold text-white rounded-l-2xl whitespace-nowrap" style={deadlineStyle}>
+                        {tItem.title || tItem.name || "-"}
+                      </td>
+
+                      {/* Project Name */}
+                      <td className="py-4 px-6 text-slate-300 whitespace-nowrap" style={deadlineStyle}>
+                        {tItem.projectName || "-"}
+                      </td>
+
+                      {/* Task Type */}
+                      <td className="py-4 px-6 whitespace-nowrap" style={deadlineStyle}>
+                        <span
+                          className="px-2.5 py-1 rounded-lg text-[11px] font-bold"
                           style={{ background: "rgba(20,184,166,0.12)", color: "#0d9488" }}
                         >
                           {formatTaskType(tItem.taskType || tItem.task_type)}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-center">
+
+                      {/* Priority Pill */}
+                      <td className="py-4 px-6 text-center whitespace-nowrap" style={deadlineStyle}>
+                        <span className={`inline-block px-3.5 py-1 rounded-full text-xs font-bold ${priorityClass}`}>
+                          {priority}
+                        </span>
+                      </td>
+
+                      {/* Status Pill */}
+                      <td className="py-4 px-6 text-center whitespace-nowrap" style={deadlineStyle}>
                         <StatusPill status={tItem.status} />
                       </td>
-                      <td className="py-3.5 px-4 text-center">
-                        <span className={`text-xs font-bold ${isOverdue ? "text-rose-500" : ""}`} style={!isOverdue ? { color: "var(--text-secondary)" } : {}}>
-                          {formatDate(tItem.due_date || tItem.dueDate, language)}
-                        </span>
+
+                      {/* Due Date */}
+                      <td className="py-4 px-6 text-center text-slate-400 font-mono whitespace-nowrap rounded-r-2xl" style={deadlineStyle}>
+                        {formatDate(tItem.due_date || tItem.dueDate, language)}
                       </td>
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan="5" className="text-center py-12 text-slate-400 text-sm">
-                    {t("noAssignedTasksText")}
+                  <td colSpan="6" className="text-center py-12 text-slate-500">
+                    <div className="text-4xl mb-2">📋</div>
+                    <p className="text-sm font-semibold">{t("noAssignedTasksText") || "No tasks found"}</p>
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Footer */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-white/5 text-xs text-slate-400">
+          <span>
+            {t("showingText") || "Showing"} {totalEntries === 0 ? 0 : startEntry}{" "}
+            {t("toText") || "to"} {endEntry} {t("ofText") || "of"}{" "}
+            {totalEntries} {t("entriesText") || "Entries"}
+          </span>
+
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                disabled={currentPage === 1}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold disabled:opacity-40 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                style={{
+                  background: "var(--bg-surface-hover)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-surface)",
+                }}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              >
+                {t("prevText") || "Previous"}
+              </button>
+              <span
+                className="px-3.5 py-1.5 font-bold rounded-xl text-xs pagination-badge shadow-md"
+                style={{
+                  background: "var(--brand-color)",
+                  color: "#FFFFFF",
+                }}
+              >
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                disabled={currentPage === totalPages}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold disabled:opacity-40 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                style={{
+                  background: "var(--bg-surface-hover)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-surface)",
+                }}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+              >
+                {t("nextText") || "Next"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
