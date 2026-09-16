@@ -159,30 +159,36 @@ export default function TeamLeaderReportView({ data }) {
         />
       </div>
 
-      {/* ── Managed Projects Progress Overview ── */}
+      {/* ── Minimal Managed Projects Progress ── */}
       {tlProjects.length > 0 && (
-        <div className="rounded-3xl p-6 sm:p-8 shadow-lg"
+        <div
+          className="rounded-3xl p-6 shadow-md transition-all"
           style={{
             background: "var(--bg-surface)",
             border: "1px solid var(--border-surface)",
             backdropFilter: "blur(16px)",
           }}
         >
-          <div className="mb-6">
-            <h3 className="text-lg font-bold flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
-              <span className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
-                style={{ background: "linear-gradient(135deg, rgba(20,184,166,0.2), rgba(99,102,241,0.2))" }}
+          <div className="flex items-center justify-between gap-4 mb-4 pb-3 border-b border-white/5">
+            <div className="flex items-center gap-2.5">
+              <span
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-xs"
+                style={{ background: "rgba(20,184,166,0.15)", color: "#14b8a6" }}
               >
                 📁
               </span>
-              {t("managedProjectsProgressTitle") || "Managed Projects Progress"}
-            </h3>
-            <p className="text-xs mt-1 ml-11" style={{ color: "var(--text-secondary)" }}>
-              {t("managedProjectsProgressDesc") || "Monitor status, deadline, and progress meters for your assigned projects"}
-            </p>
+              <div>
+                <h4 className="text-sm font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
+                  {t("managedProjectsProgressTitle") || "Managed Projects Progress"}
+                </h4>
+              </div>
+            </div>
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full" style={{ background: "var(--bg-surface-hover)", color: "var(--text-secondary)" }}>
+              {tlProjects.length} {t("projectsTitle") || "Projects"}
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[365px] overflow-y-auto pr-1.5 pb-1 custom-scrollbar">
             {tlProjects.map((p) => {
               const pTasks = p.tasks || [];
               const pCompleted = pTasks.filter((t) => (t.status || "").toLowerCase() === "completed").length;
@@ -191,39 +197,32 @@ export default function TeamLeaderReportView({ data }) {
               return (
                 <div
                   key={p.id}
-                  className="rounded-2xl p-4 transition-all duration-300 shadow-sm flex flex-col justify-between gap-3"
+                  className="group rounded-2xl p-3.5 transition-all duration-300 hover:-translate-y-0.5"
                   style={{
                     background: "var(--bg-surface-hover)",
                     border: "1px solid var(--border-surface)",
                   }}
                 >
-                  <div className="flex justify-between items-start gap-2">
-                    <div className="min-w-0">
-                      <h4 className="text-sm font-bold truncate" style={{ color: "var(--text-primary)" }}>
+                  <div className="flex items-start justify-between gap-2 mb-2.5">
+                    <div className="min-w-0 flex-1">
+                      <h5 className="text-xs font-bold truncate group-hover:text-teal-400 transition-colors" style={{ color: "var(--text-primary)" }}>
                         {p.name}
-                      </h4>
-                      <p className="text-xs font-medium mt-0.5" style={{ color: "var(--text-secondary)" }}>
-                        {pTasks.length} {t("tasks") || "งาน"} ({pCompleted} {t("completed") || "เสร็จสิ้น"})
-                      </p>
+                      </h5>
+                      <span className="text-[11px] opacity-70" style={{ color: "var(--text-secondary)" }}>
+                        {pCompleted}/{pTasks.length} {t("completed") || "done"}
+                      </span>
                     </div>
                     <StatusPill status={p.status} />
                   </div>
 
-                  <div>
-                    <div className="flex justify-between items-center text-xs font-bold mb-1.5">
-                      <span style={{ color: "var(--text-secondary)" }}>
-                        {t("progress") || "ความคืบหน้า"}
-                      </span>
-                      <span className="font-black tabular-nums" style={{ color: "var(--brand-color)" }}>
-                        {progress}%
-                      </span>
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-[10px] font-bold">
+                      <span style={{ color: "var(--text-secondary)" }}>{t("colProgress") || "Progress"}</span>
+                      <span className="font-mono tabular-nums text-teal-400">{progress}%</span>
                     </div>
-                    <div
-                      className="w-full rounded-full h-2 overflow-hidden"
-                      style={{ background: "var(--border-surface)" }}
-                    >
+                    <div className="w-full rounded-full h-1.5 overflow-hidden" style={{ background: "var(--border-surface)" }}>
                       <div
-                        className="h-full rounded-full transition-all duration-700"
+                        className="h-full rounded-full transition-all duration-500"
                         style={{
                           width: `${progress}%`,
                           background: `linear-gradient(90deg, #14b8a6, ${progress > 70 ? "#10b981" : "#6366f1"})`,

@@ -209,7 +209,7 @@ export default function ReportHeader({
                 }
               >
                 <span className="text-base"></span>{" "}
-                <span>{t("managerReport") || "รายงานผู้จัดการ"}</span>
+                <span>{t("managerReport") || "รายงานผู้จัดการโครงการ"}</span>
               </button>
             )}
 

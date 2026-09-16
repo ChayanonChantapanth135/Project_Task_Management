@@ -32,16 +32,27 @@ function KpiCard({ icon, iconGradient, label, value, valueColor = "", accentColo
 
 /* ── Status Pill ── */
 function StatusPill({ status }) {
+  const { t } = useLanguage();
   const s = (status || "").toLowerCase();
   let bg = "rgba(100,116,139,0.2)"; let color = "#94a3b8"; let dot = "#94a3b8";
-  if (s === "completed") { bg = "rgba(16,185,129,0.15)"; color = "#34d399"; dot = "#10b981"; }
-  else if (s === "in progress" || s === "in_progress") { bg = "rgba(99,102,241,0.15)"; color = "#818cf8"; dot = "#6366f1"; }
-  else if (s === "review" || s === "reviewing") { bg = "rgba(245,158,11,0.15)"; color = "#fbbf24"; dot = "#f59e0b"; }
-  else if (s === "pending") { bg = "rgba(100,116,139,0.15)"; color = "#cbd5e1"; dot = "#94a3b8"; }
+  let text = status;
+  if (s === "completed") {
+    bg = "rgba(16,185,129,0.15)"; color = "#34d399"; dot = "#10b981";
+    text = t("statusCompleted") || "เสร็จสิ้น";
+  } else if (s === "in progress" || s === "in_progress") {
+    bg = "rgba(99,102,241,0.15)"; color = "#818cf8"; dot = "#6366f1";
+    text = t("statusInProgress") || "กำลังดำเนินการ";
+  } else if (s === "review" || s === "reviewing") {
+    bg = "rgba(245,158,11,0.15)"; color = "#fbbf24"; dot = "#f59e0b";
+    text = t("statusReview") || "รอตรวจสอบ";
+  } else if (s === "pending") {
+    bg = "rgba(100,116,139,0.15)"; color = "#cbd5e1"; dot = "#94a3b8";
+    text = t("statusPending") || "รอดำเนินการ";
+  }
   return (
     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold" style={{ background: bg, color }}>
       <span className="w-1.5 h-1.5 rounded-full" style={{ background: dot }} />
-      {status}
+      {text}
     </span>
   );
 }
@@ -49,18 +60,46 @@ function StatusPill({ status }) {
 export default function ManagerReportView({ data }) {
   const { t, language } = useLanguage();
   const { managedProjects, managedTasks, managerCompletionRate } = data;
-  const [projectFilter, setProjectFilter] = React.useState("all"); // "active" | "completed" | "all"
+
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [statusFilter, setStatusFilter] = React.useState("all");
+  const [entriesPerPage, setEntriesPerPage] = React.useState(10);
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [sortByProgress, setSortByProgress] = React.useState("none"); // "none" | "asc" | "desc"
 
   const onTrackCount = managedProjects.filter((p) => (p.status || "").toLowerCase() !== "delayed").length;
-  const activeProjects = managedProjects.filter((p) => (p.status || "").toLowerCase() !== "completed");
-  const completedProjects = managedProjects.filter((p) => (p.status || "").toLowerCase() === "completed");
 
-  const displayedProjects =
-    projectFilter === "active"
-      ? activeProjects
-      : projectFilter === "completed"
-      ? completedProjects
-      : managedProjects;
+  const filteredProjects = React.useMemo(() => {
+    return managedProjects.filter((p) => {
+      const matchSearch =
+        searchQuery === "" ||
+        (p.name && p.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (p.teamLeaderName && p.teamLeaderName.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      let matchStatus = true;
+      if (statusFilter !== "all") {
+        const s = (p.status || "").toLowerCase();
+        if (statusFilter === "in progress") matchStatus = s === "in progress" || s === "in_progress";
+        else if (statusFilter === "review") matchStatus = s === "review" || s === "reviewing";
+        else matchStatus = s === statusFilter;
+      }
+
+      return matchSearch && matchStatus;
+    }).sort((a, b) => {
+      if (sortByProgress === "asc") return (a.progress || 0) - (b.progress || 0);
+      if (sortByProgress === "desc") return (b.progress || 0) - (a.progress || 0);
+      return 0;
+    });
+  }, [managedProjects, searchQuery, statusFilter, sortByProgress]);
+
+  const totalEntries = filteredProjects.length;
+  const totalPages = Math.ceil(totalEntries / entriesPerPage) || 1;
+  const startEntry = (currentPage - 1) * entriesPerPage + 1;
+  const endEntry = Math.min(currentPage * entriesPerPage, totalEntries);
+  const currentEntries = filteredProjects.slice(
+    (currentPage - 1) * entriesPerPage,
+    currentPage * entriesPerPage
+  );
 
   return (
     <div className="space-y-8">
@@ -98,15 +137,15 @@ export default function ManagerReportView({ data }) {
         />
       </div>
 
-      {/* ── Project Progress Cards ── */}
-      <div className="rounded-3xl p-8 shadow-lg"
+      {/* ── Managed Projects Progress Table ── */}
+      <div className="glass-panel rounded-3xl p-6 shadow-2xl overflow-hidden mb-8"
         style={{
           background: "var(--bg-surface)",
           border: "1px solid var(--border-surface)",
           backdropFilter: "blur(16px)",
         }}
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
             <h3 className="text-lg font-bold flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
               <span className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
@@ -116,88 +155,263 @@ export default function ManagerReportView({ data }) {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
               </span>
-              {t("managedProjectsProgressTitle")}
+              {t("managedProjectsProgressTitle") || "Managed Projects Progress"}
             </h3>
-            <p className="text-xs mt-1 ml-11" style={{ color: "var(--text-secondary)" }}>{t("managedProjectsProgressDesc")}</p>
+            <p className="text-xs mt-1 ml-11" style={{ color: "var(--text-secondary)" }}>
+              {t("managedProjectsProgressDesc") || "Monitor status, deadline, and progress meters for your managed projects"}
+            </p>
           </div>
 
-          {/* Filter Tabs */}
-          <div className="flex items-center p-1.5 rounded-2xl gap-1 shrink-0 text-xs" style={{ background: "var(--bg-surface-hover)", border: "1px solid var(--border-surface)" }}>
-            <button
-              onClick={() => setProjectFilter("all")}
-              className={`px-3.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
-                projectFilter === "all"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              {language === "th" ? `ทั้งหมด (${managedProjects.length})` : `All (${managedProjects.length})`}
-            </button>
-            <button
-              onClick={() => setProjectFilter("active")}
-              className={`px-3.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
-                projectFilter === "active"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              {language === "th" ? `กำลังดำเนินการ (${activeProjects.length})` : `Active (${activeProjects.length})`}
-            </button>
-            <button
-              onClick={() => setProjectFilter("completed")}
-              className={`px-3.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
-                projectFilter === "completed"
-                  ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/20"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              {language === "th" ? `เสร็จสิ้น (${completedProjects.length})` : `Completed (${completedProjects.length})`}
-            </button>
+          {/* Show Entries Dropdown */}
+          <div className="flex items-center gap-2 text-xs font-semibold self-end md:self-auto" style={{ color: "var(--text-secondary)" }}>
+            <span>{t("showText") || "Show"}</span>
+            <div className="relative">
+              <select
+                className="rounded-xl pl-3 pr-8 py-1.5 text-xs focus:outline-none appearance-none font-bold cursor-pointer"
+                style={{
+                  background: "var(--bg-surface-hover)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-surface)",
+                }}
+                value={entriesPerPage}
+                onChange={(e) => {
+                  setEntriesPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+              <div 
+                className="absolute inset-y-0 right-2 flex items-center pointer-events-none"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+            <span>{t("entriesPerPageText") || "Entries"}</span>
           </div>
         </div>
 
-        <div className="space-y-4">
-          {displayedProjects.length > 0 ? (
-            displayedProjects.map((p) => (
-              <div key={p.id}
-                className="rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300 shadow-sm"
-                style={{ 
-                  background: "var(--bg-surface-hover)",
-                  border: "1px solid var(--border-surface)"
-                }}
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-1">
-                    <h4 className="text-sm font-bold truncate" style={{ color: "var(--text-primary)" }}>{p.name}</h4>
-                    <StatusPill status={p.status} />
-                  </div>
-                  <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                    {t("colTeamLeader")}:{" "}
-                    <strong style={{ color: "var(--text-primary)" }}>{p.teamLeaderName || "-"}</strong>
-                    <span className="mx-2 opacity-40">|</span>
-                    {t("endDateLabel")}: {formatDate(p.end_date || p.endDate, language)}
-                  </p>
-                </div>
+        {/* Filters Bar: Search & Status Filter */}
+        <div
+          className="rounded-2xl p-4 mb-6 shadow-sm"
+          style={{
+            background: "var(--bg-surface-hover)",
+            border: "1px solid var(--border-surface)",
+          }}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 items-center">
+            {/* Search Input */}
+            <div className="md:col-span-2">
+              <label className="block text-[11px] font-bold mb-1.5" style={{ color: "var(--text-secondary)" }}>
+                {t("searchWork") || "ค้นหาโครงการ"}
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  className="w-full rounded-xl py-2 pl-9 pr-3 text-xs font-medium focus:outline-none transition-all shadow-sm"
+                  style={{
+                    background: "var(--bg-surface)",
+                    color: "var(--text-primary)",
+                    border: "1px solid var(--border-surface)",
+                  }}
+                  placeholder={language === "th" ? "ค้นหาด้วยชื่อโครงการ หรือหัวหน้าทีม..." : "Search by project name or team leader..."}
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                />
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
+              </div>
+            </div>
 
-                <div className="w-full md:w-60 shrink-0">
-                  <div className="flex justify-between items-center text-xs font-bold mb-1.5">
-                    <span style={{ color: "var(--text-secondary)" }}>{t("colProgress")}</span>
-                    <span className="text-teal-500 font-black tabular-nums">{p.progress || 0}%</span>
-                  </div>
-                  <div className="w-full rounded-full h-2 overflow-hidden" style={{ background: "var(--border-surface)" }}>
-                    <div className="h-full rounded-full transition-all duration-700"
-                      style={{
-                        width: `${p.progress || 0}%`,
-                        background: `linear-gradient(90deg, #14b8a6, ${(p.progress || 0) > 70 ? "#10b981" : "#6366f1"})`,
-                      }}
-                    />
-                  </div>
+            {/* Status Filter */}
+            <div>
+              <label className="block text-[11px] font-bold mb-1.5" style={{ color: "var(--text-secondary)" }}>
+                {t("taskStatusLabel") || "สถานะ"}
+              </label>
+              <div className="relative">
+                <select
+                  className="w-full rounded-xl py-2 pl-3 pr-8 text-xs font-medium focus:outline-none transition-all cursor-pointer appearance-none shadow-sm"
+                  style={{
+                    background: "var(--bg-surface)",
+                    color: "var(--text-primary)",
+                    border: "1px solid var(--border-surface)",
+                  }}
+                  value={statusFilter}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <option value="all">{t("allStatus") || "ทุกสถานะ"}</option>
+                  <option value="pending">{t("statusPending") || "รอดำเนินการ"}</option>
+                  <option value="in progress">{t("statusInProgress") || "กำลังดำเนินการ"}</option>
+                  <option value="review">{t("statusReview") || "รอตรวจสอบ"}</option>
+                  <option value="completed">{t("statusCompleted") || "เสร็จสิ้น"}</option>
+                </select>
+                <div className="absolute inset-y-0 right-2.5 flex items-center pointer-events-none text-slate-400">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                  </svg>
                 </div>
               </div>
-            ))
-          ) : (
-            <div className="text-center py-12 text-slate-400 text-sm">
-              {language === "th" ? "ไม่พบโครงการในหมวดหมู่นี้" : "No projects found in this category"}
+            </div>
+          </div>
+        </div>
+
+        {/* Table Component */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-300 font-bold">
+                <th className="py-4 px-6">{t("projectsTitle") || "PROJECT NAME"}</th>
+                <th className="py-4 px-6">{t("colTeamLeader") || "TEAM LEADER"}</th>
+                <th className="py-4 px-6 text-center">{t("taskStatusLabel") || "STATUS"}</th>
+                <th className="py-4 px-6 text-center">{t("endDateLabel") || "DUE DATE"}</th>
+                <th
+                  className="py-4 px-6 text-left cursor-pointer select-none"
+                  onClick={() => {
+                    if (sortByProgress === "none") setSortByProgress("desc");
+                    else if (sortByProgress === "desc") setSortByProgress("asc");
+                    else setSortByProgress("none");
+                  }}
+                >
+                  <div className="flex items-center gap-1">
+                    <span>{t("colProgress") || "PROGRESS"}</span>
+                    <span>
+                      {sortByProgress === "none"
+                        ? "⇅"
+                        : sortByProgress === "desc"
+                          ? "↓"
+                          : "↑"}
+                    </span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5 text-sm text-slate-200">
+              {currentEntries.length > 0 ? (
+                currentEntries.map((p) => {
+                  const pTasks = p.tasks || [];
+                  const pCompleted = pTasks.filter((t) => (t.status || "").toLowerCase() === "completed").length;
+                  const progress = p.progress !== undefined ? p.progress : (pTasks.length > 0 ? Math.round((pCompleted / pTasks.length) * 100) : 0);
+
+                  return (
+                    <tr key={p.id} className="hover:bg-white/5 transition-colors">
+                      {/* Project Name */}
+                      <td className="py-4 px-6 font-bold text-white whitespace-nowrap">
+                        <div>
+                          <span>{p.name}</span>
+                          {pTasks.length > 0 && (
+                            <p className="text-xs font-normal text-slate-400 mt-0.5">
+                              {pTasks.length} {t("tasks") || "งาน"} ({pCompleted} {t("completed") || "เสร็จสิ้น"})
+                            </p>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Team Leader */}
+                      <td className="py-4 px-6 whitespace-nowrap">
+                        <span className="font-bold text-xs" style={{ color: "var(--brand-color)" }}>
+                          {p.teamLeaderName || "-"}
+                        </span>
+                      </td>
+
+                      {/* Status */}
+                      <td className="py-4 px-6 text-center whitespace-nowrap">
+                        <StatusPill status={p.status} />
+                      </td>
+
+                      {/* End Date */}
+                      <td className="py-4 px-6 text-center text-slate-400 font-mono whitespace-nowrap">
+                        {formatDate(p.end_date || p.endDate, language)}
+                      </td>
+
+                      {/* Progress Bar & Rate */}
+                      <td className="py-4 px-6 min-w-[180px]">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 rounded-full h-2 overflow-hidden" style={{ background: "var(--border-surface)" }}>
+                            <div
+                              className="h-full rounded-full transition-all duration-700"
+                              style={{
+                                width: `${progress}%`,
+                                background: `linear-gradient(90deg, #14b8a6, ${progress > 70 ? "#10b981" : "#6366f1"})`,
+                              }}
+                            />
+                          </div>
+                          <span className="text-xs font-black tabular-nums shrink-0" style={{ color: "var(--brand-color)" }}>
+                            {progress}%
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan="5" className="text-center py-12 text-slate-500">
+                    <div className="text-4xl mb-2">📁</div>
+                    <p className="text-sm font-semibold">
+                      {language === "th" ? "ไม่พบโครงการในหมวดหมู่นี้" : "No projects found"}
+                    </p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination Footer */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-white/5 text-xs text-slate-400">
+          <span>
+            {t("showingText") || "Showing"} {totalEntries === 0 ? 0 : startEntry}{" "}
+            {t("toText") || "to"} {endEntry} {t("ofText") || "of"}{" "}
+            {totalEntries} {t("entriesText") || "Entries"}
+          </span>
+
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                disabled={currentPage === 1}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold disabled:opacity-40 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                style={{
+                  background: "var(--bg-surface-hover)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-surface)",
+                }}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              >
+                {t("prevText") || "Previous"}
+              </button>
+              <span
+                className="px-3.5 py-1.5 font-bold rounded-xl text-xs pagination-badge shadow-md"
+                style={{
+                  background: "var(--brand-color)",
+                  color: "#FFFFFF",
+                }}
+              >
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                disabled={currentPage === totalPages}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold disabled:opacity-40 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                style={{
+                  background: "var(--bg-surface-hover)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-surface)",
+                }}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+              >
+                {t("nextText") || "Next"}
+              </button>
             </div>
           )}
         </div>
