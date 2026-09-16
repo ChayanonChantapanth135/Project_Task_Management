@@ -445,7 +445,12 @@ export default function UserReportView({ data }) {
             <span>{t("showText") || "Show"}</span>
             <div className="relative">
               <select
-                className="bg-slate-900/80 rounded-xl pl-3 pr-8 py-1.5 text-white text-xs focus:outline-none appearance-none font-bold cursor-pointer border border-white/10"
+                className="rounded-xl pl-3 pr-8 py-1.5 text-xs focus:outline-none appearance-none font-bold cursor-pointer"
+                style={{
+                  background: "var(--bg-surface-hover)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-surface)",
+                }}
                 value={entriesPerPage}
                 onChange={(e) => {
                   setEntriesPerPage(Number(e.target.value));
@@ -456,7 +461,10 @@ export default function UserReportView({ data }) {
                 <option value={25}>25</option>
                 <option value={50}>50</option>
               </select>
-              <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none text-white">
+              <div 
+                className="absolute inset-y-0 right-2 flex items-center pointer-events-none"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
                 </svg>

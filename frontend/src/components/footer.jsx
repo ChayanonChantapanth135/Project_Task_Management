@@ -10,13 +10,15 @@ const Footer = () => {
       <style>{`
         #site-footer,
         #site-footer p,
-        #site-footer a,
-        #site-footer li,
         #site-footer span {
-          color: #cbd5e1 !important;
+          color: var(--text-secondary) !important;
+        }
+        #site-footer a {
+          color: var(--text-secondary) !important;
+          transition: color 0.2s ease, transform 0.2s ease;
         }
         #site-footer a:hover {
-          color: #2dd4bf !important;
+          color: var(--brand-color) !important;
         }
       `}</style>
       <footer
@@ -42,7 +44,7 @@ const Footer = () => {
             gap: "1rem",
           }}
         >
-          <p style={{ margin: 0, fontWeight: 600, color: "#f8fafc" }}>
+          <p style={{ margin: 0, fontWeight: 600 }}>
             © 2026 RNM Task Management. All rights reserved.
           </p>
 
@@ -61,7 +63,6 @@ const Footer = () => {
                 to="/Home"
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                 style={{
-                  color: "#e2e8f0",
                   textDecoration: "none",
                   fontWeight: 600,
                 }}
@@ -74,7 +75,6 @@ const Footer = () => {
                 to="/Contract"
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                 style={{
-                  color: "#e2e8f0",
                   textDecoration: "none",
                   fontWeight: 600,
                 }}
@@ -87,7 +87,6 @@ const Footer = () => {
                 to="/About"
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                 style={{
-                  color: "#e2e8f0",
                   textDecoration: "none",
                   fontWeight: 600,
                 }}

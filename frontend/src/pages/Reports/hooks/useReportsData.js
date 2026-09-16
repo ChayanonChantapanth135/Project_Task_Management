@@ -139,17 +139,42 @@ export const useReportsData = () => {
       ? Math.round((managedCompletedCount / managedTasks.length) * 100)
       : 0;
 
-  // --- Team Leader Metrics ---
+  // --- Team Leader Metrics (โครงการที่ user เป็น Team Leader หรือกรณีเป็น Manager) ---
   const tlProjects = projects.filter((p) => {
+    if (!currentUser) return false;
     if (isAdmin) return true;
-    return (
-      p.teamLeaderId === currentUser?.id ||
-      p.team_leader_id === currentUser?.id ||
-      p.teamLeaderName === currentUser?.fullname ||
-      p.teamLeaderName === currentUser?.name ||
-      p.created_by === currentUser?.id
-    );
+
+    // ถ้าเป็น Manager ให้เห็นโครงการที่ตนเองสร้าง/ดูแล หรือเป็น Team Leader
+    if (isManager) {
+      return (
+        p.created_by === currentUser.id ||
+        p.manager_id === currentUser.id ||
+        p.teamLeaderId === currentUser.id ||
+        p.team_leader_id === currentUser.id ||
+        (Array.isArray(p.teamLeaders) && p.teamLeaders.some((tl) => tl.id === currentUser.id || tl.user_id === currentUser.id))
+      );
+    }
+
+    // สำหรับ Staff ทั่วไป: เฉพาะโครงการที่ตนเองได้รับมอบหมายเป็น Team Leader เท่านั้น
+    const isTlById =
+      p.teamLeaderId === currentUser.id ||
+      p.team_leader_id === currentUser.id;
+    const isTlByName =
+      (currentUser.fullname && p.teamLeaderName === currentUser.fullname) ||
+      (currentUser.name && p.teamLeaderName === currentUser.name);
+    const isTlInList =
+      Array.isArray(p.teamLeaders) &&
+      p.teamLeaders.some(
+        (tl) =>
+          tl.id === currentUser.id ||
+          tl.user_id === currentUser.id ||
+          (currentUser.fullname && (tl.name === currentUser.fullname || tl.fullname === currentUser.fullname))
+      );
+
+    return isTlById || isTlByName || isTlInList;
   });
+
+  const hasTlExperience = isTeamLeader || isManager || tlProjects.length > 0;
 
   const tlTasks = [];
   tlProjects.forEach((p) => {
@@ -158,6 +183,8 @@ export const useReportsData = () => {
         tlTasks.push({
           ...t,
           taskType: t.taskType || t.task_type || "",
+          projectName: p.name,
+          projectDueDate: p.end_date,
         })
       );
     }
@@ -264,11 +291,13 @@ export const useReportsData = () => {
   };
 
   // Export to Excel helper
-  const exportToExcel = () => {
+  const exportToExcel = (customMode) => {
     let exportData = [];
     let fileName = "Report.xlsx";
 
-    if (isAdmin) {
+    const mode = customMode || (isAdmin ? "admin" : isManager ? "manager" : isTeamLeader ? "team_leader" : "user");
+
+    if (mode === "admin" && isAdmin) {
       fileName = "System_Analytics_Report.xlsx";
       exportData = userWorkloadList.map((item) => ({
         User: item.fullname,
@@ -278,7 +307,7 @@ export const useReportsData = () => {
         "Completed Tasks": item.completedCount,
         "Completion Rate (%)": `${item.rate}%`,
       }));
-    } else if (isManager) {
+    } else if (mode === "manager" && isManager) {
       fileName = "Project_Manager_Report.xlsx";
       exportData = managedProjects.map((p) => ({
         "Project Name": p.name,
@@ -287,7 +316,7 @@ export const useReportsData = () => {
         Status: p.status,
         "End Date": formatDate(p.end_date || p.endDate, language),
       }));
-    } else if (isTeamLeader) {
+    } else if (mode === "team_leader") {
       fileName = "Team_Leader_Report.xlsx";
       exportData = tlTasks.map((t) => ({
         "Task Title": t.title,
@@ -325,6 +354,7 @@ export const useReportsData = () => {
     isAdmin,
     isManager,
     isTeamLeader,
+    hasTlExperience,
     isUser,
     userRole,
     refreshData: loadData,

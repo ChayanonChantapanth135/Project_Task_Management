@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { useLanguage } from "../../lib/LanguageContext";
@@ -15,6 +15,7 @@ import UserReportView from "./components/UserReportView";
 /**
  * คอมโพเนนต์หน้ารายงานโครงการและวิเคราะห์สถิติ (Reports & Analytics Page Component)
  * - สรุปข้อมูลวิเคราะห์ สถิติ และประสิทธิภาพการทำงาน ปรับการแสดงผลตามระดับสิทธิ์ของผู้ใช้งาน (Role-Based View)
+ * - รองรับปุ่มสลับมุมมอง (View Switcher) สำหรับ Project Manager และผู้ใช้ที่มีประสบการณ์เป็น Team Leader
  */
 const ReportsPage = () => {
   const { t } = useLanguage();
@@ -24,10 +25,35 @@ const ReportsPage = () => {
     isAdmin,
     isManager,
     isTeamLeader,
+    hasTlExperience,
     refreshData,
     exportToExcel,
     printReport,
   } = reportData;
+
+  // กำหนดรายการมุมมองที่สามารถเข้าถึงได้ตามระดับสิทธิ์และประสบการณ์
+  const availableViews = useMemo(() => {
+    if (isAdmin) return ["admin", "manager", "team_leader", "user"];
+    if (isManager) return ["manager", "team_leader", "user"];
+    if (hasTlExperience) return isTeamLeader ? ["team_leader", "user"] : ["user", "team_leader"];
+    return ["user"];
+  }, [isAdmin, isManager, isTeamLeader, hasTlExperience]);
+
+  // กำหนดสถานะมุมมองเริ่มต้น
+  const [reportViewMode, setReportViewMode] = useState(() => {
+    if (isAdmin) return "admin";
+    if (isManager) return "manager";
+    if (isTeamLeader) return "team_leader";
+    return "user";
+  });
+
+  useEffect(() => {
+    if (!availableViews.includes(reportViewMode)) {
+      setReportViewMode(availableViews[0] || "user");
+    }
+  }, [availableViews, reportViewMode]);
+
+  const canToggleView = availableViews.length > 1;
 
   // Animation Refs
   const pageRef = useRef(null);
@@ -53,21 +79,24 @@ const ReportsPage = () => {
         );
       }
     }
-  }, { scope: pageRef, dependencies: [loading] });
+  }, { scope: pageRef, dependencies: [loading, reportViewMode] });
 
-  // Role titles & descriptions
+  // Role titles & descriptions dynamically adjusted based on active view mode
   let roleTitle = t("reportsHeaderTitle");
   let roleDesc = t("reportsHeaderDesc");
 
-  if (isAdmin) {
+  if (reportViewMode === "admin") {
     roleTitle = t("adminReportTitle");
     roleDesc = t("adminReportDesc");
-  } else if (isManager) {
+  } else if (reportViewMode === "manager") {
     roleTitle = t("managerReportTitle");
     roleDesc = t("managerReportDesc");
-  } else if (isTeamLeader) {
+  } else if (reportViewMode === "team_leader") {
     roleTitle = t("teamLeaderReportTitle");
     roleDesc = t("teamLeaderReportDesc");
+  } else if (reportViewMode === "user") {
+    roleTitle = t("myTaskPerformanceSummaryTitle") || t("reportsHeaderTitle");
+    roleDesc = t("myTaskPerformanceSummaryDesc") || t("reportsHeaderDesc");
   }
 
   return (
@@ -86,9 +115,13 @@ const ReportsPage = () => {
           <ReportHeader
             roleTitle={roleTitle}
             roleDesc={roleDesc}
-            onExportExcel={exportToExcel}
+            onExportExcel={() => exportToExcel(reportViewMode)}
             onPrint={printReport}
             onRefresh={refreshData}
+            canToggleView={canToggleView && !loading}
+            availableViews={availableViews}
+            reportViewMode={reportViewMode}
+            setReportViewMode={setReportViewMode}
           />
         </div>
 
@@ -117,12 +150,10 @@ const ReportsPage = () => {
           </div>
         ) : (
           <div ref={contentRef}>
-            {isAdmin && <AdminReportView data={reportData} />}
-            {isManager && <ManagerReportView data={reportData} />}
-            {isTeamLeader && <TeamLeaderReportView data={reportData} />}
-            {!isAdmin && !isManager && !isTeamLeader && (
-              <UserReportView data={reportData} />
-            )}
+            {reportViewMode === "admin" && <AdminReportView data={reportData} />}
+            {reportViewMode === "manager" && <ManagerReportView data={reportData} />}
+            {reportViewMode === "team_leader" && <TeamLeaderReportView data={reportData} />}
+            {reportViewMode === "user" && <UserReportView data={reportData} />}
           </div>
         )}
       </main>
