@@ -1,6 +1,46 @@
 import React, { useState } from "react";
 import { useLanguage } from "../../../lib/LanguageContext";
 import { API_URL } from "../../../config";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area,
+} from "recharts";
+
+/* ── Custom Tooltip for Recharts ── */
+const CustomChartTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div
+        className="px-3.5 py-2.5 rounded-xl shadow-2xl text-xs font-bold border-0"
+        style={{
+          backgroundColor: "var(--bg-surface)",
+          color: "var(--text-primary)",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.4)",
+        }}
+      >
+        <p className="mb-1 text-slate-400 font-semibold">{label || payload[0]?.name}</p>
+        {payload.map((item, idx) => (
+          <p key={idx} className="text-xs font-extrabold flex items-center justify-between gap-4 py-0.5" style={{ color: item.color || item.fill }}>
+            <span>{item.name}:</span>
+            <span className="font-mono">{item.value}</span>
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 /* ── Reusable: Animated KPI Card ── */
 function KpiCard({
@@ -491,25 +531,25 @@ export default function AdminReportView({ data }) {
             ].map((item, i) => (
               <div
                 key={i}
-                className="rounded-2xl p-5 text-center transition-all duration-300 hover:-translate-y-1"
+                className="rounded-2xl p-4 text-center transition-all duration-300 hover:-translate-y-1"
                 style={{ background: item.bg }}
               >
                 <div
-                  className="w-2 h-2 rounded-full mx-auto mb-3"
+                  className="w-2 h-2 rounded-full mx-auto mb-2"
                   style={{
                     background: item.color,
                     boxShadow: `0 0 8px ${item.color}`,
                   }}
                 />
                 <p
-                  className="text-2xl font-black"
+                  className="text-xl font-black"
                   style={{ color: item.color }}
                 >
                   {item.count}
                 </p>
                 <p
-                  className="text-[10px] font-bold uppercase tracking-wider mt-1"
-                  style={{ color: item.color, opacity: 0.7 }}
+                  className="text-[10px] font-bold uppercase tracking-wider mt-0.5"
+                  style={{ color: item.color, opacity: 0.8 }}
                 >
                   {item.label}
                 </p>
@@ -517,12 +557,37 @@ export default function AdminReportView({ data }) {
             ))}
           </div>
 
+          {/* Recharts BarChart for Project Statuses */}
+          <div className="h-44 w-full mb-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={[
+                  { name: t("pending") || "Pending", count: projectStatusCounts.pending, fill: "#94a3b8" },
+                  { name: t("inProgress") || "In Progress", count: projectStatusCounts.inProgress, fill: "#6366f1" },
+                  { name: t("reviewing") || "Review", count: projectStatusCounts.review, fill: "#f59e0b" },
+                  { name: t("completed") || "Completed", count: projectStatusCounts.completed, fill: "#10b981" },
+                ]}
+                margin={{ top: 5, right: 10, left: -25, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" opacity={0.15} vertical={false} />
+                <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={11} tickLine={false} />
+                <YAxis allowDecimals={false} stroke="var(--text-secondary)" fontSize={11} tickLine={false} />
+                <Tooltip content={<CustomChartTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+                <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+                  {["#94a3b8", "#6366f1", "#f59e0b", "#10b981"].map((c, i) => (
+                    <Cell key={`bar-admin-${i}`} fill={c} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
           {/* Project Health */}
-          <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
+          <div className="space-y-2.5 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
             {projects.map((p) => (
               <div
                 key={p.id}
-                className="rounded-2xl p-4 flex items-center justify-between gap-4 transition-all duration-300 shadow-sm"
+                className="rounded-2xl p-3.5 flex items-center justify-between gap-4 transition-all duration-300 shadow-sm"
                 style={{
                   background: "var(--bg-surface-hover)",
                   border: "1px solid var(--border-surface)",

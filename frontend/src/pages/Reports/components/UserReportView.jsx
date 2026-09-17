@@ -1,6 +1,43 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useLanguage } from "../../../lib/LanguageContext";
 import { formatDate } from "../../../lib/dateUtils";
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from "recharts";
+
+/* ── Custom Tooltip for Recharts ── */
+const CustomChartTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0];
+    return (
+      <div
+        className="px-3.5 py-2.5 rounded-xl shadow-2xl text-xs font-bold border-0"
+        style={{
+          backgroundColor: "var(--bg-surface)",
+          color: "var(--text-primary)",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.4)",
+        }}
+      >
+        <p className="mb-1 text-slate-400 font-semibold">{label || data.name}</p>
+        <p className="text-sm font-extrabold flex items-center gap-2" style={{ color: data.color || data.payload?.fill }}>
+          <span>{data.name}:</span>
+          <span>{data.value}</span>
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
 
 /* ── Reusable KPI Card ── */
 function KpiCard({ icon, iconGradient, label, value, valueColor = "", accentColor }) {
@@ -230,17 +267,17 @@ export default function UserReportView({ data }) {
         />
       </div>
 
-      {/* ── Personal Rate Ring + Task Type Breakdown ── */}
+      {/* ── Personal Rate Ring + Recharts Charts ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Ring */}
-        <div className="rounded-3xl p-8 flex flex-col justify-between shadow-lg"
+        {/* Status Breakdown Donut Chart */}
+        <div className="rounded-3xl p-6 flex flex-col justify-between shadow-lg"
           style={{
             background: "var(--bg-surface)",
             border: "1px solid var(--border-surface)",
             backdropFilter: "blur(16px)",
           }}
         >
-          <div className="mb-4">
+          <div className="mb-2">
             <h3 className="text-lg font-bold flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
               <span className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
                 style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))" }}
@@ -249,14 +286,53 @@ export default function UserReportView({ data }) {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
                 </svg>
               </span>
-              {t("personalWorkRateTitle")}
+              {t("personalWorkRateTitle") || "Task Status Breakdown"}
             </h3>
             <p className="text-xs mt-1 ml-11" style={{ color: "var(--text-secondary)" }}>{t("personalWorkRateDesc")}</p>
           </div>
 
-          <CompletionRing rate={myCompletionRate} />
+          <div className="h-56 w-full flex items-center justify-center relative">
+            {myTasks.length === 0 ? (
+              <p className="text-xs text-slate-500 font-bold">No Task Data</p>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Tooltip content={<CustomChartTooltip />} />
+                  <Pie
+                    data={[
+                      { name: t("statusCompleted") || "Completed", value: myCompletedCount, fill: "#10b981" },
+                      { name: t("statusInProgress") || "In Progress", value: myInProgressCount, fill: "#6366f1" },
+                      { name: t("statusPending") || "Pending", value: myPendingCount, fill: "#94a3b8" },
+                      { name: t("overdueTasks") || "Overdue", value: myOverdueCount, fill: "#ef4444" },
+                    ].filter(d => d.value > 0)}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={80}
+                    paddingAngle={4}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {[
+                      { fill: "#10b981" },
+                      { fill: "#6366f1" },
+                      { fill: "#94a3b8" },
+                      { fill: "#ef4444" },
+                    ].map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} stroke="none" />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+            {/* Center percentage badge */}
+            <div className="absolute flex flex-col items-center pointer-events-none">
+              <span className="text-2xl font-black" style={{ color: "var(--text-primary)" }}>{myCompletionRate}%</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-secondary)" }}>{t("completed") || "Rate"}</span>
+            </div>
+          </div>
 
-          <div className="w-full rounded-full h-2 overflow-hidden mt-6" style={{ background: "var(--border-surface)" }}>
+          <div className="w-full rounded-full h-2 overflow-hidden mt-2" style={{ background: "var(--border-surface)" }}>
             <div className="h-full rounded-full transition-all duration-1000"
               style={{
                 width: `${myCompletionRate}%`,
@@ -266,15 +342,15 @@ export default function UserReportView({ data }) {
           </div>
         </div>
 
-        {/* Task Type Breakdown */}
-        <div className="lg:col-span-2 rounded-3xl p-8 flex flex-col justify-between shadow-lg"
+        {/* Task Type Breakdown with Recharts BarChart */}
+        <div className="lg:col-span-2 rounded-3xl p-6 flex flex-col justify-between shadow-lg"
           style={{
             background: "var(--bg-surface)",
             border: "1px solid var(--border-surface)",
             backdropFilter: "blur(16px)",
           }}
         >
-          <div className="mb-6">
+          <div className="mb-2">
             <h3 className="text-lg font-bold flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
               <span className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
                 style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))" }}
@@ -288,138 +364,39 @@ export default function UserReportView({ data }) {
             <p className="text-xs mt-1 ml-11" style={{ color: "var(--text-secondary)" }}>{t("workloadDistributionTypeDesc")}</p>
           </div>
 
-          {(() => {
-            const allTypes = [
-              {
-                label: t("taskTypeTranslate"),
-                count: myTaskTypeCounts.translate || 0,
-                icon: (
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
-                  </svg>
-                ),
-                color: "#2dd4bf",
-                bg: "rgba(20,184,166,0.08)",
-                borderColor: "rgba(20,184,166,0.2)",
-              },
-              {
-                label: t("taskTypeStoryboard"),
-                count: myTaskTypeCounts.storyboard || 0,
-                icon: (
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                  </svg>
-                ),
-                color: "#f59e0b",
-                bg: "rgba(245,158,11,0.08)",
-                borderColor: "rgba(245,158,11,0.2)",
-              },
-              {
-                label: t("taskTypeGraphicDesign"),
-                count: myTaskTypeCounts.graphicDesign || 0,
-                icon: (
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                  </svg>
-                ),
-                color: "#ec4899",
-                bg: "rgba(236,72,153,0.08)",
-                borderColor: "rgba(236,72,153,0.2)",
-              },
-              {
-                label: t("taskTypeAnimation"),
-                count: myTaskTypeCounts.animation || 0,
-                icon: (
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                ),
-                color: "#06b6d4",
-                bg: "rgba(6,182,212,0.08)",
-                borderColor: "rgba(6,182,212,0.2)",
-              },
-              {
-                label: t("taskTypeVideoEdit"),
-                count: myTaskTypeCounts.videoEdit || 0,
-                icon: (
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                  </svg>
-                ),
-                color: "#818cf8",
-                bg: "rgba(99,102,241,0.08)",
-                borderColor: "rgba(99,102,241,0.2)",
-              },
-              {
-                label: t("taskTypeDevelopment"),
-                count: myTaskTypeCounts.development || 0,
-                icon: (
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                  </svg>
-                ),
-                color: "#10b981",
-                bg: "rgba(16,185,129,0.08)",
-                borderColor: "rgba(16,185,129,0.2)",
-              },
-              {
-                label: t("taskTypeOthers"),
-                count: myTaskTypeCounts.others || 0,
-                icon: (
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
-                  </svg>
-                ),
-                color: "#c084fc",
-                bg: "rgba(168,85,247,0.08)",
-                borderColor: "rgba(168,85,247,0.2)",
-              },
-            ];
-
-            const activeTypes = allTypes.filter((item) => item.count > 0);
-            const displayTypes = activeTypes.length > 0 ? activeTypes : allTypes;
-
-            return (
-              <div
-                className={`grid gap-5 ${
-                  displayTypes.length === 1
-                    ? "grid-cols-1 max-w-xs mx-auto"
-                    : displayTypes.length === 2
-                    ? "grid-cols-1 sm:grid-cols-2 max-w-lg mx-auto"
-                    : displayTypes.length === 3
-                    ? "grid-cols-1 sm:grid-cols-3"
-                    : displayTypes.length === 4
-                    ? "grid-cols-2 sm:grid-cols-4"
-                    : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
-                }`}
+          {/* Bar Chart for Task Types */}
+          <div className="h-56 w-full mt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={[
+                  { name: t("taskTypeTranslate") || "Translate", count: myTaskTypeCounts.translate || 0, fill: "#2dd4bf" },
+                  { name: t("taskTypeStoryboard") || "Storyboard", count: myTaskTypeCounts.storyboard || 0, fill: "#f59e0b" },
+                  { name: t("taskTypeGraphicDesign") || "Design", count: myTaskTypeCounts.graphicDesign || 0, fill: "#ec4899" },
+                  { name: t("taskTypeAnimation") || "Animation", count: myTaskTypeCounts.animation || 0, fill: "#06b6d4" },
+                  { name: t("taskTypeVideoEdit") || "Video", count: myTaskTypeCounts.videoEdit || 0, fill: "#818cf8" },
+                  { name: t("taskTypeDevelopment") || "Dev", count: myTaskTypeCounts.development || 0, fill: "#10b981" },
+                ]}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
               >
-                {displayTypes.map((item, i) => (
-                  <div
-                    key={i}
-                    className="rounded-2xl p-6 text-center transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between items-center shadow-sm"
-                    style={{ background: item.bg, border: `1px solid ${item.borderColor}` }}
-                  >
-                    <div
-                      className="w-12 h-12 rounded-2xl mb-4 flex items-center justify-center"
-                      style={{ color: item.color, background: `${item.bg}` }}
-                    >
-                      {item.icon}
-                    </div>
-                    <p className="text-3xl font-black" style={{ color: item.color }}>
-                      {item.count}
-                    </p>
-                    <p
-                      className="text-xs font-bold uppercase tracking-wider mt-2"
-                      style={{ color: item.color, opacity: 0.85 }}
-                    >
-                      {item.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            );
-          })()}
+                <CartesianGrid strokeDasharray="3 3" opacity={0.15} vertical={false} />
+                <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={11} tickLine={false} />
+                <YAxis allowDecimals={false} stroke="var(--text-secondary)" fontSize={11} tickLine={false} />
+                <Tooltip content={<CustomChartTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+                <Bar dataKey="count" radius={[8, 8, 0, 0]}>
+                  {[
+                    "#2dd4bf",
+                    "#f59e0b",
+                    "#ec4899",
+                    "#06b6d4",
+                    "#818cf8",
+                    "#10b981",
+                  ].map((color, idx) => (
+                    <Cell key={`bar-cell-${idx}`} fill={color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 

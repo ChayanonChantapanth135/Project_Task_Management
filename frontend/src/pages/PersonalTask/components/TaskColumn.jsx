@@ -7,15 +7,15 @@ const TaskColumn = ({ column, tasks, onAddTask, onEditTask, onDeleteTask }) => {
   const { t } = useLanguage();
 
   return (
-    <div 
-      className="rounded-2xl p-3.5 flex flex-col shadow-xl h-[560px] transition-all"
+    <div
+      className="rounded-2xl p-3.5 flex flex-col shadow-xl h-[620px] transition-all"
       style={{
         backgroundColor: "var(--bg-surface)",
         border: "1px solid var(--border-surface)",
       }}
     >
       {/* Header ของคอลัมน์ */}
-      <div 
+      <div
         className="group flex items-center justify-between mb-2 pb-2 flex-shrink-0"
         style={{ borderBottom: "1px solid var(--border-surface)" }}
       >
@@ -24,10 +24,13 @@ const TaskColumn = ({ column, tasks, onAddTask, onEditTask, onDeleteTask }) => {
             className="w-3 h-3 rounded-full inline-block shadow-sm"
             style={{ backgroundColor: column.color || "var(--brand-color)" }}
           ></span>
-          <h3 className="text-sm font-bold tracking-wider" style={{ color: "var(--text-primary)" }}>
+          <h3
+            className="text-sm font-bold tracking-wider"
+            style={{ color: "var(--text-primary)" }}
+          >
             {t(column.title) || column.title}
           </h3>
-          <span 
+          <span
             className="text-xs font-semibold px-2 py-0.5 rounded-full"
             style={{
               backgroundColor: "var(--bg-surface-hover)",

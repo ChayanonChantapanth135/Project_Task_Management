@@ -1,6 +1,44 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useLanguage } from "../../../lib/LanguageContext";
 import { formatDate } from "../../../lib/dateUtils";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+
+/* ── Custom Tooltip for Recharts ── */
+const CustomChartTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div
+        className="px-3.5 py-2.5 rounded-xl shadow-2xl text-xs font-bold border-0"
+        style={{
+          backgroundColor: "var(--bg-surface)",
+          color: "var(--text-primary)",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.4)",
+        }}
+      >
+        <p className="mb-1 text-slate-400 font-semibold">{label || payload[0]?.name}</p>
+        {payload.map((item, idx) => (
+          <p key={idx} className="text-xs font-extrabold flex items-center justify-between gap-4 py-0.5" style={{ color: item.color || item.fill }}>
+            <span>{item.name}:</span>
+            <span className="font-mono">{item.value}</span>
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 /* ── Reusable KPI Card ── */
 function KpiCard({
@@ -263,6 +301,211 @@ export default function TeamLeaderReportView({ data }) {
           valueColor="text-emerald-400"
           accentColor="linear-gradient(90deg, #10b981, #34d399)"
         />
+      </div>
+
+      {/* ── Recharts Analytics for Team Leader: Workload by Member & Team Task Status ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Team Task Status Donut */}
+        <div
+          className="rounded-3xl p-6 flex flex-col justify-between shadow-lg"
+          style={{
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border-surface)",
+            backdropFilter: "blur(16px)",
+          }}
+        >
+          <div className="mb-2">
+            <h3
+              className="text-lg font-bold flex items-center gap-3"
+              style={{ color: "var(--text-primary)" }}
+            >
+              <span
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(20,184,166,0.2), rgba(99,102,241,0.2))",
+                }}
+              >
+                📊
+              </span>
+              {t("teamStatusDistribution") || "Team Task Status"}
+            </h3>
+            <p className="text-xs mt-1 ml-11" style={{ color: "var(--text-secondary)" }}>
+              {t("teamStatusDistributionDesc") || "Breakdown of tasks assigned across your team"}
+            </p>
+          </div>
+
+          <div className="h-56 w-full flex items-center justify-center relative">
+            {tlTasks.length === 0 ? (
+              <p className="text-xs text-slate-500 font-bold">No Task Data</p>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Tooltip content={<CustomChartTooltip />} />
+                  <Pie
+                    data={[
+                      {
+                        name: t("statusCompleted") || "Completed",
+                        value: tlTasks.filter((t) => (t.status || "").toLowerCase() === "completed").length,
+                        fill: "#10b981",
+                      },
+                      {
+                        name: t("statusInProgress") || "In Progress",
+                        value: tlTasks.filter((t) => {
+                          const s = (t.status || "").toLowerCase();
+                          return s === "in progress" || s === "in_progress";
+                        }).length,
+                        fill: "#6366f1",
+                      },
+                      {
+                        name: t("statusReview") || "Review",
+                        value: tlTasks.filter((t) => {
+                          const s = (t.status || "").toLowerCase();
+                          return s === "review" || s === "reviewing";
+                        }).length,
+                        fill: "#f59e0b",
+                      },
+                      {
+                        name: t("statusPending") || "Pending",
+                        value: tlTasks.filter((t) => (t.status || "").toLowerCase() === "pending").length,
+                        fill: "#94a3b8",
+                      },
+                      {
+                        name: t("overdueTasks") || "Overdue",
+                        value: tlOverdueCount,
+                        fill: "#ef4444",
+                      },
+                    ].filter((d) => d.value > 0)}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={80}
+                    paddingAngle={4}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {[
+                      "#10b981",
+                      "#6366f1",
+                      "#f59e0b",
+                      "#94a3b8",
+                      "#ef4444",
+                    ].map((fill, idx) => (
+                      <Cell key={`tl-pie-${idx}`} fill={fill} stroke="none" />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+            <div className="absolute flex flex-col items-center pointer-events-none">
+              <span className="text-2xl font-black" style={{ color: "var(--text-primary)" }}>
+                {tlCompletionRate}%
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-secondary)" }}>
+                {t("completed") || "Success"}
+              </span>
+            </div>
+          </div>
+
+          <div className="w-full rounded-full h-2 overflow-hidden mt-2" style={{ background: "var(--border-surface)" }}>
+            <div
+              className="h-full rounded-full transition-all duration-1000"
+              style={{
+                width: `${tlCompletionRate}%`,
+                background: "linear-gradient(90deg, #10b981, #14b8a6)",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Member Workload Bar Chart */}
+        <div
+          className="lg:col-span-2 rounded-3xl p-6 flex flex-col justify-between shadow-lg"
+          style={{
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border-surface)",
+            backdropFilter: "blur(16px)",
+          }}
+        >
+          <div className="mb-2">
+            <h3
+              className="text-lg font-bold flex items-center gap-3"
+              style={{ color: "var(--text-primary)" }}
+            >
+              <span
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))",
+                }}
+              >
+                👥
+              </span>
+              {t("teamMemberWorkloadTitle") || "Member Task Completion & Workload"}
+            </h3>
+            <p className="text-xs mt-1 ml-11" style={{ color: "var(--text-secondary)" }}>
+              {t("teamMemberWorkloadDesc") || "Comparison of total tasks vs completed tasks per team member"}
+            </p>
+          </div>
+
+          <div className="h-56 w-full mt-2 overflow-x-auto overflow-y-hidden custom-scrollbar">
+            {(() => {
+              // Group tasks by assignee
+              const memberMap = {};
+              tlTasks.forEach((t) => {
+                const name = t.assigned_to_name || "Unassigned";
+                if (!memberMap[name]) {
+                  memberMap[name] = { name, total: 0, completed: 0 };
+                }
+                memberMap[name].total += 1;
+                if ((t.status || "").toLowerCase() === "completed") {
+                  memberMap[name].completed += 1;
+                }
+              });
+
+              const memberData = Object.values(memberMap);
+
+              if (memberData.length === 0) {
+                return (
+                  <div className="h-full flex items-center justify-center">
+                    <p className="text-xs text-slate-500 font-bold">No Member Assignment Data</p>
+                  </div>
+                );
+              }
+
+              const dynamicWidth = Math.max(memberData.length * 90, 420);
+
+              return (
+                <div style={{ minWidth: `${dynamicWidth}px`, width: "100%", height: "100%" }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={memberData}
+                      margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.15} vertical={false} />
+                      <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={11} tickLine={false} />
+                      <YAxis allowDecimals={false} stroke="var(--text-secondary)" fontSize={11} tickLine={false} />
+                      <Tooltip content={<CustomChartTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+                      <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "6px" }} />
+                      <Bar
+                        dataKey="total"
+                        name={t("assignedTasksLabel") || "Assigned"}
+                        fill="#6366f1"
+                        radius={[6, 6, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="completed"
+                        name={t("completedTasksLabel") || "Completed"}
+                        fill="#10b981"
+                        radius={[6, 6, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
       </div>
 
       {/* ── Minimal Managed Projects Progress ── */}

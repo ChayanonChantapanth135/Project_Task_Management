@@ -1,6 +1,44 @@
 import React from "react";
 import { useLanguage } from "../../../lib/LanguageContext";
 import { formatDate } from "../../../lib/dateUtils";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+
+/* ── Custom Tooltip for Recharts ── */
+const CustomChartTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div
+        className="px-3.5 py-2.5 rounded-xl shadow-2xl text-xs font-bold border-0"
+        style={{
+          backgroundColor: "var(--bg-surface)",
+          color: "var(--text-primary)",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.4)",
+        }}
+      >
+        <p className="mb-1 text-slate-400 font-semibold">{label || payload[0]?.name}</p>
+        {payload.map((item, idx) => (
+          <p key={idx} className="text-xs font-extrabold flex items-center justify-between gap-4 py-0.5" style={{ color: item.color || item.fill }}>
+            <span>{item.name}:</span>
+            <span className="font-mono">{item.value}</span>
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 /* ── Reusable KPI Card ── */
 function KpiCard({
@@ -234,6 +272,213 @@ export default function ManagerReportView({ data }) {
           valueColor="text-cyan-300"
           accentColor="linear-gradient(90deg, #06b6d4, #22d3ee)"
         />
+      </div>
+
+      {/* ── Recharts Analytics for Project Manager: Project Statuses & Progress ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Project Status Donut Chart */}
+        <div
+          className="rounded-3xl p-6 flex flex-col justify-between shadow-lg"
+          style={{
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border-surface)",
+            backdropFilter: "blur(16px)",
+          }}
+        >
+          <div className="mb-2">
+            <h3
+              className="text-lg font-bold flex items-center gap-3"
+              style={{ color: "var(--text-primary)" }}
+            >
+              <span
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(8,145,178,0.2), rgba(6,182,212,0.2))",
+                }}
+              >
+                🎯
+              </span>
+              {t("projectHealthStatusTitle") || "Project Status Breakdown"}
+            </h3>
+            <p className="text-xs mt-1 ml-11" style={{ color: "var(--text-secondary)" }}>
+              {t("projectHealthStatusDesc") || "Distribution of projects by progress status"}
+            </p>
+          </div>
+
+          <div className="h-56 w-full flex items-center justify-center relative">
+            {managedProjects.length === 0 ? (
+              <p className="text-xs text-slate-500 font-bold">No Projects</p>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Tooltip content={<CustomChartTooltip />} />
+                  <Pie
+                    data={[
+                      {
+                        name: t("statusCompleted") || "Completed",
+                        value: managedProjects.filter((p) => (p.status || "").toLowerCase() === "completed").length,
+                        fill: "#10b981",
+                      },
+                      {
+                        name: t("statusInProgress") || "In Progress",
+                        value: managedProjects.filter((p) => {
+                          const s = (p.status || "").toLowerCase();
+                          return s === "in progress" || s === "in_progress";
+                        }).length,
+                        fill: "#06b6d4",
+                      },
+                      {
+                        name: t("statusReview") || "Review",
+                        value: managedProjects.filter((p) => {
+                          const s = (p.status || "").toLowerCase();
+                          return s === "review" || s === "reviewing";
+                        }).length,
+                        fill: "#f59e0b",
+                      },
+                      {
+                        name: t("statusPending") || "Pending",
+                        value: managedProjects.filter((p) => (p.status || "").toLowerCase() === "pending").length,
+                        fill: "#94a3b8",
+                      },
+                    ].filter((d) => d.value > 0)}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={80}
+                    paddingAngle={4}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {[
+                      "#10b981",
+                      "#06b6d4",
+                      "#f59e0b",
+                      "#94a3b8",
+                    ].map((fill, idx) => (
+                      <Cell key={`pm-pie-${idx}`} fill={fill} stroke="none" />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+            <div className="absolute flex flex-col items-center pointer-events-none">
+              <span className="text-2xl font-black" style={{ color: "var(--text-primary)" }}>
+                {managerCompletionRate}%
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-secondary)" }}>
+                {t("completed") || "Rate"}
+              </span>
+            </div>
+          </div>
+
+          <div className="w-full rounded-full h-2 overflow-hidden mt-2" style={{ background: "var(--border-surface)" }}>
+            <div
+              className="h-full rounded-full transition-all duration-1000"
+              style={{
+                width: `${managerCompletionRate}%`,
+                background: "linear-gradient(90deg, #06b6d4, #14b8a6)",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Project Progress Comparison Bar Chart */}
+        <div
+          className="lg:col-span-2 rounded-3xl p-6 flex flex-col justify-between shadow-lg"
+          style={{
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border-surface)",
+            backdropFilter: "blur(16px)",
+          }}
+        >
+          <div className="mb-2">
+            <h3
+              className="text-lg font-bold flex items-center gap-3"
+              style={{ color: "var(--text-primary)" }}
+            >
+              <span
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))",
+                }}
+              >
+                📈
+              </span>
+              {t("projectProgressOverviewTitle") || "Project Progress & Delivery Rates"}
+            </h3>
+            <p className="text-xs mt-1 ml-11" style={{ color: "var(--text-secondary)" }}>
+              {t("projectProgressOverviewDesc") || "Completion percentage per managed project"}
+            </p>
+          </div>
+
+          <div className="h-56 w-full mt-2 overflow-x-auto overflow-y-hidden custom-scrollbar">
+            {(() => {
+              const projectChartData = managedProjects.map((p) => {
+                const pTasks = p.tasks || [];
+                const pCompleted = pTasks.filter(
+                  (t) => (t.status || "").toLowerCase() === "completed",
+                ).length;
+                const progress =
+                  pTasks.length > 0
+                    ? Math.round((pCompleted / pTasks.length) * 100)
+                    : p.progress || 0;
+
+                return {
+                  name: p.name?.length > 20 ? `${p.name.slice(0, 18)}...` : p.name,
+                  progress: progress,
+                  totalTasks: pTasks.length,
+                };
+              });
+
+              if (projectChartData.length === 0) {
+                return (
+                  <div className="h-full flex items-center justify-center">
+                    <p className="text-xs text-slate-500 font-bold">No Projects Available</p>
+                  </div>
+                );
+              }
+
+              const dynamicWidth = Math.max(projectChartData.length * 90, 420);
+
+              return (
+                <div style={{ minWidth: `${dynamicWidth}px`, width: "100%", height: "100%" }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={projectChartData}
+                      margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.15} vertical={false} />
+                      <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={11} tickLine={false} />
+                      <YAxis
+                        domain={[0, 100]}
+                        unit="%"
+                        stroke="var(--text-secondary)"
+                        fontSize={11}
+                        tickLine={false}
+                      />
+                      <Tooltip content={<CustomChartTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+                      <Bar
+                        dataKey="progress"
+                        name={t("colProgress") || "Progress"}
+                        fill="#06b6d4"
+                        radius={[6, 6, 0, 0]}
+                      >
+                        {projectChartData.map((entry, idx) => (
+                          <Cell
+                            key={`cell-pm-${idx}`}
+                            fill={entry.progress >= 100 ? "#10b981" : entry.progress > 50 ? "#06b6d4" : "#6366f1"}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
       </div>
 
       {/* ── Managed Projects Progress Table ── */}
