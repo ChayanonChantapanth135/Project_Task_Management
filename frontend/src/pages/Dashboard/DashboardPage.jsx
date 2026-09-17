@@ -64,7 +64,7 @@ const DashboardPage = () => {
               {/* Project Status */}
               <div>
                 <div className="flex items-center gap-3 mb-6">
-                  <span className="text-2xl">📁</span>
+                  <span className="text-2xl"></span>
                   <h3 className="text-xl font-bold text-white">
                     {t("projectStatus")}
                   </h3>
@@ -91,7 +91,7 @@ const DashboardPage = () => {
               {/* Task Status */}
               <div>
                 <div className="flex items-center gap-3 mb-6">
-                  <span className="text-2xl">⏱️</span>
+                  <span className="text-2xl"></span>
                   <h3 className="text-xl font-bold text-white">
                     {t("taskStatus")}
                   </h3>

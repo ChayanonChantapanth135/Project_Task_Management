@@ -58,7 +58,7 @@ const PersonalTaskPage = () => {
   const columnTitle = data?.columns?.[activeColumnId]?.title || "";
 
   return (
-    <div 
+    <div
       className="min-h-screen flex flex-col font-sans relative"
       style={{
         backgroundColor: "var(--bg-primary)",
@@ -77,7 +77,7 @@ const PersonalTaskPage = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
           <div>
             <h1 className="text-3xl font-black tracking-wide flex items-center gap-3">
-              📋 {isThai ? "งานส่วนตัวของฉัน" : "Personal Tasks"}
+              {isThai ? "งานส่วนตัวของฉัน" : "Personal Tasks"}
             </h1>
             <p className="text-slate-400 text-sm mt-1">
               {isThai
@@ -88,7 +88,7 @@ const PersonalTaskPage = () => {
 
           <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto flex-wrap gap-2.5">
             {/* View Mode Toggle Switcher */}
-            <div 
+            <div
               className="flex items-center gap-1 p-1 rounded-2xl shadow-md text-xs font-bold"
               style={{
                 backgroundColor: "var(--bg-surface)",

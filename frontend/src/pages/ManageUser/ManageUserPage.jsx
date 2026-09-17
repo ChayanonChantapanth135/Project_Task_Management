@@ -47,7 +47,7 @@ const ManageUserPage = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
             <h2 className="text-2xl md:text-3xl font-extrabold text-white flex items-center gap-3 tracking-tight">
-              <span>👥</span> {t("manageUsersTitle")}
+              {t("manageUsersTitle")}
             </h2>
             <p className="text-xs text-slate-400 mt-1">
               {t("manageUsersDesc")}
@@ -121,27 +121,13 @@ const ManageUserPage = () => {
                 value={userHook.roleFilter}
                 onChange={(e) => userHook.setRoleFilter(e.target.value)}
               >
-                <option value="all">
-                  {t("roleFilterAll")}
-                </option>
-                <option value="Admin">
-                  Admin
-                </option>
-                <option value="Project Manager">
-                  Project Manager
-                </option>
-                <option value="Storyboard">
-                  Storyboard
-                </option>
-                <option value="Animation">
-                  Animation
-                </option>
-                <option value="Designer">
-                  Designer
-                </option>
-                <option value="Programmer">
-                  Programmer
-                </option>
+                <option value="all">{t("roleFilterAll")}</option>
+                <option value="Admin">Admin</option>
+                <option value="Project Manager">Project Manager</option>
+                <option value="Storyboard">Storyboard</option>
+                <option value="Animation">Animation</option>
+                <option value="Designer">Designer</option>
+                <option value="Programmer">Programmer</option>
               </select>
               <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
                 <svg
@@ -171,15 +157,9 @@ const ManageUserPage = () => {
                 value={userHook.statusFilter}
                 onChange={(e) => userHook.setStatusFilter(e.target.value)}
               >
-                <option value="all">
-                  {t("statusFilterAll")}
-                </option>
-                <option value="active">
-                  {t("activeLabel")}
-                </option>
-                <option value="suspended">
-                  {t("suspendedLabel")}
-                </option>
+                <option value="all">{t("statusFilterAll")}</option>
+                <option value="active">{t("activeLabel")}</option>
+                <option value="suspended">{t("suspendedLabel")}</option>
               </select>
               <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
                 <svg
@@ -248,8 +228,10 @@ const ManageUserPage = () => {
         isSelf={
           userHook.currentUser &&
           userHook.selectedUserId &&
-          (Number(userHook.currentUser.id) === Number(userHook.selectedUserId) ||
-            userHook.currentUser.email?.toLowerCase() === userHook.formData.email?.toLowerCase())
+          (Number(userHook.currentUser.id) ===
+            Number(userHook.selectedUserId) ||
+            userHook.currentUser.email?.toLowerCase() ===
+              userHook.formData.email?.toLowerCase())
         }
         selectedUserId={userHook.selectedUserId}
         users={userHook.users}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { getCurrentUser } from "../../../lib/auth";
 
 export const useActivityLogs = () => {
   const [logs, setLogs] = useState([]);
@@ -12,7 +13,13 @@ export const useActivityLogs = () => {
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("/auth/activity-logs");
+      const u = await getCurrentUser();
+      const params = {};
+      if (u) {
+        params.role = u.role;
+        params.userId = u.id;
+      }
+      const response = await axios.get("/auth/activity-logs", { params });
       setLogs(response.data);
     } catch (error) {
       console.error("Error fetching logs:", error);

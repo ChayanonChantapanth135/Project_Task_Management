@@ -56,7 +56,13 @@ export const useDashboard = () => {
               userId: currentUser.id,
             },
           }),
-          axios.get("/auth/activity-logs?limit=20"),
+          axios.get("/auth/activity-logs", {
+            params: {
+              limit: 20,
+              role: currentUser.role,
+              userId: currentUser.id,
+            },
+          }),
         ]);
         setStats(statsRes.data);
         setRecentActivities(actRes.data.slice(0, 20));

@@ -71,11 +71,17 @@ const ManageProjectPage = () => {
     handleAddTaskSubmit,
   } = useProjectManagement(t);
 
-  const userRole = (currentUser?.role || "").toLowerCase().trim().replace(/\s+/g, "_");
-  const canManage = userRole === "admin" || userRole === "manager" || userRole === "project_manager";
+  const userRole = (currentUser?.role || "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "_");
+  const canManage =
+    userRole === "admin" ||
+    userRole === "manager" ||
+    userRole === "project_manager";
 
   return (
-    <div 
+    <div
       className="min-h-screen flex flex-col font-sans relative overflow-hidden"
       style={{
         backgroundColor: "var(--bg-primary)",
@@ -94,9 +100,11 @@ const ManageProjectPage = () => {
         <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h2 className="text-2xl md:text-3xl font-extrabold text-white flex items-center gap-3 tracking-tight">
-              <span>📂</span> {t("projectManagementTitle")}
+              {t("projectManagementTitle")}
             </h2>
-            <p className="text-xs text-slate-400 mt-1">{t("projectManagementDesc")}</p>
+            <p className="text-xs text-slate-400 mt-1">
+              {t("projectManagementDesc")}
+            </p>
           </div>
         </div>
 
@@ -178,7 +186,11 @@ const ManageProjectPage = () => {
         setShowDetailModal={(val) => {
           setShowDetailModal(val);
           if (!val) {
-            window.history.replaceState({}, document.title, window.location.pathname);
+            window.history.replaceState(
+              {},
+              document.title,
+              window.location.pathname,
+            );
           }
         }}
         selectedProject={selectedProject}
@@ -230,7 +242,11 @@ const ManageProjectPage = () => {
         setShowViewTaskModal={(val) => {
           setShowViewTaskModal(val);
           if (!val) {
-            window.history.replaceState({}, document.title, window.location.pathname);
+            window.history.replaceState(
+              {},
+              document.title,
+              window.location.pathname,
+            );
           }
         }}
         selectedProject={selectedProject}

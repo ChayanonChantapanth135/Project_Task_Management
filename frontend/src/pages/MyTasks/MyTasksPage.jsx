@@ -38,22 +38,26 @@ const MyTasksPage = () => {
     handleManageClick,
     projectGroups,
     stats,
-    filteredTasks
+    filteredTasks,
   } = useMyTasks();
 
   // Grid Stagger Entrance Animation for project cards
-  useGSAP(() => {
-    if (!loading && filteredTasks.length > 0 && pageRef.current) {
-      gsap.fromTo(".project-group-card", 
-        { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: "power3.out" }
-      );
-    }
-  }, { scope: pageRef, dependencies: [loading, filteredTasks] });
+  useGSAP(
+    () => {
+      if (!loading && filteredTasks.length > 0 && pageRef.current) {
+        gsap.fromTo(
+          ".project-group-card",
+          { opacity: 0, y: 30 },
+          { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: "power3.out" },
+        );
+      }
+    },
+    { scope: pageRef, dependencies: [loading, filteredTasks] },
+  );
 
   return (
-    <div 
-      ref={pageRef} 
+    <div
+      ref={pageRef}
       className="min-h-screen flex flex-col font-sans relative overflow-hidden"
       style={{
         backgroundColor: "var(--bg-primary)",
@@ -68,16 +72,21 @@ const MyTasksPage = () => {
       <div className="absolute bottom-10 left-1/3 w-[450px] h-[450px] rounded-full pointer-events-none ambient-blob-3"></div>
 
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full relative z-10">
-        
         {/* Title Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-black tracking-wide flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
-              🎯 {t("myTask") || "งานของฉัน"}
+            <h1
+              className="text-3xl font-black tracking-wide flex items-center gap-3"
+              style={{ color: "var(--text-primary)" }}
+            >
+              {t("myTask") || "งานของฉัน"}
             </h1>
-            <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
-              {language === "th" 
-                ? "ติดตามภารกิจที่คุณได้รับมอบหมายและจัดหมวดหมู่ตามโครงการ" 
+            <p
+              className="text-sm mt-1"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              {language === "th"
+                ? "ติดตามภารกิจที่คุณได้รับมอบหมายและจัดหมวดหมู่ตามโครงการ"
                 : "Track tasks assigned to you grouped by project"}
             </p>
           </div>
@@ -115,13 +124,17 @@ const MyTasksPage = () => {
         {/* Action Banners */}
         {successMessage && (
           <div className="mb-6 w-full py-3.5 px-5 rounded-2xl bg-[#0e3b40] text-emerald-400 text-sm font-semibold flex items-center gap-3 shadow-xl">
-            <span className="w-4 h-4 rounded bg-emerald-500 text-slate-950 flex items-center justify-center text-[10px] font-black">✓</span>
+            <span className="w-4 h-4 rounded bg-emerald-500 text-slate-950 flex items-center justify-center text-[10px] font-black">
+              ✓
+            </span>
             <span>{successMessage}</span>
           </div>
         )}
         {errorMessage && (
           <div className="mb-6 w-full py-3.5 px-5 rounded-2xl bg-rose-950 text-rose-400 text-sm font-semibold flex items-center gap-3 shadow-xl">
-            <span className="w-4 h-4 rounded bg-rose-500 text-slate-950 flex items-center justify-center text-[10px] font-black">⚠️</span>
+            <span className="w-4 h-4 rounded bg-rose-500 text-slate-950 flex items-center justify-center text-[10px] font-black">
+              ⚠️
+            </span>
             <span>{errorMessage}</span>
           </div>
         )}
@@ -130,7 +143,7 @@ const MyTasksPage = () => {
         <MyTaskStats stats={stats} t={t} language={language} />
 
         {/* Search and Filters */}
-        <MyTaskFilters 
+        <MyTaskFilters
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           statusFilter={statusFilter}
@@ -151,19 +164,18 @@ const MyTasksPage = () => {
               {language === "th" ? "ไม่พบงานที่รับผิดชอบ" : "No Tasks Found"}
             </h3>
             <p className="text-slate-400 text-sm max-w-md mx-auto">
-              {language === "th" 
-                ? "ลองเปลี่ยนตัวกรอง ค้นหาคำอื่น หรือคุณยังไม่ได้รับมอบหมายงานใด ๆ ในขณะนี้" 
+              {language === "th"
+                ? "ลองเปลี่ยนตัวกรอง ค้นหาคำอื่น หรือคุณยังไม่ได้รับมอบหมายงานใด ๆ ในขณะนี้"
                 : "Try changing filters, search terms or you may not have any assigned tasks currently."}
             </p>
           </div>
         ) : (
-          <MyTaskProjectGroups 
+          <MyTaskProjectGroups
             projectGroups={projectGroups}
             handleManageClick={handleManageClick}
             language={language}
           />
         )}
-
       </main>
 
       <Footer />
@@ -175,7 +187,11 @@ const MyTasksPage = () => {
           setShowViewModal={(val) => {
             setShowViewModal(val);
             if (!val) {
-              window.history.replaceState({}, document.title, window.location.pathname);
+              window.history.replaceState(
+                {},
+                document.title,
+                window.location.pathname,
+              );
             }
           }}
           selectedTask={selectedTask}

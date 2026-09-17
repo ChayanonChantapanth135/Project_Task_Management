@@ -2259,32 +2259,185 @@ export const getCalendarEvents = async (req, res) => {
 };
 
 /**
- * ดึงประวัติกิจกรรมทั้งหมด (Activity Logs) สำหรับแสดงผลในระบบ
+ * ดึงประวัติกิจกรรม (Activity Logs) ตามสิทธิ์และขอบเขตของผู้ใช้ (Role-based Activity Logs)
+ * - Admin: เห็นกิจกรรมทั้งหมดทั้งระบบ
+ * - Project Manager: เห็นกิจกรรมในโปรเจกต์ที่ตนเองดูแล/สร้าง และกิจกรรมที่ตนเองทำ
+ * - Team Leader: เห็นกิจกรรมในโปรเจกต์ที่ตนเองเป็นหัวหน้าทีม และกิจกรรมที่ตนเองทำ
+ * - Staff / User: เห็นกิจกรรมในงานที่ได้รับมอบหมาย และกิจกรรมส่วนตัว
  */
 export const getActivityLogs = async (req, res) => {
     try {
         const db = await connectToDatabase();
         const limit = req.query.limit ? parseInt(req.query.limit, 10) : null;
-        const userId = req.query.userId ? parseInt(req.query.userId, 10) : null;
-        
+        const queryUserId = req.query.userId ? parseInt(req.query.userId, 10) : null;
+        const targetUserId = queryUserId || req.userId;
+        let role = req.query.role ? req.query.role.toLowerCase().trim().replace(/\s+/g, '_') : null;
+
+        // หากไม่ได้ส่ง role มา แต่มี targetUserId ให้ลองหา role จากฐานข้อมูล
+        if (!role && targetUserId && !queryUserId) {
+            const [userRows] = await db.query('SELECT role FROM users WHERE id = ?', [targetUserId]);
+            if (userRows.length > 0) {
+                role = (userRows[0].role || '').toLowerCase().trim().replace(/\s+/g, '_');
+            }
+        }
+
+        const isAdmin = role === 'admin';
+        const isManager = role === 'manager' || role === 'project_manager';
+        const isTeamLeader = role === 'team_leader';
+
         let query = `
-            SELECT al.action, al.details, al.created_at, u.fullname
+            SELECT al.id, al.action, al.details, al.created_at, al.user_id, u.fullname, u.avatar
             FROM activity_logs al
             LEFT JOIN users u ON al.user_id = u.id
         `;
         const params = [];
-        
-        if (userId && !isNaN(userId)) {
-            query += ` WHERE al.user_id = ?`;
-            params.push(userId);
+        const conditions = [];
+
+        // 1. กรณีระบุ userId ชัดเจนแบบไม่มี role (เช่น หน้า My Activity) -> ดึงเฉพาะของ user นั้น
+        if (queryUserId && !role) {
+            conditions.push('al.user_id = ?');
+            params.push(queryUserId);
+        } 
+        // 2. ถ้าไม่ใช่ Admin และมี targetUserId ให้กรองตาม Scope ของ Role
+        else if (!isAdmin && targetUserId) {
+            if (isManager) {
+                // ดึงโปรเจกต์ที่ Manager คนนี้ดูแล
+                const [managedProjects] = await db.query(
+                    'SELECT id, name FROM projects WHERE created_by = ? AND deleted_at IS NULL',
+                    [targetUserId]
+                );
+                const projIds = managedProjects.map(p => p.id);
+                const projNames = managedProjects.map(p => p.name).filter(Boolean);
+
+                let managerCondition = `(al.user_id = ?`;
+                params.push(targetUserId);
+
+                if (projIds.length > 0) {
+                    const [tasks] = await db.query(
+                        'SELECT id, title FROM tasks WHERE project_id IN (?) AND deleted_at IS NULL',
+                        [projIds]
+                    );
+                    const taskIds = tasks.map(t => t.id);
+                    const taskTitles = tasks.map(t => t.title).filter(Boolean);
+
+                    const likeClauses = [];
+                    // ค้นหาตามชื่อโปรเจกต์
+                    for (const name of projNames) {
+                        likeClauses.push('al.details LIKE ?');
+                        params.push(`%${name}%`);
+                    }
+                    // ค้นหาตาม Project ID
+                    for (const pid of projIds) {
+                        likeClauses.push('al.details LIKE ?');
+                        params.push(`%project ID: ${pid}%`);
+                        likeClauses.push('al.details LIKE ?');
+                        params.push(`%project ID:${pid}%`);
+                    }
+                    // ค้นหาตาม Task Title
+                    for (const title of taskTitles) {
+                        likeClauses.push('al.details LIKE ?');
+                        params.push(`%${title}%`);
+                    }
+                    // ค้นหาตาม Task ID
+                    for (const tid of taskIds) {
+                        likeClauses.push('al.details LIKE ?');
+                        params.push(`%(ID: ${tid})%`);
+                    }
+
+                    if (likeClauses.length > 0) {
+                        managerCondition += ` OR (${likeClauses.join(' OR ')})`;
+                    }
+                }
+                managerCondition += `)`;
+                conditions.push(managerCondition);
+
+            } else if (isTeamLeader) {
+                // Team Leader: โปรเจกต์ที่ตนเป็น Team Leader หรือเป็นผู้สร้าง
+                const [tlProjects] = await db.query(`
+                    SELECT DISTINCT p.id, p.name 
+                    FROM projects p
+                    LEFT JOIN project_team_leaders ptl ON p.id = ptl.project_id
+                    WHERE (ptl.user_id = ? OR p.created_by = ?) AND p.deleted_at IS NULL
+                `, [targetUserId, targetUserId]);
+
+                const projIds = tlProjects.map(p => p.id);
+                const projNames = tlProjects.map(p => p.name).filter(Boolean);
+
+                let tlCondition = `(al.user_id = ?`;
+                params.push(targetUserId);
+
+                if (projIds.length > 0) {
+                    const [tasks] = await db.query(
+                        'SELECT id, title FROM tasks WHERE project_id IN (?) AND deleted_at IS NULL',
+                        [projIds]
+                    );
+                    const taskIds = tasks.map(t => t.id);
+                    const taskTitles = tasks.map(t => t.title).filter(Boolean);
+
+                    const likeClauses = [];
+                    for (const name of projNames) {
+                        likeClauses.push('al.details LIKE ?');
+                        params.push(`%${name}%`);
+                    }
+                    for (const pid of projIds) {
+                        likeClauses.push('al.details LIKE ?');
+                        params.push(`%project ID: ${pid}%`);
+                    }
+                    for (const title of taskTitles) {
+                        likeClauses.push('al.details LIKE ?');
+                        params.push(`%${title}%`);
+                    }
+                    for (const tid of taskIds) {
+                        likeClauses.push('al.details LIKE ?');
+                        params.push(`%(ID: ${tid})%`);
+                    }
+
+                    if (likeClauses.length > 0) {
+                        tlCondition += ` OR (${likeClauses.join(' OR ')})`;
+                    }
+                }
+                tlCondition += `)`;
+                conditions.push(tlCondition);
+
+            } else {
+                // Regular staff: กิจกรรมในงานที่ได้รับมอบหมาย หรืองานของตัวเอง
+                const [userTasks] = await db.query(
+                    'SELECT id, title FROM tasks WHERE assigned_to = ? AND deleted_at IS NULL',
+                    [targetUserId]
+                );
+                let userCondition = `(al.user_id = ?`;
+                params.push(targetUserId);
+
+                const taskTitles = userTasks.map(t => t.title).filter(Boolean);
+                const taskIds = userTasks.map(t => t.id);
+                const likeClauses = [];
+                for (const title of taskTitles) {
+                    likeClauses.push('al.details LIKE ?');
+                    params.push(`%${title}%`);
+                }
+                for (const tid of taskIds) {
+                    likeClauses.push('al.details LIKE ?');
+                    params.push(`%(ID: ${tid})%`);
+                }
+                if (likeClauses.length > 0) {
+                    userCondition += ` OR (${likeClauses.join(' OR ')})`;
+                }
+                userCondition += `)`;
+                conditions.push(userCondition);
+            }
         }
-        
+
+        if (conditions.length > 0) {
+            query += ` WHERE ` + conditions.join(' AND ');
+        }
+
         query += ` ORDER BY al.created_at DESC`;
-        
+
         if (limit && !isNaN(limit)) {
             query += ` LIMIT ?`;
             params.push(limit);
         }
+
         const [rows] = await db.query(query, params);
         res.status(200).json(rows);
     } catch (error) {

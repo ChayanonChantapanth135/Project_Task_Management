@@ -71,7 +71,7 @@ const ProfilePage = () => {
         {/* Title */}
         <div className="mb-8">
           <h2 className="text-2xl md:text-3xl font-extrabold text-white flex items-center gap-3 tracking-tight">
-            <span>👤</span> {t("profile") || "Profile"}
+            {t("profile") || "Profile"}
           </h2>
           <p className="text-xs text-slate-400 mt-1">{t("profileSubtitle")}</p>
         </div>

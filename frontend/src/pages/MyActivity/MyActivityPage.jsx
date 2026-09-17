@@ -33,7 +33,7 @@ const MyActivityPage = () => {
   } = useMyActivityLogs();
 
   return (
-    <div 
+    <div
       className="min-h-screen flex flex-col font-sans relative overflow-hidden"
       style={{
         backgroundColor: "var(--bg-primary)",
@@ -51,10 +51,19 @@ const MyActivityPage = () => {
         {/* Header Title Row */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <h2 className="text-2xl md:text-3xl font-extrabold flex items-center gap-3 tracking-tight" style={{ color: "var(--text-primary)" }}>
-              <span>🕒</span> {t("myActivity") || "My Activity"}
+            <h2
+              className="text-2xl md:text-3xl font-extrabold flex items-center gap-3 tracking-tight"
+              style={{ color: "var(--text-primary)" }}
+            >
+              {t("myActivity") || "My Activity"}
             </h2>
-            <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>{t("myActivitySubtitle") || "View and track your own historical actions and logs"}</p>
+            <p
+              className="text-xs mt-1"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              {t("myActivitySubtitle") ||
+                "View and track your own historical actions and logs"}
+            </p>
           </div>
           <button
             onClick={fetchLogs}
