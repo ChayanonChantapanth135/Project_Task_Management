@@ -427,7 +427,7 @@ const translations = {
       "Have questions or need assistance? Reach out to our dedicated support team.",
     contactInfoTitle: "Contact Information",
     contactAddressLabel: "Office Address",
-    contactAddressVal: "123/45 Sukhumvit Rd, Khlong Toei, Bangkok 10110",
+    contactAddressVal: "------------------------",
     contactEmailLabel: "Email Support",
     contactPhoneLabel: "Phone Number",
     contactHoursLabel: "Operating Hours",
@@ -441,7 +441,7 @@ const translations = {
     formSubjectPlaceholder: "What is your inquiry about?",
     formMessage: "Message",
     formMessagePlaceholder: "Type your message here...",
-    sendMessageBtn: "Send Message 🚀",
+    sendMessageBtn: "Send Message",
     sendMessageSuccess:
       "Thank you for reaching out! Your message has been sent successfully.",
     colDetails: "Details",
@@ -597,21 +597,26 @@ const translations = {
     statusUpdatedSuccess: "Status updated successfully",
     // Report Tables & Performance
     myTaskPerformanceSummaryTitle: "My Task Performance Summary",
-    myTaskPerformanceSummaryDesc: "Detailed list of all your assigned tasks with execution status",
+    myTaskPerformanceSummaryDesc:
+      "Detailed list of all your assigned tasks with execution status",
     personalWorkRateTitle: "Personal Completion Rate",
     personalWorkRateDesc: "Percentage of completed tasks assigned to you",
     workloadDistributionTypeTitle: "Workload by Task Type",
-    workloadDistributionTypeDesc: "Distribution of your tasks categorized by task type",
+    workloadDistributionTypeDesc:
+      "Distribution of your tasks categorized by task type",
     personalReport: "Personal Report",
     teamLeaderReport: "Team Leader Report",
     managerReport: "Project Manager Report",
     adminReport: "Admin Report",
     adminReportTitle: "Executive System Analytics",
-    adminReportDesc: "Global metrics across all projects, tasks, and team member workload",
+    adminReportDesc:
+      "Global metrics across all projects, tasks, and team member workload",
     managerReportTitle: "Project Manager Analytics",
-    managerReportDesc: "Overview of all managed projects, timeline progress, and delivery performance",
+    managerReportDesc:
+      "Overview of all managed projects, timeline progress, and delivery performance",
     teamLeaderReportTitle: "Team Leader Performance & Project Analytics",
-    teamLeaderReportDesc: "Overview of projects and tasks executed by your team members",
+    teamLeaderReportDesc:
+      "Overview of projects and tasks executed by your team members",
     taskNameLabel: "TASK NAME",
     taskProjectLabel: "PROJECT",
     taskTypeLabel: "TASK TYPE",
@@ -1138,8 +1143,7 @@ const translations = {
       "มีข้อสงสัยเกี่ยวกับระบบ หรือต้องการสอบถามข้อมูลเพิ่มเติม ติดต่อทีมงานของเราได้ตลอดเวลา",
     contactInfoTitle: "ข้อมูลการติดต่อ",
     contactAddressLabel: "ที่อยู่สำนักงาน",
-    contactAddressVal:
-      "123/45 ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110",
+    contactAddressVal: "------------",
     contactEmailLabel: "อีเมลสนับสนุน",
     contactPhoneLabel: "เบอร์โทรศัพท์ติดต่อ",
     contactHoursLabel: "เวลาทำการ",
@@ -1153,7 +1157,7 @@ const translations = {
     formSubjectPlaceholder: "ระบุหัวข้อเรื่องที่ต้องการสอบถาม",
     formMessage: "ข้อความ",
     formMessagePlaceholder: "กรอกรายละเอียดข้อความของคุณ...",
-    sendMessageBtn: "ส่งข้อความ 🚀",
+    sendMessageBtn: "ส่งข้อความ",
     sendMessageSuccess:
       "ขอบคุณสำหรับการติดต่อ! ข้อความของคุณถูกส่งเรียบร้อยแล้ว ทีมงานจะติดต่อกลับโดยเร็วที่สุด",
     colDetails: "รายละเอียด",
@@ -1305,7 +1309,8 @@ const translations = {
     allCategoryLabel: "ทั้งหมด",
     // Report Tables & Performance (TH)
     myTaskPerformanceSummaryTitle: "สรุปผลการปฏิบัติงานส่วนตัว",
-    myTaskPerformanceSummaryDesc: "รายการงานทั้งหมดที่คุณได้รับมอบหมายพร้อมสถานะการดำเนินงาน",
+    myTaskPerformanceSummaryDesc:
+      "รายการงานทั้งหมดที่คุณได้รับมอบหมายพร้อมสถานะการดำเนินงาน",
     personalWorkRateTitle: "อัตราความสำเร็จของงาน",
     personalWorkRateDesc: "เปอร์เซ็นต์งานที่คุณทำเสร็จสิ้นเทียบกับงานทั้งหมด",
     workloadDistributionTypeTitle: "การกระจายภาระงานตามประเภท",
@@ -1315,9 +1320,11 @@ const translations = {
     managerReport: "รายงานผู้จัดการโครงการ",
     adminReport: "รายงานผู้ดูแลระบบ",
     adminReportTitle: "รายงานภาพรวมผู้ดูแลระบบ",
-    adminReportDesc: "ข้อมูลสถิติภาพรวมทุกโครงการ งาน และภาระงานของทีมทั้งหมดในระบบ",
+    adminReportDesc:
+      "ข้อมูลสถิติภาพรวมทุกโครงการ งาน และภาระงานของทีมทั้งหมดในระบบ",
     managerReportTitle: "รายงานผู้จัดการโครงการ",
-    managerReportDesc: "ภาพรวมโครงการที่ดูแล ความคืบหน้า และประสิทธิภาพการส่งมอบงาน",
+    managerReportDesc:
+      "ภาพรวมโครงการที่ดูแล ความคืบหน้า และประสิทธิภาพการส่งมอบงาน",
     teamLeaderReportTitle: "รายงานหัวหน้าทีมและวิเคราะห์โครงการ",
     teamLeaderReportDesc: "ภาพรวมโครงการและงานที่สมาชิกในทีมกำลังดำเนินงาน",
     taskNameLabel: "ชื่องาน",

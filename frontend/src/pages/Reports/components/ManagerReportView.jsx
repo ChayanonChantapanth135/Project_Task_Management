@@ -3,27 +3,47 @@ import { useLanguage } from "../../../lib/LanguageContext";
 import { formatDate } from "../../../lib/dateUtils";
 
 /* ── Reusable KPI Card ── */
-function KpiCard({ icon, iconGradient, label, value, valueColor = "", accentColor }) {
+function KpiCard({
+  icon,
+  iconGradient,
+  label,
+  value,
+  valueColor = "",
+  accentColor,
+}) {
   return (
-    <div className="group relative rounded-3xl p-6 transition-all duration-500 hover:-translate-y-1 shadow-md"
+    <div
+      className="group relative rounded-3xl p-6 transition-all duration-500 hover:-translate-y-1 shadow-md"
       style={{
         background: "var(--bg-surface)",
         border: "1px solid var(--border-surface)",
         backdropFilter: "blur(16px)",
       }}
     >
-      <div className="absolute top-0 left-6 right-6 h-[2px] rounded-full opacity-60 group-hover:opacity-100 transition-opacity"
+      <div
+        className="absolute top-0 left-6 right-6 h-[2px] rounded-full opacity-60 group-hover:opacity-100 transition-opacity"
         style={{ background: accentColor }}
       />
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+        <div
+          className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
           style={{ background: iconGradient }}
         >
           {icon}
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] font-bold uppercase tracking-wider truncate" style={{ color: "var(--text-secondary)" }}>{label}</p>
-          <h3 className={`text-2xl font-black mt-0.5 ${valueColor}`} style={!valueColor ? { color: "var(--text-primary)" } : {}}>{value}</h3>
+          <p
+            className="text-[11px] font-bold uppercase tracking-wider truncate"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            {label}
+          </p>
+          <h3
+            className={`text-2xl font-black mt-0.5 ${valueColor}`}
+            style={!valueColor ? { color: "var(--text-primary)" } : {}}
+          >
+            {value}
+          </h3>
         </div>
       </div>
     </div>
@@ -34,23 +54,36 @@ function KpiCard({ icon, iconGradient, label, value, valueColor = "", accentColo
 function StatusPill({ status }) {
   const { t } = useLanguage();
   const s = (status || "").toLowerCase();
-  let bg = "rgba(100,116,139,0.2)"; let color = "#94a3b8"; let dot = "#94a3b8";
+  let bg = "rgba(100,116,139,0.2)";
+  let color = "#94a3b8";
+  let dot = "#94a3b8";
   let text = status;
   if (s === "completed") {
-    bg = "rgba(16,185,129,0.15)"; color = "#34d399"; dot = "#10b981";
+    bg = "rgba(16,185,129,0.15)";
+    color = "#34d399";
+    dot = "#10b981";
     text = t("statusCompleted") || "เสร็จสิ้น";
   } else if (s === "in progress" || s === "in_progress") {
-    bg = "rgba(99,102,241,0.15)"; color = "#818cf8"; dot = "#6366f1";
+    bg = "rgba(99,102,241,0.15)";
+    color = "#818cf8";
+    dot = "#6366f1";
     text = t("statusInProgress") || "กำลังดำเนินการ";
   } else if (s === "review" || s === "reviewing") {
-    bg = "rgba(245,158,11,0.15)"; color = "#fbbf24"; dot = "#f59e0b";
+    bg = "rgba(245,158,11,0.15)";
+    color = "#fbbf24";
+    dot = "#f59e0b";
     text = t("statusReview") || "รอตรวจสอบ";
   } else if (s === "pending") {
-    bg = "rgba(100,116,139,0.15)"; color = "#cbd5e1"; dot = "#94a3b8";
+    bg = "rgba(100,116,139,0.15)";
+    color = "#cbd5e1";
+    dot = "#94a3b8";
     text = t("statusPending") || "รอดำเนินการ";
   }
   return (
-    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold" style={{ background: bg, color }}>
+    <span
+      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold"
+      style={{ background: bg, color }}
+    >
       <span className="w-1.5 h-1.5 rounded-full" style={{ background: dot }} />
       {text}
     </span>
@@ -67,29 +100,39 @@ export default function ManagerReportView({ data }) {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [sortByProgress, setSortByProgress] = React.useState("none"); // "none" | "asc" | "desc"
 
-  const onTrackCount = managedProjects.filter((p) => (p.status || "").toLowerCase() !== "delayed").length;
+  const onTrackCount = managedProjects.filter(
+    (p) => (p.status || "").toLowerCase() !== "delayed",
+  ).length;
 
   const filteredProjects = React.useMemo(() => {
-    return managedProjects.filter((p) => {
-      const matchSearch =
-        searchQuery === "" ||
-        (p.name && p.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (p.teamLeaderName && p.teamLeaderName.toLowerCase().includes(searchQuery.toLowerCase()));
+    return managedProjects
+      .filter((p) => {
+        const matchSearch =
+          searchQuery === "" ||
+          (p.name &&
+            p.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (p.teamLeaderName &&
+            p.teamLeaderName.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      let matchStatus = true;
-      if (statusFilter !== "all") {
-        const s = (p.status || "").toLowerCase();
-        if (statusFilter === "in progress") matchStatus = s === "in progress" || s === "in_progress";
-        else if (statusFilter === "review") matchStatus = s === "review" || s === "reviewing";
-        else matchStatus = s === statusFilter;
-      }
+        let matchStatus = true;
+        if (statusFilter !== "all") {
+          const s = (p.status || "").toLowerCase();
+          if (statusFilter === "in progress")
+            matchStatus = s === "in progress" || s === "in_progress";
+          else if (statusFilter === "review")
+            matchStatus = s === "review" || s === "reviewing";
+          else matchStatus = s === statusFilter;
+        }
 
-      return matchSearch && matchStatus;
-    }).sort((a, b) => {
-      if (sortByProgress === "asc") return (a.progress || 0) - (b.progress || 0);
-      if (sortByProgress === "desc") return (b.progress || 0) - (a.progress || 0);
-      return 0;
-    });
+        return matchSearch && matchStatus;
+      })
+      .sort((a, b) => {
+        if (sortByProgress === "asc")
+          return (a.progress || 0) - (b.progress || 0);
+        if (sortByProgress === "desc")
+          return (b.progress || 0) - (a.progress || 0);
+        return 0;
+      });
   }, [managedProjects, searchQuery, statusFilter, sortByProgress]);
 
   const totalEntries = filteredProjects.length;
@@ -98,7 +141,7 @@ export default function ManagerReportView({ data }) {
   const endEntry = Math.min(currentPage * entriesPerPage, totalEntries);
   const currentEntries = filteredProjects.slice(
     (currentPage - 1) * entriesPerPage,
-    currentPage * entriesPerPage
+    currentPage * entriesPerPage,
   );
 
   return (
@@ -106,21 +149,63 @@ export default function ManagerReportView({ data }) {
       {/* ── 4 KPI Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <KpiCard
-          icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>}
+          icon={
+            <svg
+              className="w-5 h-5 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+              />
+            </svg>
+          }
           iconGradient="linear-gradient(135deg, #0d9488, #14b8a6)"
           label={t("projectsTitle")}
           value={managedProjects.length}
           accentColor="linear-gradient(90deg, #14b8a6, #2dd4bf)"
         />
         <KpiCard
-          icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>}
+          icon={
+            <svg
+              className="w-5 h-5 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+          }
           iconGradient="linear-gradient(135deg, #4f46e5, #6366f1)"
           label={t("totalTasks")}
           value={managedTasks.length}
           accentColor="linear-gradient(90deg, #6366f1, #818cf8)"
         />
         <KpiCard
-          icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>}
+          icon={
+            <svg
+              className="w-5 h-5 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M13 10V3L4 14h7v7l9-11h-7z"
+              />
+            </svg>
+          }
           iconGradient="linear-gradient(135deg, #059669, #10b981)"
           label={t("onTrackProjectsLabel")}
           value={onTrackCount}
@@ -128,7 +213,21 @@ export default function ManagerReportView({ data }) {
           accentColor="linear-gradient(90deg, #10b981, #34d399)"
         />
         <KpiCard
-          icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>}
+          icon={
+            <svg
+              className="w-5 h-5 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+              />
+            </svg>
+          }
           iconGradient="linear-gradient(135deg, #0891b2, #06b6d4)"
           label={t("overallCompletionRateLabel")}
           value={`${managerCompletionRate}%`}
@@ -138,7 +237,8 @@ export default function ManagerReportView({ data }) {
       </div>
 
       {/* ── Managed Projects Progress Table ── */}
-      <div className="glass-panel rounded-3xl p-6 shadow-2xl overflow-hidden mb-8"
+      <div
+        className="glass-panel rounded-3xl p-6 shadow-2xl overflow-hidden mb-8"
         style={{
           background: "var(--bg-surface)",
           border: "1px solid var(--border-surface)",
@@ -147,23 +247,47 @@ export default function ManagerReportView({ data }) {
       >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
-            <h3 className="text-lg font-bold flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
-              <span className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
-                style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))" }}
+            <h3
+              className="text-lg font-bold flex items-center gap-3"
+              style={{ color: "var(--text-primary)" }}
+            >
+              <span
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))",
+                }}
               >
-                <svg className="w-4 h-4 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <svg
+                  className="w-4 h-4 text-indigo-300"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </span>
               {t("managedProjectsProgressTitle") || "Managed Projects Progress"}
             </h3>
-            <p className="text-xs mt-1 ml-11" style={{ color: "var(--text-secondary)" }}>
-              {t("managedProjectsProgressDesc") || "Monitor status, deadline, and progress meters for your managed projects"}
+            <p
+              className="text-xs mt-1 ml-11"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              {t("managedProjectsProgressDesc") ||
+                "Monitor status, deadline, and progress meters for your managed projects"}
             </p>
           </div>
 
           {/* Show Entries Dropdown */}
-          <div className="flex items-center gap-2 text-xs font-semibold self-end md:self-auto" style={{ color: "var(--text-secondary)" }}>
+          <div
+            className="flex items-center gap-2 text-xs font-semibold self-end md:self-auto"
+            style={{ color: "var(--text-secondary)" }}
+          >
             <span>{t("showText") || "Show"}</span>
             <div className="relative">
               <select
@@ -183,12 +307,22 @@ export default function ManagerReportView({ data }) {
                 <option value={25}>25</option>
                 <option value={50}>50</option>
               </select>
-              <div 
+              <div
                 className="absolute inset-y-0 right-2 flex items-center pointer-events-none"
                 style={{ color: "var(--text-secondary)" }}
               >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </div>
             </div>
@@ -207,7 +341,10 @@ export default function ManagerReportView({ data }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 items-center">
             {/* Search Input */}
             <div className="md:col-span-2">
-              <label className="block text-[11px] font-bold mb-1.5" style={{ color: "var(--text-secondary)" }}>
+              <label
+                className="block text-[11px] font-bold mb-1.5"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 {t("searchWork") || "ค้นหาโครงการ"}
               </label>
               <div className="relative">
@@ -219,20 +356,29 @@ export default function ManagerReportView({ data }) {
                     color: "var(--text-primary)",
                     border: "1px solid var(--border-surface)",
                   }}
-                  placeholder={language === "th" ? "ค้นหาด้วยชื่อโครงการ หรือหัวหน้าทีม..." : "Search by project name or team leader..."}
+                  placeholder={
+                    language === "th"
+                      ? "ค้นหาด้วยชื่อโครงการ หรือหัวหน้าทีม..."
+                      : "Search by project name or team leader..."
+                  }
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
                 />
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+                  🔍
+                </span>
               </div>
             </div>
 
             {/* Status Filter */}
             <div>
-              <label className="block text-[11px] font-bold mb-1.5" style={{ color: "var(--text-secondary)" }}>
+              <label
+                className="block text-[11px] font-bold mb-1.5"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 {t("taskStatusLabel") || "สถานะ"}
               </label>
               <div className="relative">
@@ -250,14 +396,32 @@ export default function ManagerReportView({ data }) {
                   }}
                 >
                   <option value="all">{t("allStatus") || "ทุกสถานะ"}</option>
-                  <option value="pending">{t("statusPending") || "รอดำเนินการ"}</option>
-                  <option value="in progress">{t("statusInProgress") || "กำลังดำเนินการ"}</option>
-                  <option value="review">{t("statusReview") || "รอตรวจสอบ"}</option>
-                  <option value="completed">{t("statusCompleted") || "เสร็จสิ้น"}</option>
+                  <option value="pending">
+                    {t("statusPending") || "รอดำเนินการ"}
+                  </option>
+                  <option value="in progress">
+                    {t("statusInProgress") || "กำลังดำเนินการ"}
+                  </option>
+                  <option value="review">
+                    {t("statusReview") || "รอตรวจสอบ"}
+                  </option>
+                  <option value="completed">
+                    {t("statusCompleted") || "เสร็จสิ้น"}
+                  </option>
                 </select>
                 <div className="absolute inset-y-0 right-2.5 flex items-center pointer-events-none text-slate-400">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2.5"
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </div>
               </div>
@@ -270,15 +434,24 @@ export default function ManagerReportView({ data }) {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-300 font-bold">
-                <th className="py-4 px-6">{t("projectsTitle") || "PROJECT NAME"}</th>
-                <th className="py-4 px-6">{t("colTeamLeader") || "TEAM LEADER"}</th>
-                <th className="py-4 px-6 text-center">{t("taskStatusLabel") || "STATUS"}</th>
-                <th className="py-4 px-6 text-center">{t("endDateLabel") || "DUE DATE"}</th>
+                <th className="py-4 px-6">
+                  {t("projectsTitle") || "PROJECT NAME"}
+                </th>
+                <th className="py-4 px-6">
+                  {t("colTeamLeader") || "TEAM LEADER"}
+                </th>
+                <th className="py-4 px-6 text-center">
+                  {t("taskStatusLabel") || "STATUS"}
+                </th>
+                <th className="py-4 px-6 text-center">
+                  {t("endDateLabel") || "DUE DATE"}
+                </th>
                 <th
                   className="py-4 px-6 text-left cursor-pointer select-none"
                   onClick={() => {
                     if (sortByProgress === "none") setSortByProgress("desc");
-                    else if (sortByProgress === "desc") setSortByProgress("asc");
+                    else if (sortByProgress === "desc")
+                      setSortByProgress("asc");
                     else setSortByProgress("none");
                   }}
                 >
@@ -299,18 +472,29 @@ export default function ManagerReportView({ data }) {
               {currentEntries.length > 0 ? (
                 currentEntries.map((p) => {
                   const pTasks = p.tasks || [];
-                  const pCompleted = pTasks.filter((t) => (t.status || "").toLowerCase() === "completed").length;
-                  const progress = p.progress !== undefined ? p.progress : (pTasks.length > 0 ? Math.round((pCompleted / pTasks.length) * 100) : 0);
+                  const pCompleted = pTasks.filter(
+                    (t) => (t.status || "").toLowerCase() === "completed",
+                  ).length;
+                  const progress =
+                    p.progress !== undefined
+                      ? p.progress
+                      : pTasks.length > 0
+                        ? Math.round((pCompleted / pTasks.length) * 100)
+                        : 0;
 
                   return (
-                    <tr key={p.id} className="hover:bg-white/5 transition-colors">
+                    <tr
+                      key={p.id}
+                      className="hover:bg-white/5 transition-colors"
+                    >
                       {/* Project Name */}
                       <td className="py-4 px-6 font-bold text-white whitespace-nowrap">
                         <div>
                           <span>{p.name}</span>
                           {pTasks.length > 0 && (
                             <p className="text-xs font-normal text-slate-400 mt-0.5">
-                              {pTasks.length} {t("tasks") || "งาน"} ({pCompleted} {t("completed") || "เสร็จสิ้น"})
+                              {pTasks.length} {t("tasks") || "งาน"} (
+                              {pCompleted} {t("completed") || "เสร็จสิ้น"})
                             </p>
                           )}
                         </div>
@@ -318,7 +502,7 @@ export default function ManagerReportView({ data }) {
 
                       {/* Team Leader */}
                       <td className="py-4 px-6 whitespace-nowrap">
-                        <span className="font-bold text-xs" style={{ color: "var(--brand-color)" }}>
+                        <span className="font-bold text-white">
                           {p.teamLeaderName || "-"}
                         </span>
                       </td>
@@ -336,7 +520,10 @@ export default function ManagerReportView({ data }) {
                       {/* Progress Bar & Rate */}
                       <td className="py-4 px-6 min-w-[180px]">
                         <div className="flex items-center gap-3">
-                          <div className="flex-1 rounded-full h-2 overflow-hidden" style={{ background: "var(--border-surface)" }}>
+                          <div
+                            className="flex-1 rounded-full h-2 overflow-hidden"
+                            style={{ background: "var(--border-surface)" }}
+                          >
                             <div
                               className="h-full rounded-full transition-all duration-700"
                               style={{
@@ -345,7 +532,10 @@ export default function ManagerReportView({ data }) {
                               }}
                             />
                           </div>
-                          <span className="text-xs font-black tabular-nums shrink-0" style={{ color: "var(--brand-color)" }}>
+                          <span
+                            className="text-xs font-black tabular-nums shrink-0 text-white"
+                            style={{ color: "#FFFFFF" }}
+                          >
                             {progress}%
                           </span>
                         </div>
@@ -358,7 +548,9 @@ export default function ManagerReportView({ data }) {
                   <td colSpan="5" className="text-center py-12 text-slate-500">
                     <div className="text-4xl mb-2">📁</div>
                     <p className="text-sm font-semibold">
-                      {language === "th" ? "ไม่พบโครงการในหมวดหมู่นี้" : "No projects found"}
+                      {language === "th"
+                        ? "ไม่พบโครงการในหมวดหมู่นี้"
+                        : "No projects found"}
                     </p>
                   </td>
                 </tr>
@@ -370,9 +562,10 @@ export default function ManagerReportView({ data }) {
         {/* Pagination Footer */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-white/5 text-xs text-slate-400">
           <span>
-            {t("showingText") || "Showing"} {totalEntries === 0 ? 0 : startEntry}{" "}
-            {t("toText") || "to"} {endEntry} {t("ofText") || "of"}{" "}
-            {totalEntries} {t("entriesText") || "Entries"}
+            {t("showingText") || "Showing"}{" "}
+            {totalEntries === 0 ? 0 : startEntry} {t("toText") || "to"}{" "}
+            {endEntry} {t("ofText") || "of"} {totalEntries}{" "}
+            {t("entriesText") || "Entries"}
           </span>
 
           {totalPages > 1 && (

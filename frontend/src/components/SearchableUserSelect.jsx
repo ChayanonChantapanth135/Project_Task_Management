@@ -161,7 +161,13 @@ export default function SearchableUserSelect({
         }`}
         style={{
           cursor: "pointer",
-          color: selectedUser ? "var(--text-primary, #0f172a)" : "var(--text-secondary, #64748b)",
+          ...(triggerClassName
+            ? {
+                color: selectedUser
+                  ? "var(--text-primary, #0f172a)"
+                  : "var(--text-secondary, #64748b)",
+              }
+            : {}),
           ...triggerStyle,
           ...(isOpen && !triggerClassName
             ? {
@@ -174,16 +180,28 @@ export default function SearchableUserSelect({
       >
         <span
           style={{
-            color: selectedUser
-              ? (triggerStyle.color || "var(--text-primary, #0f172a)")
-              : "var(--text-secondary, #64748b)",
-            fontWeight: selectedUser ? "600" : "400",
+            color: triggerStyle.color
+              ? triggerStyle.color
+              : triggerClassName
+              ? selectedUser
+                ? "var(--text-primary, #0f172a)"
+                : "var(--text-secondary, #64748b)"
+              : selectedUser
+              ? "inherit"
+              : "#94a3b8",
+            fontWeight: "400",
             fontSize: "0.875rem",
           }}
         >
           {selectedUser ? (selectedUser.fullname || selectedUser.name || selectedUser.username) : placeholder}
         </span>
-        <span style={{ fontSize: "0.75rem", color: "var(--text-secondary, #94a3b8)", marginLeft: "8px" }}>
+        <span
+          style={{
+            fontSize: "0.75rem",
+            color: triggerClassName ? "var(--text-secondary, #94a3b8)" : "#94a3b8",
+            marginLeft: "8px",
+          }}
+        >
           {isOpen ? "▲" : "▼"}
         </span>
       </div>

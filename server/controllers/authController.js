@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
-import { sendProjectCreationEmail, sendTaskCreationEmail, sendWelcomeUserEmail, sendOtpEmail } from '../utils/emailService.js';
+import { sendProjectCreationEmail, sendTaskCreationEmail, sendWelcomeUserEmail, sendOtpEmail, sendContactFormEmail } from '../utils/emailService.js';
 import { memoryCache } from '../utils/cacheService.js';
 import path from 'path';
 import fs from 'fs';
@@ -113,6 +113,7 @@ async function logActivity(db, userId, action, details) {
 function formatPhoneNumber(phone) {
     if (!phone) return null;
     let cleaned = String(phone).trim().replace(/[\s-]/g, '');
+    if (cleaned === '' || cleaned === '+66') return null;
     if (cleaned.startsWith('0')) {
         return '+66' + cleaned.slice(1);
     }
@@ -509,11 +510,21 @@ export const updateUser = async (req, res) => {
         const db = await connectToDatabase();
         
         const [oldUserRows] = await db.query('SELECT password, status, role, leader_id, start_date, expire_date FROM users WHERE id = ?', [id]);
+        if (!oldUserRows || oldUserRows.length === 0) {
+            return res.status(404).json({ message: 'ไม่พบข้อมูลผู้ใช้' });
+        }
         const oldPasswordHash = oldUserRows[0]?.password;
         const oldStatus = oldUserRows[0]?.status;
         const existingLeaderId = oldUserRows[0]?.leader_id;
 
-        if (password && String(id) === String(creatorId)) {
+        const requesterId = req.userId || (creatorId ? Number(creatorId) : null);
+        let isAdmin = false;
+        if (requesterId) {
+            const [requesterRows] = await db.query('SELECT role FROM users WHERE id = ?', [requesterId]);
+            isAdmin = requesterRows[0]?.role === 'admin';
+        }
+
+        if (password && String(id) === String(requesterId)) {
             if (!currentPassword) {
                 return res.status(400).json({ message: 'กรุณากรอกรหัสผ่านปัจจุบัน' });
             }
@@ -532,9 +543,10 @@ export const updateUser = async (req, res) => {
 
         const formattedPhone = formatPhoneNumber(phone);
         
-        // If user is editing their own profile and leader_id is already set, lock it to the existing leader_id
+        // If non-admin user is editing their own profile and leader_id is already set, lock it to the existing leader_id
+        // But if admin is editing, admin can set or clear (null) leader_id freely
         let parsedLeaderId;
-        if (existingLeaderId && String(id) === String(creatorId)) {
+        if (!isAdmin && existingLeaderId && String(id) === String(requesterId)) {
             parsedLeaderId = existingLeaderId;
         } else {
             parsedLeaderId = leader_id !== undefined && leader_id !== "" && leader_id !== null && !isNaN(leader_id) && Number(leader_id) !== Number(id)
@@ -542,8 +554,8 @@ export const updateUser = async (req, res) => {
                 : null;
         }
 
-        const parsedStartDate = start_date !== undefined ? (start_date && start_date.trim() !== '' ? start_date.trim() : null) : (oldUserRows[0]?.start_date || null);
-        const parsedExpireDate = expire_date !== undefined ? (expire_date && expire_date.trim() !== '' ? expire_date.trim() : null) : (oldUserRows[0]?.expire_date || null);
+        const parsedStartDate = start_date !== undefined ? (start_date && String(start_date).trim() !== '' ? String(start_date).trim() : null) : (oldUserRows[0]?.start_date || null);
+        const parsedExpireDate = expire_date !== undefined ? (expire_date && String(expire_date).trim() !== '' ? String(expire_date).trim() : null) : (oldUserRows[0]?.expire_date || null);
 
         let query = 'UPDATE users SET fullname = ?, email = ?, phone = ?, role = ?, status = ?, leader_id = ?, start_date = ?, expire_date = ?';
         let params = [fullname, email, formattedPhone, role, status || 'active', parsedLeaderId, parsedStartDate, parsedExpireDate];
@@ -582,14 +594,14 @@ export const updateUser = async (req, res) => {
         const targetStatus = status || 'active';
         if (targetStatus !== oldStatus) {
             if (targetStatus === 'suspended') {
-                await logActivity(db, creatorId ? Number(creatorId) : null, 'Suspend User', `Suspended user: ${fullname} (${email})`);
+                await logActivity(db, requesterId, 'Suspend User', `Suspended user: ${fullname} (${email})`);
             } else if (targetStatus === 'active') {
-                await logActivity(db, creatorId ? Number(creatorId) : null, 'Activate User', `Activated user: ${fullname} (${email})`);
+                await logActivity(db, requesterId, 'Activate User', `Activated user: ${fullname} (${email})`);
             } else {
-                await logActivity(db, creatorId ? Number(creatorId) : null, 'Edit User', `Edited user ID: ${id} (${fullname})`);
+                await logActivity(db, requesterId, 'Edit User', `Edited user ID: ${id} (${fullname})`);
             }
         } else {
-            await logActivity(db, creatorId ? Number(creatorId) : null, 'Edit User', `Edited user ID: ${id} (${fullname})`);
+            await logActivity(db, requesterId, 'Edit User', `Edited user ID: ${id} (${fullname})`);
         }
 
         // Broadcast real-time user updated event
@@ -606,7 +618,7 @@ export const updateUser = async (req, res) => {
             leader_id: parsedLeaderId,
             start_date: parsedStartDate,
             expire_date: parsedExpireDate,
-            updatedBy: creatorId,
+            updatedBy: requesterId,
         });
 
         memoryCache.del('team_leaders');
@@ -2591,5 +2603,23 @@ export const triggerCheckOverdueTasks = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+/**
+ * ส่งข้อความจากแบบฟอร์มติดต่อเรา (Contact Us) ไปยังอีเมลของผู้ดูแลระบบ
+ */
+export const sendContactMessage = async (req, res) => {
+    const { fullName, email, subject, message } = req.body;
+    if (!fullName || !email || !message) {
+        return res.status(400).json({ message: 'กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน (Full Name, Email, Message)' });
+    }
+    try {
+        await sendContactFormEmail({ fullName, email, subject, message });
+        res.status(200).json({ message: 'ส่งข้อความสำเร็จแล้ว เราได้รับเรื่องของคุณเรียบร้อยแล้ว' });
+    } catch (error) {
+        console.error('Error in sendContactMessage controller:', error.message);
+        res.status(500).json({ message: 'ไม่สามารถส่งข้อความได้ กรุณาลองใหม่อีกครั้งในภายหลัง' });
+    }
+};
+
 
 

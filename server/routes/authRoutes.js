@@ -52,10 +52,11 @@ router.get('/dashboard-stats', verifyToken, authCtrl.getDashboardStats);
 router.get('/calendar-events', verifyToken, authCtrl.getCalendarEvents);
 router.get('/activity-logs', verifyToken, authCtrl.getActivityLogs);
 
-// --- OTP & RESET PASSWORD ROUTES (Rate Limited) ---
+// --- OTP & RESET PASSWORD & PUBLIC ROUTES (Rate Limited) ---
 router.post('/send-otp', otpLimiter, authCtrl.sendOtp);
 router.post('/reset-password', authCtrl.resetPassword);
 router.post('/reset-password-first-time', authCtrl.resetPasswordFirstTime);
+router.post('/contact', authCtrl.sendContactMessage);
 
 // --- NOTIFICATION ROUTES (Protected) ---
 router.get('/notifications', verifyToken, notificationCtrl.getUserNotifications);

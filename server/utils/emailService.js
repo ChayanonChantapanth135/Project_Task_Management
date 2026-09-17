@@ -64,7 +64,7 @@ export async function sendProjectCreationEmail({ recipientEmail, recipientName, 
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background-color: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0;">
           <div style="background: linear-gradient(135deg, #0f172a, #1e293b); padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
-            <h2 style="color: #38bdf8; margin: 0; font-size: 20px;">📌 New Project Assigned</h2>
+            <h2 style="color: #38bdf8; margin: 0; font-size: 20px;">New Project Assigned</h2>
             <p style="color: #94a3b8; font-size: 13px; margin-top: 6px;">You have been assigned as the Team Leader for this project</p>
           </div>
 
@@ -314,7 +314,7 @@ export async function sendOtpEmail({ recipientEmail, recipientName, otpCode }) {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background-color: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0;">
           <div style="background: linear-gradient(135deg, #0d6efd, #2563eb); padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
-            <h2 style="color: #ffffff; margin: 0; font-size: 20px;">🔑 OTP Verification</h2>
+            <h2 style="color: #ffffff; margin: 0; font-size: 20px;">OTP Verification</h2>
             <p style="color: #dbeafe; font-size: 13px; margin-top: 6px;">Password Reset Verification Code</p>
           </div>
 
@@ -386,7 +386,7 @@ export async function sendTaskOverdueLeaderEmail({
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background-color: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0;">
           <div style="background: linear-gradient(135deg, #dc2626, #b91c1c); padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
-            <h2 style="color: #ffffff; margin: 0; font-size: 20px;">⚠️ Task Overdue Alert</h2>
+            <h2 style="color: #ffffff; margin: 0; font-size: 20px;">Task Overdue Alert</h2>
             <p style="color: #fecaca; font-size: 13px; margin-top: 6px;">Notification for Team Leader</p>
           </div>
 
@@ -453,6 +453,117 @@ export async function sendTaskOverdueLeaderEmail({
       action: 'Send Email Failed (Task Overdue to Leader)',
       details: `Failed to send overdue email to ${recipientEmail}: ${error.message}`
     });
+  }
+}
+
+/**
+ * Send contact form message to Admin and auto-reply confirmation to sender
+ */
+export async function sendContactFormEmail({ fullName, email, subject, message }) {
+  try {
+    const { transporter, emailUser, emailPass } = getTransporter();
+
+    // 1. Send to System Admin
+    const adminMailOptions = {
+      from: `"${fullName} (Contact Form)" <${emailUser}>`,
+      replyTo: email,
+      to: emailUser,
+      subject: `[Contact Us Message] ${subject || 'New Inquiry'} - from ${fullName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background-color: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0;">
+          <div style="background: linear-gradient(135deg, #0f172a, #334155); padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #38bdf8; margin: 0; font-size: 20px;">✉️ New Contact Message</h2>
+            <p style="color: #94a3b8; font-size: 13px; margin-top: 6px;">Received via website contact form</p>
+          </div>
+
+          <p style="color: #334155; font-size: 15px;">You have received a new contact message from <b>${fullName}</b>:</p>
+
+          <div style="background-color: #ffffff; padding: 18px; border-radius: 12px; border-left: 4px solid #0284c7; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px; color: #334155;">
+              <tr>
+                <td style="padding: 6px 0; font-weight: bold; width: 130px;">Sender Name:</td>
+                <td style="padding: 6px 0; color: #0f172a; font-weight: bold;">${fullName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-weight: bold;">Email Address:</td>
+                <td style="padding: 6px 0;"><a href="mailto:${email}" style="color: #0284c7; text-decoration: none; font-weight: bold;">${email}</a></td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-weight: bold;">Subject:</td>
+                <td style="padding: 6px 0; color: #0f172a; font-weight: bold;">${subject || 'General Inquiry'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0 6px 0; font-weight: bold; vertical-align: top;" colspan="2">Message:</td>
+              </tr>
+              <tr>
+                <td colspan="2" style="padding: 12px; background-color: #f1f5f9; border-radius: 8px; color: #1e293b; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${message}</td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="text-align: center; margin: 24px 0 16px 0;">
+            <a href="mailto:${email}?subject=Re: ${encodeURIComponent(subject || 'Inquiry')}" style="background-color: #0284c7; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.3);">
+              Reply to ${fullName}
+            </a>
+          </div>
+
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+          <p style="font-size: 11px; color: #94a3b8; text-align: center;">Sent on ${new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })}</p>
+        </div>
+      `
+    };
+
+    // 2. Auto-reply confirmation to sender
+    const senderConfirmationMailOptions = {
+      from: `"Project Management System" <${emailUser}>`,
+      to: email,
+      subject: `We've received your message: ${subject || 'Inquiry'}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background-color: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0;">
+          <div style="background: linear-gradient(135deg, #0d9488, #14b8a6); padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #ffffff; margin: 0; font-size: 20px;">Thank You for Contacting Us</h2>
+            <p style="color: #ccfbf1; font-size: 13px; margin-top: 6px;">We have received your message</p>
+          </div>
+
+          <p style="color: #334155; font-size: 15px;">Hello <b>${fullName}</b>,</p>
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            Thank you for reaching out to us. We have successfully received your message and our team will review it and get back to you as soon as possible.
+          </p>
+
+          <div style="background-color: #ffffff; padding: 16px; border-radius: 12px; border-left: 4px solid #14b8a6; margin: 20px 0;">
+            <p style="margin: 4px 0; color: #64748b; font-size: 13px;"><b>Subject:</b> ${subject}</p>
+            <p style="margin: 8px 0 4px 0; color: #64748b; font-size: 13px;"><b>Message:</b></p>
+            <p style="margin: 0; color: #334155; font-size: 13px; background: #f8fafc; padding: 10px; border-radius: 6px; white-space: pre-wrap;">${message}</p>
+          </div>
+
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+          <p style="font-size: 11px; color: #94a3b8; text-align: center;">This is an automated confirmation message from Project Management System.</p>
+        </div>
+      `
+    };
+
+    if (emailPass) {
+      await transporter.sendMail(adminMailOptions);
+      console.log(`[Contact Email Sent] Contact message from ${email} sent to admin (${emailUser})`);
+
+      // Send confirmation to sender (catch error safely so it won't break if recipient email is invalid)
+      try {
+        await transporter.sendMail(senderConfirmationMailOptions);
+      } catch (e) {
+        console.warn(`[Auto-reply Warning] Could not send confirmation copy to sender ${email}:`, e.message);
+      }
+
+      await logEmailActivity({
+        recipientEmail: emailUser,
+        action: 'Send Email (Contact Us Form)',
+        details: `Contact message received from ${fullName} (${email}): "${subject}"`
+      });
+    } else {
+      console.warn(`[Email Warning] EMAIL_PASS is not configured. Skipped sending contact email.`);
+    }
+  } catch (error) {
+    console.error(`[Email Error] Failed to send contact email:`, error.message);
+    throw error;
   }
 }
 
