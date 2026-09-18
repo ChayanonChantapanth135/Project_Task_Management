@@ -173,15 +173,21 @@ const Header = () => {
 
             <div>
               {loading ? (
-                <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin"></div>
+                <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin shrink-0"></div>
               ) : isLoggedIn ? (
-                <Dropdown align="end">
+                <Dropdown align="end" className="shrink-0 flex items-center">
                   <Dropdown.Toggle
                     variant="link"
-                    className="p-0 border-0 flex items-center no-underline focus:ring-0 after:hidden shadow-none"
+                    className="p-0 border-0 flex items-center justify-center no-underline focus:ring-0 after:hidden shadow-none shrink-0"
                     id="dropdown-profile"
+                    style={{ width: "38px", height: "38px" }}
                   >
-                    <div className="p-0.5 rounded-full bg-indigo-600 hover:scale-105 transition-transform">
+                    <div 
+                      className="w-[38px] h-[38px] rounded-full hover:scale-105 transition-transform flex items-center justify-center shrink-0 p-[2px]"
+                      style={{
+                        backgroundColor: "var(--brand-color)",
+                      }}
+                    >
                       {user?.avatar ? (
                         <img
                           src={
@@ -190,12 +196,12 @@ const Header = () => {
                               : `${API_URL}${user.avatar}`
                           }
                           alt="Profile"
-                          className="w-9 h-9 rounded-full object-cover border-2"
+                          className="w-full h-full rounded-full object-cover border-2 shrink-0"
                           style={{ borderColor: "var(--bg-surface)" }}
                         />
                       ) : (
                         <div 
-                          className="w-9 h-9 rounded-full border-2 flex items-center justify-center font-bold text-sm"
+                          className="w-full h-full rounded-full border-2 flex items-center justify-center font-bold text-sm shrink-0"
                           style={{
                             backgroundColor: "var(--bg-surface-hover)",
                             borderColor: "var(--bg-surface)",
@@ -326,10 +332,10 @@ const Header = () => {
               <Dropdown align="end" className="md:hidden">
                 <Dropdown.Toggle
                   variant="link"
-                  className="p-2 rounded-xl transition-colors focus:outline-none border no-underline after:hidden shadow-none flex items-center justify-center"
+                  className="p-2.5 rounded-2xl transition-all focus:outline-none focus:ring-0 border-0 no-underline after:hidden shadow-sm flex items-center justify-center cursor-pointer"
                   style={{
                     backgroundColor: "var(--bg-surface-hover)",
-                    borderColor: "var(--border-surface)",
+                    border: "1px solid var(--border-surface)",
                     color: "var(--text-primary)",
                   }}
                   id="dropdown-mobile-nav"
